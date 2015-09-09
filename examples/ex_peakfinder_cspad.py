@@ -21,17 +21,19 @@ ntest = int(sys.argv[1]) if len(sys.argv)>1 else 1
 print 'Test # %d' % ntest
 
 ##-----------------------------
-SKIP        = 0
-EVTMAX      = 20 + SKIP
+#SKIP        = 0
+#EVTMAX      = 20 + SKIP
+SKIP        = 70024
+EVTMAX      = 1000000 + SKIP
 EVTPLOT     = 1 
-DO_PLOT     = True
+DO_PLOT     = False
 ##-----------------------------
 
 def do_print(i) :
-    return True
+    #return True
     #return False
     #if i==1 : return True
-    #return not i%10
+    return not i%10
 
 ##-----------------------------
     
@@ -152,6 +154,8 @@ peaks = None
 # loop over events in data set
 for i, evt in enumerate(ds.events()) :
 
+    if do_print(i) and i%100==0 : print 'Event %d' % (i)
+
     if i<SKIP    : continue
     if i>=EVTMAX : break
 
@@ -160,15 +164,18 @@ for i, evt in enumerate(ds.events()) :
     #nda = det.calib(evt)
 
     # Apply custom calibration: raw, -peds, -bkgd, *smask, -cmod
-    nda =  np.array(det.raw(evt), dtype=np.float32, copy=True)
-    nda -= nda_peds
-    nda =  subtract_bkgd(nda, nda_bkgd, mask=nda_smask, winds=winds_bkgd, pbits=0)
-    nda *= nda_smask
-    det.common_mode_apply(evt, nda)
+    nda_raw = det.raw(evt)
 
-    #print '  ----> calibration dt = %f sec' % (time()-t1_sec)
+    if nda_raw is not None :
 
-    if nda is not None :
+        nda =  np.array(nda_raw, dtype=np.float32, copy=True)
+        nda -= nda_peds
+        nda =  subtract_bkgd(nda, nda_bkgd, mask=nda_smask, winds=winds_bkgd, pbits=0)
+        nda *= nda_smask
+        det.common_mode_apply(evt, nda)
+
+        #print '  ----> calibration dt = %f sec' % (time()-t1_sec)
+
 
         #print_arr_attr(nda, 'calibrated data')
         t0_sec = time()

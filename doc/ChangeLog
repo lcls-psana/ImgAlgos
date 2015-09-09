@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-03-94
+2015-09-09 Mikhail S. Dubrovin
+- examples/ex_peakfinder_cspad.py - add protection for missing data.
+	
 Tag: V00-03-93
 2015-08-11 Mikhail S. Dubrovin
 - in PyAlgos.py add reshape_nda_to_2d, subtract_bkgd, update doc. (PSAS-147)
