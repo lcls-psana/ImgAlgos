@@ -122,13 +122,14 @@ public:
                         const unsigned pbits=0);
 
   /// Destructor
+  //virtual ~CommonModeCorrection () { delete m_cmod_pars; }
   virtual ~CommonModeCorrection () {}
 
   /**
-   * @brief Evaluate and apply common mode correction
-   * 
-   * ...
+   * @brief Sets pointer to array of common mode parameters.
+   * @param[in] cmod_pars - common mode parameters from calibration file
    */
+  void setCModPars(const common_mode_t* cmod_pars); //  {m_cmod_pars = cmod_pars;}
 
   void printInputPars();
 
@@ -251,6 +252,30 @@ public:
 	}
 
       }
+
+
+      //---------
+      // Algorithm 5 for CSPAD uses unbond pixels
+      else if (mode == 5 && m_dettype == CSPAD) {
+          unsigned ssize = 185*388;
+	  for (unsigned ind = 0; ind<32*ssize; ind+=ssize) {
+	    cmod_corr = applyCModeUnbond<T>(pars, &data[ind], ssize); 
+            if (m_pbits & 128) MsgLog("do_common_mode", info, "alg#5  segment = " << ind/ssize << " common mode = " << cmod_corr);
+	  }
+          return;
+      }
+
+      // Algorithm 5 for CSPAD2X2 uses unbond pixels
+      else if (mode == 5 && m_dettype == CSPAD2X2) {
+	  unsigned ssize = 185*388;
+	  int stride = 2;
+	  for (unsigned seg = 0; seg<2; ++seg) {
+	    cmod_corr = applyCModeUnbond<T>(pars, &data[seg], ssize, stride); 
+            if (m_pbits & 128) MsgLog("do_common_mode", info, "alg#5  segment = " << seg << " common mode = " << cmod_corr);
+	  }
+          return;
+      }
+      //---------
 
 
       // Other algorithms which are not implemented yet

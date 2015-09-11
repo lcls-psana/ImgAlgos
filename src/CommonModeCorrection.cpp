@@ -53,11 +53,16 @@ CommonModeCorrection::CommonModeCorrection (
     const pixel_status_t* status, 
     const unsigned pbits)
   : m_source(source)
-  , m_cmod_pars(cmod_pars)
+  //, m_cmod_pars(cmod_pars)
   , m_size(size)
   , m_status(status)
   , m_pbits(pbits)
 {
+  //m_cmod_pars = new common_mode_t[16];
+  //memcpy(m_cmod_pars, cmod_pars, 16*sizeof(common_mode_t));
+
+  m_cmod_pars = cmod_pars;
+
   m_dettype = detectorTypeForSource(m_source);
   if(m_pbits & 1) printInputPars();
 }
@@ -77,6 +82,20 @@ CommonModeCorrection::printInputPars()
      <<            ", " << m_cmod_pars[2]
      <<            "...\n";
   MsgLog(_name_(), info, ss.str()); 
+}
+
+//--------------------
+void
+CommonModeCorrection::setCModPars(const common_mode_t* cmod_pars)
+{ 
+  m_cmod_pars = cmod_pars;
+  //std::cout << "XXX:TEST CommonModeCorrection::setCModPars\n"; 
+  ////memcpy(m_cmod_pars, cmod_pars, 16*sizeof(common_mode_t));
+  if(m_pbits & 128) {
+      std::stringstream ss; ss << "setCModPars: ";
+      for(int i=0; i<4; ++i) ss << " " << m_cmod_pars[i];
+      MsgLog(_name_(), info, ss.str()); 
+  }
 }
 
 //--------------------

@@ -42,6 +42,10 @@ using namespace std;
 //--------------------
 
  const static int UnknownCM = -10000; 
+ const static unsigned ROWS2X1   = 185; 
+ const static unsigned COLS2X1   = 388; 
+ const static unsigned SIZE2X1   = ROWS2X1*COLS2X1; 
+ const static unsigned COLSHALF  = COLS2X1/2;
 
 //--------------------
 // Code from ami/event/FrameCalib.cc
@@ -451,6 +455,52 @@ template <typename T>
         }
       }
   }
+
+
+//--------------------
+  /**
+   *  Find common mode for CSPAD 2x1 section using unbond pixels.
+   *
+   *  @param pars   array[1] of control parameters; mean_max - maximal allowed correction
+   *  @param sdata  pixel data
+   *  @param ssize  size of data array (188*388)
+   *  @param stride increment for pixel indices
+   */ 
+   //float cm_corr = applyCModeUnbond<T>(pars, sdata, ssize, stride); 
+
+template <typename T>
+float 
+applyCModeUnbond( const double* pars,
+                  T* sdata,
+                  unsigned ssize,
+                  int stride = 1
+                )
+{
+  int    npix = 0;
+  double mean = 0;
+  int    ind  = 0;
+
+  //skip p=0 in the corner
+  for (size_t r=10; r<ROWS2X1; r+=10) {      
+    ind = (r*COLS2X1 + r)*stride;
+    mean += sdata[ind] + sdata[ind+COLSHALF*stride];
+    npix += 2; 
+  }
+
+  mean = (npix>0) ? mean/npix : 0;
+
+  //std::cout << "XXX: applyCModeUnbond mean = " << mean << " evaluated for npix = " << npix << '\n';
+
+  // limit common mode correction to some reasonable numbers
+  if (abs(mean) > pars[0]) return float(UnknownCM);
+
+  //--------------------
+  // subtract CM 
+  for (unsigned c=0, p=0; c<ssize; ++c, p += stride) {
+        sdata[p] -= mean;
+  } 
+  return (float)mean;
+}
 
 //--------------------
 
