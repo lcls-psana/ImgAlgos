@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-03-96
+2015-09-28 Mikhail S. Dubrovin
+- AlgArrProc, AlgImgProc - fix issue with dynamic reservation of peak vectors size (PSAS-147)
+
 Tag: V00-03-95
 2015-09-11 Mikhail S. Dubrovin
 - CommonModeCorrection.h and CommonMode.h - add setCModPars, applyCModeUnbond, cmode=5 (PSAS-139)

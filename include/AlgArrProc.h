@@ -253,7 +253,7 @@ public:
 
     if(data.empty()) return false;
 
-    m_ndim   = NDim;
+    m_ndim = NDim;
     if(m_ndim < 2) throw std::runtime_error("Non-acceptable number of dimensions < 2 in input ndarray");
 
     m_dtype  = dataType<T>();
@@ -269,7 +269,7 @@ public:
 
     if(v_winds.empty()) {
         // ALL segments will be processed
-        if(m_pbits & 256) MsgLog(_name(), info, "List of windows is empty, all sensors will be processed.")
+        if(m_pbits & 256) MsgLog(_name(), info, "List of windows is empty, all sensors will be processed, number of windows = " << m_nsegs)
         v_algip.reserve(m_nsegs);
       
         for(size_t seg=0; seg<m_nsegs; ++seg) {            
@@ -281,7 +281,9 @@ public:
     }
     else {
         // Windows ONLY will be processed
-        if(m_pbits & 256) MsgLog(_name(), info, "Windows from the list will be processed.")
+        if(m_pbits & 256) MsgLog(_name(), info, "Windows from the list will be processed, number of windows = " << v_winds.size())
+	v_algip.reserve(v_winds.size());
+
         for(std::vector<Window>::iterator it = v_winds.begin(); it != v_winds.end(); ++ it) {
             AlgImgProc* p_alg = new AlgImgProc(it->segind, it->rowmin, it->rowmax, it->colmin, it->colmax , m_pbits);
             v_algip.push_back(p_alg); 

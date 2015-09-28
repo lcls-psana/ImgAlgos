@@ -34,8 +34,10 @@ AlgImgProc::AlgImgProc ( const size_t&   seg
                        , const size_t&   colmin
                        , const size_t&   colmax
 		       , const unsigned& pbits
+		       , const unsigned& npksmax
                        )
   : m_pbits(pbits)
+  , m_npksmax(npksmax)
   , m_seg(seg)
   , m_init_son_is_done(false)
   , m_r0(5)
@@ -51,6 +53,19 @@ AlgImgProc::AlgImgProc ( const size_t&   seg
   m_win.set(seg, rowmin, rowmax, colmin, colmax);
 
   if(m_pbits & 2) printInputPars();
+
+  v_peaks_work.reserve(m_npksmax);
+  v_peaks.reserve(m_npksmax);
+  v_peaks_sel.reserve(m_npksmax);
+}
+
+//--------------------
+
+AlgImgProc::~AlgImgProc() 
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in d-tor ~AlgImgProc, seg=" << m_seg);
+  //v_peaks.resize(0); 
+  //v_peaks_work.resize(0);
 }
 
 //--------------------
@@ -61,11 +76,8 @@ AlgImgProc::printInputPars()
   std::stringstream ss; 
   ss << "printInputPars:\n"
      << "\npbits   : " << m_pbits
-     << "\nseg     : " << m_win.segind
-     << "\nrowmin  : " << m_win.rowmin
-     << "\nrowmax  : " << m_win.rowmax
-     << "\ncolmin  : " << m_win.colmin
-     << "\ncolmax  : " << m_win.colmax  
+     << "\nnpksmax : " << m_npksmax
+     << "\nwindow  : " << m_win
      << '\n';
   //ss << "\nrmin    : " << m_r0
   //   << "\ndr      : " << m_dr
@@ -80,7 +92,10 @@ AlgImgProc::printInputPars()
 void 
 AlgImgProc::_makeMapOfConnectedPixels()
 {
-  m_conmap = make_ndarray<conmap_t>(m_pixel_status.shape()[0], m_pixel_status.shape()[1]);
+
+  //if(m_conmap.size()==0) 
+  if(m_conmap.empty()) 
+     m_conmap = make_ndarray<conmap_t>(m_pixel_status.shape()[0], m_pixel_status.shape()[1]);
 
   std::fill_n(m_conmap.data(), int(m_pixel_status.size()), conmap_t(0));
   m_numreg=0;
@@ -90,6 +105,8 @@ AlgImgProc::_makeMapOfConnectedPixels()
 
       if(!(m_pixel_status[r][c] & 1)) continue;
       ++ m_numreg;
+      //if(m_numreg == m_npksmax) break;
+
       _findConnectedPixels(r, c);
     }
   }
@@ -109,10 +126,10 @@ AlgImgProc::_findConnectedPixels(const unsigned& r, const unsigned& c)
   m_pixel_status[r][c] ^= 1; // set the 1st bit to zero.
   m_conmap[r][c] = m_numreg;
 
-  if(  r+1 < m_win.rowmax ) _findConnectedPixels(r+1, c);
-  if(  c+1 < m_win.colmax ) _findConnectedPixels(r, c+1);
-  if(!(r-1 < m_win.rowmin)) _findConnectedPixels(r-1, c);
-  if(!(c-1 < m_win.colmin)) _findConnectedPixels(r, c-1);  
+  if(  r+1 < m_win.rowmax  ) _findConnectedPixels(r+1, c);
+  if(  c+1 < m_win.colmax  ) _findConnectedPixels(r, c+1);
+  if(!(r-1 < m_win.rowmin) ) _findConnectedPixels(r-1, c);
+  if(!(c-1 < m_win.colmin) ) _findConnectedPixels(r, c-1);  
 }
 
 //--------------------
@@ -144,7 +161,7 @@ AlgImgProc::_peakIsPreSelected(const Peak& peak)
 bool
 AlgImgProc::_peakIsSelected(const Peak& peak)
 {
-  if (peak.son     < m_peak_son_min ) return false;
+  if (peak.son < m_peak_son_min) return false;
   return true;
 }
 
@@ -156,15 +173,14 @@ AlgImgProc::_makeVectorOfPeaks()
   if(m_pbits & 512) MsgLog(_name(), info, "in _makeVectorOfPeaks, seg=" << m_seg << " m_numreg=" << m_numreg);
   //m_peaks = make_ndarray<Peak>(m_numreg);
 
-  v_peaks.clear();
-
   if(m_numreg==0) return;
 
-  v_peaks.reserve(m_numreg);
+  //v_peaks.reserve(m_numreg+1); // this does not always work
+  v_peaks.clear();
 
-  for(unsigned i=0; i<m_numreg; i++) {
+  for(unsigned i=0; i<min(m_numreg, m_npksmax); i++) {
 
-    PeakWork& pw = v_peaks_work[i+1]; // region numbers begin from 1
+    PeakWork& pw = v_peaks_work[i+1]; // region number begins from 1
 
     if(! _peakWorkIsPreSelected(pw)) continue;
 

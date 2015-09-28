@@ -25,7 +25,7 @@
 #include "PSCalib/CalibPars.h"  // for pixel_mask_t
 #include "MsgLogger/MsgLogger.h"
 #include "ndarray/ndarray.h"
-#include "ImgAlgos/GlobalMethods.h"
+#include "ImgAlgos/GlobalMethods.h" // TwoIndexes
 #include "ImgAlgos/Window.h"
 
 
@@ -49,7 +49,7 @@ namespace ImgAlgos {
 
 struct PeakWork{
   unsigned  peak_npix;
-  unsigned  peak_ireg;
+  uint32_t  peak_ireg;
   unsigned  peak_row;
   unsigned  peak_col;
   double    peak_amax;
@@ -64,7 +64,7 @@ struct PeakWork{
   unsigned  peak_cmax;   
 
   PeakWork( const unsigned& npix=0
-	  , const unsigned& ireg=0
+	  , const uint32_t& ireg=0
 	  , const unsigned& row=0
 	  , const unsigned& col=0
 	  , const double&   amax=0
@@ -160,7 +160,10 @@ struct SoNResult {
   double sig; // raw-avg
   double son; // sig/rms
 
-  SoNResult(const double& av=0, const double& rm=0, const double& sg=0, const double& sn=0) :
+  SoNResult(const double& av=0, 
+            const double& rm=0, 
+            const double& sg=0, 
+            const double& sn=0) :
     avg(av), rms(rm), sig(sg), son(sn) {}
 
   SoNResult& operator=(const SoNResult& rhs) {
@@ -274,7 +277,7 @@ public:
   typedef unsigned shape_t;
   typedef PSCalib::CalibPars::pixel_mask_t mask_t;
   typedef uint32_t conmap_t;
-  typedef PSCalib::CalibPars::pixel_status_t  pixel_status_t;   // uint16_t pixel_status_t;
+  typedef uint16_t pixel_status_t; // PSCalib::CalibPars::pixel_status_t  pixel_status_t;   
   typedef float son_t;
 
   /**
@@ -288,22 +291,23 @@ public:
    * @param[in] pbits  - print control bit-word; =0-print nothing, +1-input parameters, +2-algorithm area, +128-all details.
    */
 
-  AlgImgProc( const size_t&   seg     =-1
+  AlgImgProc( const size_t&   seg
 	    , const size_t&   rowmin  = 0
 	    , const size_t&   rowmax  = 1e6
 	    , const size_t&   colmin  = 0
 	    , const size_t&   colmax  = 1e6
 	    , const unsigned& pbits   = 0
+	    , const unsigned& npksmax = 10000
 	    ) ;
 
   /// Destructor
-  virtual ~AlgImgProc () {}
+  virtual ~AlgImgProc();
 
   /// Prints memeber data
   void printInputPars();
 
   /// Set segment index in the >2-d ndarray
-  void setSegment(const size_t& seg=-1){ m_seg = seg; }
+  //void setSegment(const size_t& seg){ m_seg = seg; }
 
   /**
    * @brief Set median (S/N) algorithm parameters
@@ -345,6 +349,7 @@ public:
 private:
 
   unsigned m_pbits;    // pirnt control bit-word
+  unsigned m_npksmax;  // maximal number of peaks in segment/window
   size_t   m_seg;      // segment index (for ndarray with ndim>2)
 
   Window   m_win;      // work area window
@@ -352,7 +357,7 @@ private:
   bool     m_init_son_is_done; // for S/N algorithm
   bool     m_use_mask;
 
-  unsigned m_numreg;
+  conmap_t m_numreg;
 
   float    m_r0;       // radial parameter of the ring for S/N evaluation algorithm
   float    m_dr;       // ring width for S/N evaluation algorithm 
@@ -424,15 +429,16 @@ _makeMapOfPixelStatus( const ndarray<const T,2>&      data
                      , const T& thr
                      )
 {
-  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfPixelStatus, seg=" << m_seg << " thr=" << thr);
-  if(m_pbits & 512) m_win.print();
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfPixelStatus, seg=" << m_seg << " thr=" << thr << "\n    in window: " << m_win);
+  //if(m_pbits & 512) m_win.print();
 
-  m_pixel_status = make_ndarray<pixel_status_t>(data.shape()[0], data.shape()[1]);
-  for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
-    for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      m_pixel_status[r][c] = (mask[r][c] && (data[r][c]>thr)) ? 1 : 0;
-    }
-  }
+  //if(m_pixel_status.size()==0) 
+  if(m_pixel_status.empty()) 
+     m_pixel_status = make_ndarray<pixel_status_t>(data.shape()[0], data.shape()[1]);
+
+  for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
+    for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
+      m_pixel_status[r][c] = (mask[r][c] && (data[r][c]>thr)) ? 255 : 0;
 }
 
 //--------------------
@@ -450,20 +456,43 @@ _procConnectedPixels(const ndarray<const T,2>& data)
   if(m_pbits & 512) MsgLog(_name(), info, "in _procConnectedPixels, seg=" << m_seg);
   //if(m_pbits & 512) m_win.print();
 
-  v_peaks_work.clear();
-
   if(m_numreg==0) return;
+  //if(m_numreg>8190) return;
 
-  v_peaks_work.reserve(m_numreg+1); // use numeration from 1
   PeakWork pw0; // def init with 0
   pw0.peak_cmin = m_win.colmax;
   pw0.peak_rmin = m_win.rowmax;
-  std::fill_n(&v_peaks_work[0], int(m_numreg+1), pw0);
+
+  // Next line does not work when vector is large.
+  //if(v_peaks_work.capacity() < m_numreg+1) v_peaks_work.reserve(m_numreg+1); // use numeration from 1
+  v_peaks_work.clear();
+
+  //std::fill_n(&v_peaks_work[0], int(m_numreg+1), pw0);
+  for(unsigned reg = 0; reg < min(m_numreg+1, m_npksmax); reg++)
+    v_peaks_work.push_back(pw0);
+
+  //std::cout << "\nXXXIII:Point 3";
+  //std::cout << "  m_numreg: " << m_numreg;
+  //std::cout << "  v_peaks_work.size(): " << v_peaks_work.size();
+  //std::cout << "  v_peaks_work.capacity(): " << v_peaks_work.capacity();
+  //std::cout << '\n';
+  //std::cout << "  m_win: " << m_win;
+  //std::cout << "\n  m_pixel_status.size(): " << m_pixel_status.size();
+  //std::cout << "  m_conmap.size(): " << m_conmap.size();
+  //std::cout << '\n';
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      unsigned ireg = m_conmap[r][c];
-      if(! ireg) continue;
+      conmap_t ireg = m_conmap[r][c];
+
+      if(ireg<1) continue;
+
+      if(!(ireg<m_npksmax)) {
+         MsgLog(_name(), warning, "Number of peak regions: " << ireg 
+		<< " reached the max reserved number of peaks: " << m_npksmax
+                << " in segment: " << m_seg);
+         break;
+      }
 
       //std::cout << " reg=" << ireg;
 
@@ -602,7 +631,7 @@ _procDroplet( const ndarray<const T,2>&      data
   peak.noise     = 0; //sonres.rms;
   peak.son       = 0; //sonres.son;
 
-  if(_peakIsPreSelected(peak)) v_peaks.push_back(peak);
+  if(_peakIsPreSelected(peak) && v_peaks.size()<m_npksmax-1) v_peaks.push_back(peak);
 }
 //--------------------
   /**
@@ -757,10 +786,9 @@ peakFinder( const ndarray<const T,2>&      data
 	  , const float dr = 0.05
           )
 {
-  if(m_pbits & 512) MsgLog(_name(), info, "in peakFinder, seg=" << m_seg);
-
   m_win.validate(data.shape());
 
+  if(m_pbits & 512) MsgLog(_name(), info, "in peakFinder, seg=" << m_seg << " win" << m_win);
   _makeMapOfPixelStatus<T>(data, mask, thr);
   _makeMapOfConnectedPixels();
   _procConnectedPixels<T>(data);
@@ -817,8 +845,8 @@ evaluateSoNForPixel( const unsigned& row
     int ir = row + (ij->i);
     int ic = col + (ij->j);
 
-    if(ic < (int)m_win.colmin || ic > (int)m_win.colmax) continue;
-    if(ir < (int)m_win.rowmin || ir > (int)m_win.rowmax) continue;
+    if(ic < (int)m_win.colmin || !(ic < (int)m_win.colmax)) continue;
+    if(ir < (int)m_win.rowmin || !(ir < (int)m_win.rowmax)) continue;
     if(m_use_mask && (! mask[ir][ic])) continue;
 
     amp = (double)data[ir][ic];

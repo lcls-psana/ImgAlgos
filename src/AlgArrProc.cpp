@@ -85,7 +85,7 @@ AlgArrProc::AlgArrProc(ndarray<const wind_t,2> nda_winds, const unsigned& pbits)
 AlgArrProc::~AlgArrProc () 
 { 
     if(m_pbits & 256) MsgLog(_name(), info, "in d-tor ~AlgArrProc");
-    for(std::vector<AlgImgProc*>::iterator it = v_algip.begin(); it != v_algip.end(); ++it) delete *it;
+    //for(std::vector<AlgImgProc*>::iterator it = v_algip.begin(); it != v_algip.end(); ++it) delete *it;
     delete m_mask_def; 
 }
 
@@ -96,6 +96,7 @@ AlgArrProc::setWindows(ndarray<const wind_t,2> nda_winds)
 {
   if(m_pbits & 256) MsgLog(_name(), info, "in setWindows");
 
+  v_winds.reserve(nda_winds.shape()[0]);
   v_winds.clear();
 
   for( unsigned i=0; i < nda_winds.shape()[0]; ++i) {
@@ -174,9 +175,9 @@ const ndarray<const float, 2>
 AlgArrProc::_ndarrayOfPeakPars(const unsigned& npeaks)
 {
     if(m_pbits & 256) MsgLog(_name(), info, "in _ndarrayOfPeakPars, npeaks = " << npeaks);
-    if(m_pbits & 1) MsgLog(_name(), info, "List of found peaks, npeaks = " << npeaks); 
 
     unsigned sizepk = sizeof(Peak) / sizeof(float);
+    if(m_pbits & 1) MsgLog(_name(), info, "List of found peaks, npeaks = " << npeaks << " peak size = " << sizepk); 
 
     ndarray<float, 2> nda = make_ndarray<float>(npeaks,sizepk);
 
