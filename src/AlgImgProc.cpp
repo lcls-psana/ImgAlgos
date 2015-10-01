@@ -226,6 +226,35 @@ AlgImgProc::_makeVectorOfSelectedPeaks()
 //--------------------
 
 void 
+AlgImgProc::_evaluateDiagIndexes(const size_t& rank)
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _evaluateDiagIndexes, seg=" << m_seg << " rank=" << rank);
+
+  m_rank = rank;
+  v_inddiag.clear();
+
+  int indmax =  m_rank;
+  int indmin = -m_rank;
+
+  for (int i = indmin; i <= indmax; ++ i) {
+    for (int j = indmin; j <= indmax; ++ j) {
+
+      // use rectangular region of radius = rank
+      // remove already tested central row and column
+      if (i==0 || j==0) continue;
+      // use ring region (if un-commented)
+      //if (m_rank>2 && floor(std::sqrt(float(i*i + j*j)))>(int)m_rank) continue;
+      TwoIndexes inds = {i,j};
+      v_inddiag.push_back(inds);
+    }
+  }
+
+  if(m_pbits & 2) printMatrixOfDiagIndexes();
+}
+
+//--------------------
+
+void 
 AlgImgProc::_evaluateRingIndexes(const float& r0, const float& dr)
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _evaluateRingIndexes, seg=" << m_seg << " r0=" << r0 << " dr=" << dr);
@@ -313,6 +342,51 @@ AlgImgProc::printVectorOfRingIndexes()
   int n_pairs_in_line=0;
   for( vector<TwoIndexes>::const_iterator ij  = v_indexes.begin();
                                           ij != v_indexes.end(); ij++ ) {
+    ss << " (" << ij->i << "," << ij->j << ")";
+    if ( ++n_pairs_in_line > 9 ) {ss << "\n"; n_pairs_in_line=0;}
+  }   
+
+  MsgLog(_name(), info, ss.str());
+}
+
+//--------------------
+
+void 
+AlgImgProc::printMatrixOfDiagIndexes()
+{
+  int indmax =  m_rank;
+  int indmin = -m_rank;
+
+  std::stringstream ss; 
+  ss << "printMatrixOfDiagIndexes(), seg=" << m_seg << "  rank=" << m_rank << '\n';
+
+  for (int i = indmin; i <= indmax; ++ i) {
+    for (int j = indmin; j <= indmax; ++ j) {
+      int status = 1;
+      if (i==0 || j==0) status = 0;
+      if (m_rank>2 && floor(std::sqrt(float(i*i + j*j)))>(int)m_rank) status = 0;
+
+      if (i==0 && j==0) ss << " +";
+      else              ss << " " << status;
+    }
+    ss << '\n';
+  }
+
+  MsgLog(_name(), info, ss.str());
+}
+
+//--------------------
+
+void 
+AlgImgProc::printVectorOfDiagIndexes()
+{
+  if(v_inddiag.empty()) _evaluateDiagIndexes(m_rank);
+
+  std::stringstream ss; 
+  ss << "printVectorOfDiagIndexes():\n Vector size: " << v_inddiag.size() << '\n';
+  int n_pairs_in_line=0;
+  for( vector<TwoIndexes>::const_iterator ij  = v_inddiag.begin();
+                                          ij != v_inddiag.end(); ij++ ) {
     ss << " (" << ij->i << "," << ij->j << ")";
     if ( ++n_pairs_in_line > 9 ) {ss << "\n"; n_pairs_in_line=0;}
   }   

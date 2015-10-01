@@ -11,6 +11,7 @@ using namespace ImgAlgos;
 typedef ImgAlgos::AlgArrProc::mask_t mask_t;      // uint16_t
 typedef ImgAlgos::AlgArrProc::wind_t wind_t;      // uint32_t
 typedef ImgAlgos::AlgImgProc::conmap_t conmap_t;  // uint32_t
+typedef ImgAlgos::AlgImgProc::pixel_maximums_t pixel_maximums_t; //uint16_t
 
 //-------------------
 
@@ -73,6 +74,22 @@ ndarray<const float, 2> (AlgArrProc::*p_pfv02_s3) (ndarray<const int16_t, 3>, nd
 ndarray<const float, 2> (AlgArrProc::*p_pfv02_u3) (ndarray<const uint16_t,3>, ndarray<const mask_t,3>, const uint16_t&, const float&, const float&) = &AlgArrProc::peakFinder<uint16_t,3>;
 
 ndarray<const conmap_t, 3> (AlgArrProc::*p_get_pfv02) () = &AlgArrProc::mapsOfConnectedPixels;
+
+//-------------------
+
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_f2) (ndarray<const float,   2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<float,   2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_d2) (ndarray<const double,  2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<double,  2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_i2) (ndarray<const int,     2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<int,     2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_s2) (ndarray<const int16_t, 2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<int16_t, 2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_u2) (ndarray<const uint16_t,2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<uint16_t,2>;
+																		  
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_f3) (ndarray<const float,   3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<float,   3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_d3) (ndarray<const double,  3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<double,  3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_i3) (ndarray<const int,     3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<int,     3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_s3) (ndarray<const int16_t, 3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<int16_t, 3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_u3) (ndarray<const uint16_t,3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<uint16_t,3>;
+
+ndarray<const pixel_maximums_t, 3> (AlgArrProc::*p_get_pfv03) () = &AlgArrProc::mapsOfLocalMaximums;
 
 //-------------------
 //void (AlgArrProc::*p_set01) (const float&, const float&) = &AlgArrProc::setSoNPars;
@@ -150,6 +167,20 @@ BOOST_PYTHON_MODULE(imgalgos_ext)
     .def("peak_finder_v2_u3", p_pfv02_u3)
 
     .def("maps_of_connected_pixels", p_get_pfv02)
+
+    .def("peak_finder_v3_f2", p_pfv03_f2)
+    .def("peak_finder_v3_d2", p_pfv03_d2)
+    .def("peak_finder_v3_i2", p_pfv03_i2)
+    .def("peak_finder_v3_s2", p_pfv03_s2)
+    .def("peak_finder_v3_u2", p_pfv03_u2)
+    	   
+    .def("peak_finder_v3_f3", p_pfv03_f3)
+    .def("peak_finder_v3_d3", p_pfv03_d3)
+    .def("peak_finder_v3_i3", p_pfv03_i3)
+    .def("peak_finder_v3_s3", p_pfv03_s3)
+    .def("peak_finder_v3_u3", p_pfv03_u3)
+
+    .def("maps_of_local_maximums", p_get_pfv03)
   ;
 }
 

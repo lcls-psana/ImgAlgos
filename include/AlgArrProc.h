@@ -104,6 +104,7 @@ namespace ImgAlgos {
  *                                   (1, 10, 103, 250, 380));
  *  float       r0 = 5;
  *  float       dr = 0.05;
+ *  size_t      rank = 2;
  *  @endcode
  *
  *
@@ -119,8 +120,9 @@ namespace ImgAlgos {
  *  @code
  *  unsigned npix = alg->numberOfPixAboveThr<T>(data, mask, thr);
  *  double intensity = alg->intensityOfPixAboveThr<T>(data, mask, thr);
- *  ndarray<const float, 2> peaks = alg->dropletFinder<T>(data, mask, thr_low, hr_high, radius, dr=0.05);
- *  ndarray<const float, 2> peaks = alg->peakFinder<T>(data, mask, thr, r0, dr=0.05);
+ *  ndarray<const float, 2> peaks = alg->dropletFinder<T>(data, mask, thr_low, hr_high, radius, dr);
+ *  ndarray<const float, 2> peaks = alg->peakFinder<T>(data, mask, thr, r0, dr);
+ *  ndarray<const float, 2> peaks = alg->peakFinderV3<T>(data, mask, rank, r0, dr);
  *  
  *  // Call after peakFinder(...) ONLY!
  *  ndarray<conmap_t, 3> maps =  alg->mapsOfConnectedPixels();
@@ -146,6 +148,7 @@ public:
   typedef PSCalib::CalibPars::pixel_mask_t mask_t;
   typedef uint32_t wind_t;
   typedef AlgImgProc::conmap_t conmap_t;
+  typedef AlgImgProc::pixel_maximums_t pixel_maximums_t;
 
   /*
   typedef unsigned shape_t;
@@ -190,6 +193,7 @@ public:
 
   /// Returns 3-d array of maps of connected pixels for all segments, works after peakFinder(...) ONLY!
   ndarray<const conmap_t, 3> mapsOfConnectedPixels();
+  ndarray<const pixel_maximums_t, 3> mapsOfLocalMaximums();
 
   /// Destructor
   virtual ~AlgArrProc (); 
@@ -418,6 +422,39 @@ public:
 	const ndarray<const mask_t,2> seg_mask(&m_mask[ind], m_sshape);
 
         std::vector<Peak>& peaks = (*it) -> peakFinder<T>(seg_data, seg_mask, thr, r0, dr);
+	npeaks += peaks.size();
+    }
+
+    if(m_pbits & 256) MsgLog(_name(), info, "total number of peaks=" << npeaks);    
+
+    return _ndarrayOfPeakPars(npeaks);
+  }
+
+//--------------------
+//--------------------
+
+  template <typename T, unsigned NDim>
+  ndarray<const float, 2>
+  peakFinderV3( const ndarray<const T, NDim> data
+              , const ndarray<const mask_t, NDim> mask
+              , const size_t& rank = 2
+	      , const float& r0=5
+              , const float& dr=0.05
+              )
+  {
+    if(m_pbits & 256) MsgLog(_name(), info, "in peakFinderV3");
+
+    if(! _initAlgImgProc<T,NDim>(data, mask)) { ndarray<const float, 2> empty; return empty; }
+
+    unsigned npeaks = 0;
+
+    for (std::vector<AlgImgProc*>::iterator it = v_algip.begin(); it != v_algip.end(); ++it) {
+
+        size_t ind = (*it)->segind() * m_stride;              
+	const ndarray<const T,2>      seg_data(&data.data()[ind], m_sshape);
+	const ndarray<const mask_t,2> seg_mask(&m_mask[ind], m_sshape);
+
+        std::vector<Peak>& peaks = (*it) -> peakFinderV3<T>(seg_data, seg_mask, rank, r0, dr);
 	npeaks += peaks.size();
     }
 

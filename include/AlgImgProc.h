@@ -257,6 +257,9 @@ struct SoNResult {
  *
  *   // call after peakFinder ONLY!
  *   ndarray<conmap_t, 2>& conmap = aip -> mapOfConnectedPixels();
+ *
+ *   // call after peakFinderV3 ONLY!
+ *   ndarray<pixel_maximums_t, 2>& locmaxmap = aip -> mapOfLocalMaximums();
  *  @endcode
  *
  *
@@ -277,7 +280,8 @@ public:
   typedef unsigned shape_t;
   typedef PSCalib::CalibPars::pixel_mask_t mask_t;
   typedef uint32_t conmap_t;
-  typedef uint16_t pixel_status_t; // PSCalib::CalibPars::pixel_status_t  pixel_status_t;   
+  typedef uint16_t pixel_status_t;
+  typedef uint16_t pixel_maximums_t;
   typedef float son_t;
 
   /**
@@ -338,9 +342,16 @@ public:
   /// Returns map of connected pixels after peakFinder(.)
   ndarray<conmap_t, 2>& mapOfConnectedPixels() { return m_conmap; }
 
-  /// Prints indexes
+  /// Returns map of local maximums after peakFinderV3(.)
+  ndarray<pixel_maximums_t, 2>& mapOfLocalMaximums() { return m_local_maximums; }
+
+  /// Prints indexes for S/N algorithm
   void printMatrixOfRingIndexes();
   void printVectorOfRingIndexes();
+
+  /// Prints indexes for peakFinderV3 algorithm
+  void printMatrixOfDiagIndexes();
+  void printVectorOfDiagIndexes();
 
   // Copy constructor and assignment are disabled by default
   AlgImgProc ( const AlgImgProc& ) ;
@@ -361,6 +372,7 @@ private:
 
   float    m_r0;       // radial parameter of the ring for S/N evaluation algorithm
   float    m_dr;       // ring width for S/N evaluation algorithm 
+  size_t   m_rank;     // rank of maximum for peakFinderV3
 
   SoNResult m_sonres_def;
 
@@ -372,12 +384,14 @@ private:
 
   //Peak     m_peak;
 
-  ndarray<pixel_status_t, 2> m_pixel_status;
-  ndarray<conmap_t, 2>       m_conmap;
-  std::vector<PeakWork>      v_peaks_work;
-  std::vector<Peak>          v_peaks;
-  std::vector<Peak>          v_peaks_sel;
-  std::vector<TwoIndexes>    v_indexes;
+  ndarray<pixel_status_t, 2>   m_pixel_status;
+  ndarray<pixel_maximums_t, 2> m_local_maximums;
+  ndarray<conmap_t, 2>         m_conmap;
+  std::vector<PeakWork>        v_peaks_work;
+  std::vector<Peak>            v_peaks;
+  std::vector<Peak>            v_peaks_sel;
+  std::vector<TwoIndexes>      v_indexes;
+  std::vector<TwoIndexes>      v_inddiag;
 
   //ndarray<Peak, 1>           m_peaks;
   // mask_t*                    m_seg_mask_def;
@@ -385,8 +399,6 @@ private:
 
   /// Returns string name of the class for messanger
   inline const char* _name() {return "ImgAlgos::AlgImgProc";}
-
-  //std::vector<TwoIndexes> v_indexes;
 
   /// Recursive method which checks m_pixel_status[r][c] and numerates connected regions in m_conmap[r][c].
   void _findConnectedPixels(const unsigned& r, const unsigned& c);
@@ -409,9 +421,11 @@ private:
   /// Makes vector of selected peaks v_peaks_sel from v_peaks
   void _makeVectorOfSelectedPeaks();
 
-  /// Evaluate ring indexes for median algorithm
+  /// Evaluate ring indexes for S/N algorithm
   void _evaluateRingIndexes(const float& r0, const float& dr);
 
+  /// Evaluate "diagonal" region indexes for peakFinderV3
+  void _evaluateDiagIndexes(const size_t& rank);
 
 //--------------------
   /**
@@ -523,6 +537,210 @@ _procConnectedPixels(const ndarray<const T,2>& data)
 
 //--------------------
   /**
+   * @brief Makes map of local maximums of requested rank
+   * 
+   * Map of local maximums is a 2-d array of unsigned integer values of data shape, 
+   * it has 0/1/2/4 bits for non-maximum / maximum in column / maximum in row / local maximum in rectangle of radius rank.   
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   */
+
+template <typename T>
+void
+_makeMapOfLocalMaximums( const ndarray<const T,2>&      data
+                       , const ndarray<const mask_t,2>& mask
+                       , const size_t& rank
+                       )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfLocalMaximums, seg=" << m_seg << " rank=" << rank << "\n    in window: " << m_win);
+  //if(m_pbits & 512) m_win.print();
+
+  // initialization of indexes
+  if(v_inddiag.empty()) _evaluateDiagIndexes(rank);
+
+  if(m_local_maximums.empty()) 
+     m_local_maximums = make_ndarray<pixel_maximums_t>(data.shape()[0], data.shape()[1]);
+  std::fill_n(&m_local_maximums[0][0], int(data.size()), pixel_maximums_t(0));
+
+  unsigned rmin = max((int)m_win.rowmin, int(0+rank));
+  unsigned rmax = min((int)m_win.rowmax, int(data.shape()[0]-rank));
+  unsigned cmin = max((int)m_win.colmin, int(0+rank));
+  unsigned cmax = min((int)m_win.colmax, int(data.shape()[1]-rank));
+
+
+  // check rank maximum in columns and set the 1st bit (1)
+  for(unsigned r = rmin; r<rmax; r++) {
+    for(unsigned c = cmin; c<cmax; c++) {
+      if(!mask[r][c]) continue;
+      m_local_maximums[r][c] = 1;
+      int cp=c; 
+      int cm=c;
+      for(unsigned d=0; d<rank; ++d) {
+        cp++; cm--;
+	if((mask[r][cp] && data[r][cp] > data[r][c]) 
+	|| (mask[r][cm] && data[r][cm] > data[r][c])) {
+          m_local_maximums[r][c] &=~1; // clear 1st bit
+	  break;
+	}
+      }
+      // (r,c) is a local peak, jump ahead through the tested rank range
+      if(m_local_maximums[r][c] & 1) c+=rank;
+    }
+  }
+
+  // check rank maximum in rows and set the 2nd bit (2)
+  for(unsigned c = cmin; c<cmax; c++) {
+    for(unsigned r = rmin; r<rmax; r++) {
+      // if it is not a local maximum from previous algorithm
+      if(!m_local_maximums[r][c]) continue;
+      m_local_maximums[r][c] |= 2; // set 2nd bit
+      int rp=r; 
+      int rm=r;
+      for(unsigned d=0; d<rank; ++d) { 
+        rp++; rm--;
+	if((mask[rp][c] && data[rp][c] > data[r][c])
+	|| (mask[rm][c] && data[rm][c] > data[r][c])) {
+          m_local_maximums[r][c] &=~2; // clear 2nd bit
+	  break;
+	}
+      }
+      // if (r,c) is a local peak, jump ahead through the tested rank range
+      if(m_local_maximums[r][c] & 2) r+=rank;
+    }
+  }
+
+  // check rank maximum in "diagonal" regions and set the 3rd bit (4)
+  for(unsigned r = rmin; r<rmax; r++) {
+    for(unsigned c = cmin; c<cmax; c++) {
+      // if it is not a local maximum from two previous algorithm
+      if(!(m_local_maximums[r][c] & 2)) continue;
+      m_local_maximums[r][c] |= 4; // set 3rd bit
+
+      for(vector<TwoIndexes>::const_iterator ij  = v_inddiag.begin();
+                                             ij != v_inddiag.end(); ij++) {
+        int ir = r + (ij->i);
+        int ic = c + (ij->j);
+
+	if(mask[ir][ic] && data[ir][ic] > data[r][c]) {
+          m_local_maximums[r][c] &=~4; // clear 3rd bit
+	  break;
+	}
+      }
+      // (r,c) is a local peak, jump ahead through the tested rank range
+      if(m_local_maximums[r][c] & 4) c+=rank;
+    }
+  }
+}
+
+//--------------------
+  /**
+   * @brief _procLocalMaximum - process local maximum and fill pre-selected peak in v_peaks
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   * @param[in]  r0 - droplet central pixel row-coordinate 
+   * @param[in]  c0 - droplet central pixel column-coordinate   
+   */
+
+template <typename T>
+void
+_procLocalMaximum( const ndarray<const T,2>&      data
+                 , const ndarray<const mask_t,2>& mask
+                 , const size_t& rank
+                 , const unsigned& r0
+                 , const unsigned& c0
+            )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _procLocalMaximum, seg=" << m_seg << " r0=" << r0 << " c0=" << c0 << " rank=" << rank);
+
+  double   a0 = data[r0][c0];
+  unsigned npix = 0;
+  double   samp = 0;
+  double   sac1 = 0;
+  double   sac2 = 0;
+  double   sar1 = 0;
+  double   sar2 = 0;
+
+  unsigned rmin = std::max((int)m_win.rowmin, int(r0-rank));
+  unsigned rmax = std::min((int)m_win.rowmax, int(r0+rank+1));
+  unsigned cmin = std::max((int)m_win.colmin, int(c0-rank));
+  unsigned cmax = std::min((int)m_win.colmax, int(c0+rank+1));
+
+  for(unsigned r = rmin; r<rmax; r++) {
+    for(unsigned c = cmin; c<cmax; c++) {
+
+      if(!mask[r][c]) continue;
+      double a = data[r][c];
+      if(!(a>0)) continue;
+      npix += 1;
+      samp += a;
+      sar1 += a*r;
+      sac1 += a*c;
+      sar2 += a*r*r;
+      sac2 += a*c*c;
+    }
+  }
+
+  if(npix<1) return;
+
+  Peak peak;
+
+  peak.seg       = m_seg;
+  peak.row       = r0;
+  peak.col       = c0;
+  peak.npix      = npix;
+  peak.amp_max   = a0;
+  peak.amp_tot   = samp;
+  peak.row_cgrav = sar1/samp;
+  peak.col_cgrav = sac1/samp;
+  peak.row_sigma = (npix>1) ? std::sqrt( sar2/samp - peak.row_cgrav * peak.row_cgrav ) : 0;
+  peak.col_sigma = (npix>1) ? std::sqrt( sac2/samp - peak.col_cgrav * peak.col_cgrav ) : 0;
+  peak.row_min   = rmin;
+  peak.row_max   = rmax;
+  peak.col_min   = cmin;
+  peak.col_max   = cmax;  
+  peak.bkgd      = 0; //sonres.avg;
+  peak.noise     = 0; //sonres.rms;
+  peak.son       = 0; //sonres.son;
+
+  if(_peakIsPreSelected(peak) && v_peaks.size()<m_npksmax-1) v_peaks.push_back(peak);
+}
+
+//--------------------
+  /**
+   * @brief _makePeaksFromMapOfLocalMaximums - makes peaks from the map of local maximums using rank as a peak size
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   */
+template <typename T>
+void 
+_makePeaksFromMapOfLocalMaximums( const ndarray<const T,2>&      data
+                                , const ndarray<const mask_t,2>& mask
+                                , const size_t& rank
+                                )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makePeaksFromMapOfLocalMaximums, seg=" << m_seg<< ", rank=" << rank);
+
+  v_peaks.clear(); // this vector will be filled out for each window
+
+  for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
+    for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
+      if(m_local_maximums[r][c] & 4)
+        _procLocalMaximum<T>(data,mask,rank,r,c);	
+}
+
+//--------------------
+//--------------------
+//--------------------
+//--------------------
+//--------------------
+//--------------------
+
+  /**
    * @brief Loops over list of peaks m_peaks, evaluates SoN info and adds it to each peak.
    * 
    * @param[in]  data - ndarray with calibrated intensities
@@ -611,6 +829,8 @@ _procDroplet( const ndarray<const T,2>&      data
     }
   }
 
+  if(npix<1) return;
+
   Peak peak;
 
   peak.seg       = m_seg;
@@ -633,6 +853,7 @@ _procDroplet( const ndarray<const T,2>&      data
 
   if(_peakIsPreSelected(peak) && v_peaks.size()<m_npksmax-1) v_peaks.push_back(peak);
 }
+
 //--------------------
   /**
    * @brief dropletFinder - two-threshold peak finding algorithm in the region defined by the radial parameter
@@ -753,7 +974,7 @@ dropletFinder( const ndarray<const T,2>&      data
 
   m_win.validate(data.shape());
 
-  _makeVectorOfDroplets(data, mask, thr_low, thr_high, rad);
+  _makeVectorOfDroplets<T>(data, mask, thr_low, thr_high, rad);
   _addSoNToPeaks<T>(data, mask, float(rad), dr);
   _makeVectorOfSelectedPeaks();
   return v_peaks_sel; 
@@ -793,6 +1014,41 @@ peakFinder( const ndarray<const T,2>&      data
   _makeMapOfConnectedPixels();
   _procConnectedPixels<T>(data);
   _makeVectorOfPeaks();
+  _addSoNToPeaks<T>(data, mask, r0, dr);
+  _makeVectorOfSelectedPeaks();
+
+  return v_peaks_sel; 
+}
+
+//--------------------
+  /**
+   * @brief peakFinderV3 - makes a list of peaks for local maximums of requested rank.
+   * 
+   * 
+   * 
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   * @param[in]  r0   - radius for SoN algorithm
+   * @param[in]  dr   - width of the ring of radius rad for SoN algorithm
+   */
+
+template <typename T>
+std::vector<Peak>&
+peakFinderV3( const ndarray<const T,2>&      data
+            , const ndarray<const mask_t,2>& mask
+            , const size_t rank = 2
+	    , const float r0 = 5
+	    , const float dr = 0.05
+            )
+{
+  m_win.validate(data.shape());
+
+  if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV3, seg=" << m_seg << " win" << m_win << " rank=" << rank);
+
+  _makeMapOfLocalMaximums<T>(data, mask, rank);
+  _makePeaksFromMapOfLocalMaximums<T>(data, mask, rank);
   _addSoNToPeaks<T>(data, mask, r0, dr);
   _makeVectorOfSelectedPeaks();
 

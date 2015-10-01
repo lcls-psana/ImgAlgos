@@ -21,19 +21,19 @@ ntest = int(sys.argv[1]) if len(sys.argv)>1 else 1
 print 'Test # %d' % ntest
 
 ##-----------------------------
-#SKIP        = 0
-#EVTMAX      = 20 + SKIP
-SKIP        = 70024
-EVTMAX      = 1000000 + SKIP
+SKIP        = 0
+EVTMAX      = 20 + SKIP
+#SKIP        = 70024
+#EVTMAX      = 1000000 + SKIP
 EVTPLOT     = 1 
-DO_PLOT     = False
+DO_PLOT     = True
 ##-----------------------------
 
 def do_print(i) :
-    #return True
+    return True
     #return False
     #if i==1 : return True
-    return not i%10
+    #return not i%10
 
 ##-----------------------------
     

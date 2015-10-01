@@ -75,6 +75,10 @@ Usage::
     # v2 - define peaks for regoins of connected pixels above threshold
     peaks = alg.peak_finder_v2(nda, thr=10, r0=5, dr=0.05)
 
+    # v3 - define peaks in local maximums of specified rank (radius),
+    #      for example rank=2 means 5x5 pixel region around central pixel.
+    peaks = alg.peak_finder_v3(nda, rank=2, r0=5, dr=0.05)
+
 
     OPTIONAL METHODS
     =========================
@@ -92,7 +96,10 @@ Usage::
     alg.set_windows(winds) :
 
     # Call after alg.peak_finder_v2 ONLY! Returns n-d array with 2-d maps of connected pixels 
-    maps = maps_of_connected_pixels()
+    maps = alg.maps_of_connected_pixels()
+
+    # Call after alg.peak_finder_v3 ONLY! Returns n-d array with 2-d maps of local maximums
+    maps = alg.maps_of_local_maximums()
 
     GLOBAL METHODS
     =========================
@@ -408,6 +415,47 @@ class PyAlgos :
         if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_connected_pixels arr:')
         return arr
 
+##-----------------------------
+
+    def peak_finder_v3(self, arr, rank=2, r0=5, dr=0.05) :
+
+        if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v3() input arr:')
+
+        ndim, dtype = len(arr.shape), arr.dtype
+        self.check_mask(ndim)
+        nda, msk = arr, self.mask
+        
+        if ndim == 2 :
+            if dtype == np.float32: return self.aap.peak_finder_v3_f2(nda, msk, rank, r0, dr)
+            if dtype == np.float64: return self.aap.peak_finder_v3_d2(nda, msk, rank, r0, dr)
+            if dtype == np.int    : return self.aap.peak_finder_v3_i2(nda, msk, rank, r0, dr)
+            if dtype == np.int16  : return self.aap.peak_finder_v3_s2(nda, msk, rank, r0, dr)
+            if dtype == np.uint16 : return self.aap.peak_finder_v3_u2(nda, msk, rank, r0, dr)
+
+        if ndim>3 :
+            nda = reshape_nda_to_3d(arr)
+        
+        if dtype == np.float32: return self.aap.peak_finder_v3_f3(nda, msk, rank, r0, dr)
+        if dtype == np.float64: return self.aap.peak_finder_v3_d3(nda, msk, rank, r0, dr)
+        if dtype == np.int    : return self.aap.peak_finder_v3_i3(nda, msk, rank, r0, dr)
+        if dtype == np.int16  : return self.aap.peak_finder_v3_s3(nda, msk, rank, r0, dr)
+        if dtype == np.uint16 : return self.aap.peak_finder_v3_u3(nda, msk, rank, r0, dr)
+
+        if self.pbits :
+            print 'WARNING: PyAlgos.peak_finder_v3(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+
+        return None
+
+##-----------------------------
+
+    def maps_of_local_maximums(self) :
+
+        if self.pbits & 128 : print 'in PyAlgos.maps_of_local_maximums()'
+        arr = self.aap.maps_of_local_maximums()
+        if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_local_maximums arr:')
+        return arr
+
+##-----------------------------
 ##-----------------------------
 
 def subtract_bkgd(data, bkgd, mask=None, winds=None, pbits=0) :
