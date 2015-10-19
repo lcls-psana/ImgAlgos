@@ -236,8 +236,10 @@ public:
           
           for (unsigned i0=0; i0<m_size; i0+=length) {
               if(m_status) status = &m_status[i0];
-              psalg::commonModeMedian<T>(&data[i0], status, length, threshold, maxCorrection, cm);
+              //psalg::commonModeMedian<T>(&data[i0], status, length, threshold, maxCorrection, cm);
+                       commonModeMedian<T>(&data[i0], status, length, threshold, maxCorrection, cm);
           }
+
           return; 
       }
 

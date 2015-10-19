@@ -146,6 +146,8 @@ private:
   DATA_TYPE       m_otype;            // numerated data type for output array
   DETECTOR_TYPE   m_dettype;          // numerated detector type source
 
+  float           m_cmod_corr;        // perameter returning by methods, but not used
+
   const PSCalib::CalibPars::pedestals_t*     m_peds_data;
   const PSCalib::CalibPars::pixel_gain_t*    m_gain_data;
   const PSCalib::CalibPars::pixel_status_t*  m_stat_data;
@@ -186,7 +188,6 @@ private:
     {
       unsigned mode = (unsigned) m_cmod_data[0];
       const PSCalib::CalibPars::common_mode_t* pars = &m_cmod_data[1]; // [0] element=mode is excluded from parameters
-      float cmod_corr = 0;
 
       if ( m_print_bits & 128 ) MsgLog( name(), info, "mode:" << mode 
                                                  << "  dettype:" << m_dettype
@@ -198,7 +199,7 @@ private:
       if ( mode == 1 && m_dettype == CSPAD ) {
           unsigned ssize = 185*388;
 	  for (unsigned ind = 0; ind<32*ssize; ind+=ssize) {
-	    cmod_corr = findCommonMode<T>(pars, &data[ind], &m_stat_data[ind], ssize); 
+	    m_cmod_corr = findCommonMode<T>(pars, &data[ind], &m_stat_data[ind], ssize); 
 	  }
           return;
       }
@@ -208,7 +209,7 @@ private:
 	  unsigned ssize = 185*388;
 	  int stride = 2;
 	  for (unsigned seg = 0; seg<2; ++seg) {
-	    cmod_corr = findCommonMode<T>(pars, &data[seg], &m_stat_data[seg], ssize, stride); 
+	    m_cmod_corr = findCommonMode<T>(pars, &data[seg], &m_stat_data[seg], ssize, stride); 
 	  }
           return;
       }
@@ -228,7 +229,7 @@ private:
           stride = (nsegs<1)   ?   1 : stride;
 
 	  for (unsigned ind = 0; ind<nsegs*ssize; ind+=ssize) {
-	    cmod_corr = findCommonMode<T>(pars, &data[ind], &m_stat_data[ind], ssize, stride); 
+	    m_cmod_corr = findCommonMode<T>(pars, &data[ind], &m_stat_data[ind], ssize, stride); 
 	  }
           return;
       }

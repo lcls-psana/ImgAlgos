@@ -21,6 +21,8 @@
 #include <stdint.h>  // uint8_t, uint32_t, etc.
 #include <iostream>
 #include <cmath>
+#include <algorithm> // for fill_n
+//#include <cstring>   // for memcpy
 //#include <math.h>
 //#include <stdio.h>
 
@@ -104,7 +106,6 @@ using namespace std;
 // mask is either a null pointer (in which case nothing is masked)
 // or a list of values arranged like the data where non-zero means ignore
 
-/*
 template <typename T>
 void commonModeMedian(const T* data, const uint16_t* mask, const unsigned length, const T threshold, const T maxCorrection, T& cm) {
   cm = 0;
@@ -113,15 +114,20 @@ void commonModeMedian(const T* data, const uint16_t* mask, const unsigned length
   const uint32_t lMax = 32768;//2**14*2;  // here I may be assuming data in ADU
   const uint32_t lHalfMax = 16384;//2**14;
   unsigned hist[lMax];
-  memset(hist, 0, sizeof(unsigned)*lMax);
+  //memset(hist, 0, sizeof(unsigned)*lMax);
+  std::fill_n(&hist[0], int(lMax), unsigned(0));
   int nSummed = 0;
+
   for (unsigned col=0; col<length; col++) {
     T cval = *tmp++;
     T mval = (mask) ? *mask++ : 0;
     if (mval==0 && cval<threshold) {
       nSummed++;
-      unsigned bin = (int)cval+lHalfMax;
+      //unsigned bin = (int)cval+lHalfMax;
       // unsigned long?  check range or raise?
+      int bin = (int)cval+lHalfMax;
+      if (bin<0) bin = 0;
+      if (!(bin<lMax)) bin = lMax-1;
       hist[bin]++;
     }
   }
@@ -133,7 +139,7 @@ void commonModeMedian(const T* data, const uint16_t* mask, const unsigned length
   for (unsigned bin=0; bin<lMax; bin++) {
     histSum += hist[bin];
     if (histSum>=medianCount) {
-      T median = (int)bin -  (int)lHalfMax;
+      T median = (int)bin - (int)lHalfMax;
       if (fabs(median)<=maxCorrection) {
         cm = median;
       }
@@ -142,10 +148,9 @@ void commonModeMedian(const T* data, const uint16_t* mask, const unsigned length
   }
 }
 
-*/
-
 //--------------------
-
+// Apply "median" common mode correction.
+// Signature of this function has non-const data.
 template <typename T>
 void commonModeMedian(T* data, const uint16_t* mask, const unsigned length, const T threshold, const T maxCorrection, T& cm) {
   commonModeMedian((const T*)data, mask, length, threshold, maxCorrection, cm);

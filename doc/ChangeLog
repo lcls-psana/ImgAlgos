@@ -11,6 +11,12 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-03-99
+2015-10-19 Mikhail S. Dubrovin
+- in CommonMode.h add commonModeMedian(...) from psalg, fix problem with filling memory and array indexing (PSAS-193)
+- in CommonModeCorrection.h switch using commonModeMedian from CommonMode.h in stead of psalg
+- NDArrCalib.h - fix complain from compiler about not usede variable. 
+
 Tag: V00-03-98
 2015-10-14 Mikhail S. Dubrovin
 - add ex_pfv3.py - example for peakfinder peak_finder_v3 (PSAS-147)
