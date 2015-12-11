@@ -11,6 +11,11 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-00
+2015-12-11 Mikhail S. Dubrovin
+- AlgArrProc.h, NDArrDropletFinder.h, CSPadBkgdSubtract.cpp, CSPadCommonModeCorrection.cpp, 
+  ImgPeakFinder.cpp, ImgRadialCorrection.cpp, NDArrDropletFinder.cpp - fix complains of rhel7-gcc48
+	
 Tag: V00-03-99
 2015-10-19 Mikhail S. Dubrovin
 - in CommonMode.h add commonModeMedian(...) from psalg, fix problem with filling memory and array indexing (PSAS-193)

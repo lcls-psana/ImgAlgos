@@ -185,7 +185,7 @@ ImgRadialCorrection::getAndProcImage(Event& evt)
   if (img2d.get()) {
     if( m_print_bits & 8 ) MsgLog(name(), info, "getAndProcImage(...): Get image as Image2D<double>");
     m_img2d = img2d.get();
-    const unsigned shape[] = {m_img2d->getNRows(), m_img2d->getNCols()};
+    const unsigned shape[] = {(unsigned)m_img2d->getNRows(), (unsigned)m_img2d->getNCols()};
     m_ndarr = new ndarray<const double,2>(m_img2d->data(), shape);
     return procImage(evt);
   }

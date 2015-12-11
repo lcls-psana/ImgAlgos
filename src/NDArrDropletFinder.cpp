@@ -211,7 +211,7 @@ NDArrDropletFinder::parse_windows_pars()
   std::string s;  
 
   const size_t nvals = 5;
-  int v[nvals];
+  size_t v[nvals];
 
   if (m_windows.empty()) {
     if (m_print_bits) MsgLog(name(), warning, "The list of windows is empty. " 

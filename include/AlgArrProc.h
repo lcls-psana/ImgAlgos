@@ -207,9 +207,9 @@ private:
 
   DATA_TYPE  m_dtype;            // numerated data type for data array
   unsigned   m_ndim;             // ndarray number of dimensions
-  size_t     m_nsegs;
-  size_t     m_nrows;
-  size_t     m_ncols;
+  unsigned   m_nsegs;
+  unsigned   m_nrows;
+  unsigned   m_ncols;
   size_t     m_stride;
   unsigned   m_sshape[2];
   bool       m_is_inited;

@@ -107,7 +107,7 @@ CSPadCommonModeCorrection::event(Event& evt, Env& env)
 
   //-------------------- Time
   struct timespec start, stop;
-  int status = clock_gettime( CLOCK_REALTIME, &start ); // Get LOCAL time
+  clock_gettime( CLOCK_REALTIME, &start ); // Get LOCAL time
   //-------------------- Time
 
   // loop over all objects in event and find CsPad stuff
@@ -123,7 +123,7 @@ CSPadCommonModeCorrection::event(Event& evt, Env& env)
   }
 
   //-------------------- Time
-  status = clock_gettime( CLOCK_REALTIME, &stop ); // Get LOCAL time
+  clock_gettime( CLOCK_REALTIME, &stop ); // Get LOCAL time
   double dt = stop.tv_sec - start.tv_sec + 1e-9*(stop.tv_nsec - start.tv_nsec);
   std::stringstream s; s.setf(std::ios_base::fixed); s.width(6); s.fill(' '); s << m_count; // int -> fixed format string
   MsgLog(name(), debug, "Event: " << s.str() << "  Time to process one event is " << dt << " sec");

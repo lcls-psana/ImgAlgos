@@ -334,7 +334,7 @@ private:
 	    
 	    //cout << "df seg:" << seg << '\n';
 	    
-	    unsigned int shape[2] = {m_nrows, m_ncols};
+	    unsigned int shape[2] = {(unsigned)m_nrows, (unsigned)m_ncols};
 
             //ndarray<const T,2> nda_raw(&data[seg*m_stride], shape);
 	    //====================================

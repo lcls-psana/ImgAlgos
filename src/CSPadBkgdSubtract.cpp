@@ -190,9 +190,9 @@ CSPadBkgdSubtract::normalizeBkgd(Event& evt)
       const ndarray<const int16_t,3>& data = quad.data();    // get data for quad
 
       double quad_norm_factor = normQuadBkgd(quad.quad(), data.data());
-      if( quad_norm_factor > 0 ) m_norm_factor += quad_norm_factor; 
+      if(quad_norm_factor > 0) m_norm_factor += quad_norm_factor; 
     }    
-    m_norm_factor = ( nQuads ) ? m_norm_factor /= nQuads : 0; 
+    m_norm_factor = (nQuads > 0) ? m_norm_factor/nQuads : 0; 
   }
   
   shared_ptr<Psana::CsPad::DataV2> data2 = evt.get(source(), inputKey());
@@ -205,9 +205,9 @@ CSPadBkgdSubtract::normalizeBkgd(Event& evt)
       const ndarray<const int16_t,3>& data = quad.data();    // get data for quad
 
       double quad_norm_factor = normQuadBkgd(quad.quad(), data.data());
-      if( quad_norm_factor > 0 ) m_norm_factor += quad_norm_factor; 
+      if(quad_norm_factor > 0) m_norm_factor += quad_norm_factor; 
     } 
-    m_norm_factor = ( nQuads > 0 ) ? m_norm_factor /= nQuads : 0; 
+    m_norm_factor = (nQuads > 0) ? m_norm_factor/nQuads : 0; 
   }
 
 }
