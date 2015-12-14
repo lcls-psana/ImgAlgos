@@ -171,8 +171,6 @@ private:
 	  }
       }
 
-
-
       shared_ptr<Psana::Epix::ElementV2> data2 = evt.get(m_str_src, m_key_in, &m_src);
       if (data2) {
 	
@@ -211,9 +209,47 @@ private:
 	  }
       }
 
+      shared_ptr<Psana::Epix::ElementV3> data3 = evt.get(m_str_src, m_key_in, &m_src);
+      if (data3) {
+	
+          const ndarray<const data_t, 2> data = data3->frame();
+
+          std::stringstream str; 
+          if( m_print_bits & 2 ) {      
+            str << "Epix::ElementV3 at "      << m_src;
+            str << "\n  vc                = " << int(data3->vc());
+            str << "\n  lane              = " << int(data3->lane());
+            str << "\n  acqCount          = " << data3->acqCount();
+            str << "\n  frameNumber       = " << data3->frameNumber();
+            str << "\n  ticks             = " << data3->ticks();
+            str << "\n  fiducials         = " << data3->fiducials();
+            str << "\n  frame             = " << data3->frame();
+            str << "\n  calibrationRows   = " << data3->calibrationRows();      //New
+            str << "\n  environmentalRows = " << data3->environmentalRows();    //New
+            str << "\n  temperatures      = " << data3->temperatures();
+            str << "\n  lastWord          = " << data3->lastWord();
+            str << "\n  data_ndarr:\n"        << data;  
+            MsgLog(name(), info, str.str());
+	  }
+	  
+          if ( m_dtype == ASDATA ) { // return data of the same type
+            save2DArrayInEvent<data_t>(evt, m_src, m_key_out, data);
+            return true;
+	  }
+	  else { // copy and return data with type changing
+            ndarray<TOUT, 2> out_ndarr = make_ndarray<TOUT>(data.shape()[0], data.shape()[1]);
+            typename ndarray<TOUT, 2>::iterator it_out = out_ndarr.begin(); 
+            for ( ndarray<const data_t, 2>::iterator it=data.begin(); it!=data.end(); ++it, ++it_out) {
+              *it_out = (TOUT)*it;
+            }
+            save2DArrayInEvent<TOUT>(evt, m_src, m_key_out, out_ndarr); 
+            return true;
+	  }
+      }
+
       static unsigned counter = 0; ++counter;
       if(counter > 20) return false;
-      if( m_print_bits & 16 ) MsgLog(name(), warning, "Epix::ElementV1/V2 object is not available in the event(...) for source:"
+      if( m_print_bits & 16 ) MsgLog(name(), warning, "Epix::ElementV1,2,3 object is not available in the event(...) for source:"
               << m_str_src << " key:" << m_key_in);
       return false;
 
