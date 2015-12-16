@@ -231,8 +231,9 @@ struct SoNResult {
  *  ndarray<const wind_t,2> winds = ((0,  0, 185,   0, 388), \
  *                                   (1, 10, 103,  10, 204), \
  *                                   (1, 10, 103, 250, 380));
- *  float       r0 = 5;
- *  float       dr = 0.05;
+ *  unsigned rank = 4;
+ *  float    r0   = 5;
+ *  float    dr   = 0.05;
  *  ...
  *  @endcode
  *
@@ -251,6 +252,7 @@ struct SoNResult {
  *   size_t counter = aip -> numberOfPixAboveThr<T>(seg_data, seg_mask, thr);
  *   double intensity = aip -> intensityOfPixAboveThr<T>(seg_data, seg_mask, thr);
  *   std::vector<Peak>& peaks = aip -> dropletFinder<T>(seg_data, seg_mask, thr_low, thr_high, rad, dr);
+ *   std::vector<Peak>& peaks = aip -> dropletFinderV2<T>(seg_data, seg_mask, thr_low, thr_high, rank, r0, dr);
  *   std::vector<Peak>& peaks = aip -> peakFinder<T>(seg_data, seg_mask, thr, r0, dr);
  *   std::vector<Peak>& peaks = aip -> getVectorOfSelectedPeaks();
  *   std::vector<Peak>& peaks = aip -> getVectorOfPeaks();
@@ -782,7 +784,7 @@ void _addSoNToPeaks( const ndarray<const T,2>& data
    * @param[in]  data - ndarray with calibrated intensities
    * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
    * @param[in]  thr_high  - threshold on pixel intensity to be a candidate to "droplet"
-   * @param[in]  rad -  
+   * @param[in]  rad - radius of the region where central pixel has a maximal value
    * @param[in]  r0 - droplet central pixel row-coordinate 
    * @param[in]  c0 - droplet central pixel column-coordinate   
    */
@@ -856,7 +858,7 @@ _procDroplet( const ndarray<const T,2>&      data
 
 //--------------------
   /**
-   * @brief dropletFinder - two-threshold peak finding algorithm in the region defined by the radial parameter
+   * @brief _makeVectorOfDroplets - a part of dropletFinder algorithm - loops over pixels and makes peak candidates in v_peaks
    * 
    * @param[in]  data - ndarray with calibrated intensities
    * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
@@ -981,6 +983,39 @@ dropletFinder( const ndarray<const T,2>&      data
 }
 
 //--------------------
+  /**
+   * @brief dropletFinderV2 - two-threshold peak finding algorithm in the region defined by the rank parameter
+   * dropletFinderV2 has rank and r0 parameters in stead of common rad like in dropletFinder
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  thr_low   - threshold on pixel intensity to be considered in this algorithm 
+   * @param[in]  thr_high  - threshold on pixel intensity to be a candidate to "droplet"
+   * @param[in]  rank      - radius in pixels of squared region to find droplet relative to central pixel
+   * @param[in]  r0        - radius for SoN algorithm
+   * @param[in]  dr        - width of the ring of radius rad for SoN algorithm
+   */
+
+template <typename T>
+std::vector<Peak>&
+dropletFinderV2( const ndarray<const T,2>&      data
+               , const ndarray<const mask_t,2>& mask
+               , const T& thr_low
+               , const T& thr_high
+               , const unsigned& rank = 5
+               , const float&    r0   = 5
+               , const float&    dr   = 0.05
+               )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in dropletFinderV2, seg=" << m_seg);
+
+  m_win.validate(data.shape());
+
+  _makeVectorOfDroplets<T>(data, mask, thr_low, thr_high, rank);
+  _addSoNToPeaks<T>(data, mask, r0, dr);
+  _makeVectorOfSelectedPeaks();
+  return v_peaks_sel; 
+}
 
 //--------------------
   /**

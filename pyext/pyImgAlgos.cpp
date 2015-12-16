@@ -92,6 +92,20 @@ ndarray<const float, 2> (AlgArrProc::*p_pfv03_u3) (ndarray<const uint16_t,3>, nd
 ndarray<const pixel_maximums_t, 3> (AlgArrProc::*p_get_pfv03) () = &AlgArrProc::mapsOfLocalMaximums;
 
 //-------------------
+
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_f2) (ndarray<const float,   2>, ndarray<const mask_t,2>, const float&,    const float&,    const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<float,   2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_d2) (ndarray<const double,  2>, ndarray<const mask_t,2>, const double&,   const double&,   const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<double,  2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_i2) (ndarray<const int,     2>, ndarray<const mask_t,2>, const int&,      const int&,      const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<int,     2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_s2) (ndarray<const int16_t, 2>, ndarray<const mask_t,2>, const int16_t&,  const int16_t&,  const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<int16_t, 2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_u2) (ndarray<const uint16_t,2>, ndarray<const mask_t,2>, const uint16_t&, const uint16_t&, const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<uint16_t,2>;
+																			              
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_f3) (ndarray<const float,   3>, ndarray<const mask_t,3>, const float&,    const float&,    const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<float,   3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_d3) (ndarray<const double,  3>, ndarray<const mask_t,3>, const double&,   const double&,   const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<double,  3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_i3) (ndarray<const int,     3>, ndarray<const mask_t,3>, const int&,      const int&,      const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<int,     3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_s3) (ndarray<const int16_t, 3>, ndarray<const mask_t,3>, const int16_t&,  const int16_t&,  const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<int16_t, 3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv04_u3) (ndarray<const uint16_t,3>, ndarray<const mask_t,3>, const uint16_t&, const uint16_t&, const unsigned&, const float&, const float&) = &AlgArrProc::dropletFinderV2<uint16_t,3>;
+
+//-------------------
 //void (AlgArrProc::*p_set01) (const float&, const float&) = &AlgArrProc::setSoNPars;
 //void (ImgAlgos::AlgArrProc::*print_1) () = &ImgAlgos::AlgArrProc::printInputPars;
 //-------------------
@@ -168,6 +182,7 @@ BOOST_PYTHON_MODULE(imgalgos_ext)
 
     .def("maps_of_connected_pixels", p_get_pfv02)
 
+
     .def("peak_finder_v3_f2", p_pfv03_f2)
     .def("peak_finder_v3_d2", p_pfv03_d2)
     .def("peak_finder_v3_i2", p_pfv03_i2)
@@ -181,6 +196,19 @@ BOOST_PYTHON_MODULE(imgalgos_ext)
     .def("peak_finder_v3_u3", p_pfv03_u3)
 
     .def("maps_of_local_maximums", p_get_pfv03)
+
+
+    .def("peak_finder_v4_f2", p_pfv04_f2)
+    .def("peak_finder_v4_d2", p_pfv04_d2)
+    .def("peak_finder_v4_i2", p_pfv04_i2)
+    .def("peak_finder_v4_s2", p_pfv04_s2)
+    .def("peak_finder_v4_u2", p_pfv04_u2)
+    	  			     
+    .def("peak_finder_v4_f3", p_pfv04_f3)
+    .def("peak_finder_v4_d3", p_pfv04_d3)
+    .def("peak_finder_v4_i3", p_pfv04_i3)
+    .def("peak_finder_v4_s3", p_pfv04_s3)
+    .def("peak_finder_v4_u3", p_pfv04_u3)
   ;
 }
 

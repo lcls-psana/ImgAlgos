@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-02
+2015-12-16 Mikhail S. Dubrovin
+- AlgArrProc.h, AlgImgProc.h, pyext/pyImgAlgos.cpp, PyAlgos.py - add peak_finder_v4 (PSAS-147)
+
 Tag: V00-04-01
 2015-12-14 Mikhail S. Dubrovin
 - EpixNDArrProducer - add support for Epix::ElementV3 and Epix::Config100aV2 (PSAS-147)

@@ -102,9 +102,9 @@ namespace ImgAlgos {
  *  ndarray<const wind_t,2> winds = ((0,  0, 185,   0, 388), \
  *                                   (1, 10, 103,  10, 204), \
  *                                   (1, 10, 103, 250, 380));
- *  float       r0 = 5;
- *  float       dr = 0.05;
- *  size_t      rank = 2;
+ *  size_t rank = 4;
+ *  float  r0   = 5;
+ *  float  dr   = 0.05;
  *  @endcode
  *
  *
@@ -121,6 +121,7 @@ namespace ImgAlgos {
  *  unsigned npix = alg->numberOfPixAboveThr<T>(data, mask, thr);
  *  double intensity = alg->intensityOfPixAboveThr<T>(data, mask, thr);
  *  ndarray<const float, 2> peaks = alg->dropletFinder<T>(data, mask, thr_low, hr_high, radius, dr);
+ *  ndarray<const float, 2> peaks = alg->dropletFinderV2<T>(data, mask, thr_low, hr_high, rank, r0, dr);
  *  ndarray<const float, 2> peaks = alg->peakFinder<T>(data, mask, thr, r0, dr);
  *  ndarray<const float, 2> peaks = alg->peakFinderV3<T>(data, mask, rank, r0, dr);
  *  
@@ -391,6 +392,40 @@ public:
 	const ndarray<const mask_t,2> seg_mask(&m_mask[ind], m_sshape);
 
         std::vector<Peak>& peaks = (*it) -> dropletFinder<T>(seg_data, seg_mask, thr_low, thr_high, rad, dr);
+	npeaks += peaks.size();
+    }
+
+    return _ndarrayOfPeakPars(npeaks);
+  }
+
+//--------------------
+//--------------------
+
+  /// dropletFinderV2 has rank and r0 parameters in stead of single radius
+  template <typename T, unsigned NDim>
+  ndarray<const float, 2>
+  dropletFinderV2( const ndarray<const T, NDim> data
+                 , const ndarray<const mask_t, NDim> mask
+                 , const T& thr_low
+                 , const T& thr_high
+                 , const unsigned& rank=4
+                 , const float& r0=5
+                 , const float& dr=0.05
+                 )
+  {
+    if(m_pbits & 256) MsgLog(_name(), info, "in dropletFinder");
+
+    if(! _initAlgImgProc<T,NDim>(data, mask)) { ndarray<const float, 2> empty; return empty; }
+
+    unsigned npeaks = 0;
+
+    for (std::vector<AlgImgProc*>::iterator it = v_algip.begin(); it != v_algip.end(); ++it) {
+
+        size_t ind = (*it)->segind() * m_stride;              
+	const ndarray<const T,2>      seg_data(&data.data()[ind], m_sshape);
+	const ndarray<const mask_t,2> seg_mask(&m_mask[ind], m_sshape);
+
+        std::vector<Peak>& peaks = (*it) -> dropletFinderV2<T>(seg_data, seg_mask, thr_low, thr_high, rank, r0, dr);
 	npeaks += peaks.size();
     }
 

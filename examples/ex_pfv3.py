@@ -18,6 +18,11 @@ fmt = '%5d  %3s  %3d %4d %4d  %4d  %8.1f  %8.1f  %6.1f  %6.1f %6.2f  %6.2f'+\
 ##-----------------------------
 ##-----------------------------
 
+def test_03() :
+    print 'test_03 is N/A'
+
+##-----------------------------
+
 def test_02() :
     #winds = ((1, 0, 185, 0, 388), \
     #         (1, 0, 185, 0, 388))
@@ -93,7 +98,7 @@ def test_01() :
     alg.print_attributes()
     #alg.set_windows(windows)
 
-    rank=2
+    rank=5
 
     mu, sigma = 0, 20
 
@@ -165,11 +170,6 @@ def main() :
     elif sys.argv[1]=='1' : test_01()
     elif sys.argv[1]=='2' : test_02()
     elif sys.argv[1]=='3' : test_03()
-    elif sys.argv[1]=='4' : test_04()
-    elif sys.argv[1]=='5' : test_05()
-    elif sys.argv[1]=='6' : test_06()
-    elif sys.argv[1]=='7' : test_07()
-    elif sys.argv[1]=='8' : test_08()
     else                  : print '\n%s\nTest id parameter is not recognized.\n%s' % (80*'_', usage())
 
 ##-----------------------------
