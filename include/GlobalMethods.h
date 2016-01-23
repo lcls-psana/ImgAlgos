@@ -137,7 +137,8 @@ using namespace std;
 
  enum DETECTOR_TYPE {OTHER, CSPAD, CSPAD2X2, PNCCD, PRINCETON, ACQIRIS, TM6740, 
                      OPAL1000, OPAL2000, OPAL4000, OPAL8000,
-                     ANDOR, ORCAFL40, FCCD960, EPIX, EPIX100A, EPIX10K};
+                     ANDOR, ORCAFL40, FCCD960, EPIX, EPIX100A, EPIX10K, 
+                     QUARTZ4A150, RAYONIX, IMP, EVR, FCCD, TIMEPIX, FLI, PIMAX};
 
  // const static int UnknownCM = -10000; 
 

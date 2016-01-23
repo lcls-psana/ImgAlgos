@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-03
+2016-01-22 Mikhail S. Dubrovin
+- GlobalMethods - add support for enum types QUARTZ4A150, RAYONIX, IMP, EVR, FCCD, TIMEPIX, FLI, PIMAX
+
 Tag: V00-04-02
 2015-12-16 Mikhail S. Dubrovin
 - AlgArrProc.h, AlgImgProc.h, pyext/pyImgAlgos.cpp, PyAlgos.py - add peak_finder_v4 (PSAS-147)
