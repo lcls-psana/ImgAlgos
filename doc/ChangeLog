@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-04
+2016-02-11 Mikhail S. Dubrovin
+- add psana nodule Andor3dNDArrProducer
+	
 Tag: V00-04-03
 2016-01-22 Mikhail S. Dubrovin
 - GlobalMethods - add support for enum types QUARTZ4A150, RAYONIX, IMP, EVR, FCCD, TIMEPIX, FLI, PIMAX
