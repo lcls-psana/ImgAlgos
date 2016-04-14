@@ -44,77 +44,27 @@ using namespace ImgAlgos;
 namespace ImgAlgos {
 
 //--------------------
-//--------------------
 
-//--------------------
-// Matthew Weaver's code from ami/event/FrameCalib.cc
-
-/*
-int median(ndarray<const uint32_t,2> d,
-           unsigned& iLo, unsigned& iHi)
-{
-  unsigned* bins = 0;
-  unsigned nbins = 0;
-
-  while(1) {
-    if (bins) delete[] bins;
-
-    if (iLo>iHi) {
-      printf("Warning: FrameCalib::median iLo,iHi arguments reversed [%d,%d]\n",
-             iLo,iHi);
-      unsigned v=iLo; iLo=iHi; iHi=v;
-    }
-
-    nbins = iHi-iLo+1;
-
-    if (nbins>10000) {
-      printf("Warning: FrameCalib::median too many bins [%d]\n",nbins);
-      return -1;
-    }
-
-    bins  = new unsigned[nbins];
-    memset(bins,0,nbins*sizeof(unsigned));
-
-    for(unsigned j=0; j<d.shape()[0]; j++) {
-      const uint32_t* data = &d[j][0];
-      for(unsigned i=0; i<d.shape()[1]; i++)
-        if (data[i] < iLo)
-          bins[0]++;
-        else if (data[i] >= iHi)
-          bins[nbins-1]++;
-        else
-          bins[data[i]-iLo]++;
-    }
-        
-    if (bins[0] > d.size()/2)
-      if (iLo > nbins/4) 
-        iLo -= nbins/4;
-      else if (iLo > 0)
-        iLo = 0;
-      else {
-        delete[] bins;
-        return iLo;
-      }
-    else if (bins[nbins-1] > d.size()/2)
-      iHi += nbins/4;
-    else
-      break;
+// Original version of the median estimation in integer numbers
+  int median_for_hist_v1(const unsigned* hist, const int& low, const int& high, const unsigned& count) {
+      int i=-1;
+      int s = count/2;
+      while(s>0) s -= hist[++i];
+      if (unsigned(abs(-s)) > hist[i-1]/2) i--; // step back
+      return low+i+1; // +1 is due to binning an empiric shift common mode to 0
   }
-    
-  unsigned i=1;
-  int s=(d.size()-bins[0]-bins[nbins-1])/2;
-  while( s>0 )
-    s -= bins[i++];
 
-  if (unsigned(-s) > bins[i-1]/2) i--;
+//--------------------
 
-  delete[] bins;
-
-  return (iLo+i);
-}
-
-
-*/
+// 2016-04-14 Corrected version of the median estimation with float interpolation between integer bins.
+  float median_for_hist(const unsigned* hist, const int& low, const int& high, const unsigned& count) {
+      float halfst = (float)count/2;
+      int i=-1;
+      int s = ceil(halfst);
+      while(s>0) s -= hist[++i];
+      float dx = float(s)/hist[i]; // dx - is a fraction of bin for float correction of median; presumably s<0, hist>0, so x<0
+      return float(low+i)+dx+0.8;  // 0.8 - is an imperic number, which should be 1 due to binning, but 0.8 works better
+  }
 
 //--------------------
 //--------------------

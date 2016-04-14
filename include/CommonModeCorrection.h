@@ -243,7 +243,6 @@ public:
           return; 
       }
 
-
       // Algorithm 4 - MEDIAN algorithm, detector-dependent
       else if (mode == 4) { 
 
@@ -254,7 +253,6 @@ public:
 	}
 
       }
-
 
       //---------
       // Algorithm 5 for CSPAD uses unbond pixels
@@ -278,7 +276,6 @@ public:
           return;
       }
       //---------
-
 
       // Other algorithms which are not implemented yet
       else {
@@ -310,38 +307,45 @@ public:
 	unsigned shape[2] = {704, 768};
 
 	size_t nregs  = 16;	
-	size_t nrows  = shape[0]/2;
-	size_t ncols  = shape[1]/8;
+	size_t nrows  = shape[0]/2; // 352
+	size_t ncols  = shape[1]/8; // 96
 	size_t rowmin = 0;
         size_t colmin = 0;
         
         ndarray<T,2> d(data, shape);
         ndarray<const pixel_status_t,2> stat(m_status, shape);
-	
+
 	for(size_t s=0; s<nregs; s++) {
-	  //meanInRegion  <T>(pars, d, stat, rowmin[s], colmin[s], nrows, ncols, 1, 1); 
+	  //meanInRegion  <T>(pars, d, stat, rowmin[s], colmin[s], nrows, ncols, 1, 1, pbits); 
           rowmin = (s/8)*nrows;
           colmin = (s%8)*ncols;
 
   	  if (cmtype & 1) {
             //common mode for 352x96-pixel 16 banks
-	    medianInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+	    medianInRegionV2<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+	    //medianInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+	    //meanInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
 	  }
 
 	  if (cmtype & 2) {
             //common mode for 96-pixel rows in 16 banks
 	    for(size_t r=0; r<nrows; r++) {
-	      medianInRegion<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
+	      medianInRegionV2<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
+	      //medianInRegion<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
+	      //meanInRegion<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
 	    }
           }
 
 	  if (cmtype & 4) {
             //common mode for 352-pixel columns in 16 banks
 	    for(size_t c=0; c<ncols; c++) {
-	      medianInRegion<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
+	      medianInRegionV2<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
+	      //medianInRegion<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
+	      //meanInRegion<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
 	    }
           }
 	}
+
         return true; 
       }
 

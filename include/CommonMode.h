@@ -49,11 +49,13 @@ using namespace std;
  const static unsigned SIZE2X1   = ROWS2X1*COLS2X1; 
  const static unsigned COLSHALF  = COLS2X1/2;
 
+ int median_for_hist_v1(const unsigned* hist, const int& low, const int& high, const unsigned& count);
+ float  median_for_hist(const unsigned* hist, const int& low, const int& high, const unsigned& count);
+
 //--------------------
 // Code from ami/event/FrameCalib.cc
 // int median(ndarray<const uint32_t,2> d, unsigned& iLo, unsigned& iHi);
 
-//--------------------
 //--------------------
 
 //--------------------
@@ -315,10 +317,11 @@ template <typename T>
                     , const size_t& ncols
                     , const size_t& srows = 1
                     , const size_t& scols = 1
+                    , const unsigned& pbits=0
                     ) {
 
-     T threshold = pars[0];
-     T maxcorr   = pars[1];
+     T threshold = pars[1];
+     T maxcorr   = pars[2];
 
      double sumv = 0;
      int    sum1 = 0;
@@ -338,9 +341,9 @@ template <typename T>
      if (sum1>0) {
        T mean = (T)(sumv/sum1);
 
-       std::cout << "  mean:" << mean
-                 << "  threshold:" << threshold
-	         << '\n';
+       if (pbits) std::cout << "  mean:" << mean
+                            << "  threshold:" << threshold
+                            << '\n';
 
        if (fabs(mean)<=maxcorr) {
          for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
@@ -426,32 +429,27 @@ template <typename T>
           }
     
           // do not apply correction if the number of good pixels is small
-          if (count < 10) return; 
+          if (count < 10) {delete[] hist; return;}
 
           if (hist[0]>count/2) {
-	    if (maxcorr && low < -maxcorr) return; // do not apply cm correction
+	    if (maxcorr && low < -maxcorr) {delete[] hist; return;} // do not apply cm correction
             low  -= nbins/4;
 	  }
           else if (hist[nbins-1]>count/2) {
-	    if (maxcorr && high > maxcorr) return; // do not apply cm correction
+	    if (maxcorr && high > maxcorr) {delete[] hist; return;} // do not apply cm correction
 	    high += nbins/4;
 	  }
 	  else
             break; 
       } // while(1)
 
-      int i=-1;
-      int s = count/2;
-      while( s>0 ) s -= hist[++i];
+      //--------------------
 
-      if (unsigned(abs(-s)) > hist[i-1]/2) i--; // step back
+      T cm = (T)median_for_hist(hist, low, high, count);
 
-      int icm = low+i+1; // +1 is an empiric shift of distribution to 0.
+      if (maxcorr && fabs(cm)>maxcorr) {delete[] hist; return;} // do not apply cm correction
 
-      if (maxcorr && abs(icm)>maxcorr) return; // do not apply cm correction
-
-      T cm = (T)icm;
-      if (pbits & 1) MsgLog("medianInRegion", info, "cm correction = " << cm);
+      if (pbits & 1) MsgLog("medianInRegionV2", info, "cm correction = " << cm);
 
       // Apply common mode correction to data
       for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
@@ -459,7 +457,95 @@ template <typename T>
           data[r][c] -= cm;
         }
       }
+
+      delete[] hist; 
   }
+
+//--------------------
+//--------------------
+// Median suggested by Silke on 2016/04/12 for Epix100a
+
+  template <typename T>
+  void medianInRegionV2(const double* pars
+                    , ndarray<T,2>& data 
+	            , ndarray<const uint16_t,2>& status
+	            , const size_t& rowmin
+                    , const size_t& colmin
+                    , const size_t& nrows
+                    , const size_t& ncols
+                    , const size_t& srows = 1
+                    , const size_t& scols = 1
+		    , const unsigned& pbits=0
+                    ) {
+
+    //static unsigned nentry=0; nentry++;
+    //if(nentry<2) cout << "medianInRegionV2\n";
+
+      int hint_range = (int)pars[1];
+      int maxcorr    = (int)pars[2];
+
+      bool check_status = (status.data()) ? true : false;
+
+      // declare array for histogram
+      int half_range = max(int(hint_range), 10);
+
+      int       low   = -half_range;
+      int       high  =  half_range;
+      int       bin   = 0;
+      unsigned  count = 0;
+      int       nbins = high-low+1;
+      unsigned* hist  = new unsigned[nbins];
+      std::fill_n(hist, nbins, 0);
+      
+      // fill histogram
+      for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
+        for (size_t c=colmin; c<colmin+ncols; c+=scols) {
+        
+          // ignore pixels that are too noisy; discard pixels with any status > 0
+          if (check_status && status[r][c]) continue;
+        
+          bin = floor(data[r][c]) - low;            
+          if      (bin < 1)     hist[0]++;
+          else if (bin < nbins) hist[bin]++;
+          else                  hist[nbins-1]++;
+          count++;
+        }
+      }
+      
+      if (pbits & 2) {
+          MsgLog("medianInRegionV2", info,
+                                  "  histo nbins:" << nbins 
+                               << "  low:" << low 
+                               << "  high:" << high 
+                               << "  count:" << count);
+          for (int b=0; b<nbins; ++b) std::cout << " " << b << ":" << hist[b]; 
+          std::cout  << '\n';
+      }
+    
+      // do not apply correction if
+      if (count < 10            // the number of good pixels is small
+      or  hist[0]>count/2        // more than half statistics in the edge bin
+      or  hist[nbins-1]>count/2) {
+          delete[] hist; return; 
+      }
+
+      T cm = (T)median_for_hist(hist, low, high, count);
+
+      if (maxcorr && fabs(cm)>maxcorr) {delete[] hist; return;} // do not apply cm correction
+
+      if (pbits & 1) MsgLog("medianInRegionV2", info, "cm correction = " << cm);
+
+      // Apply common mode correction to data
+      for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
+        for (size_t c=colmin; c<colmin+ncols; c+=scols) {
+          data[r][c] -= cm;
+        }
+      }
+
+      delete[] hist; 
+  }
+
+//--------------------
 
 
 //--------------------
