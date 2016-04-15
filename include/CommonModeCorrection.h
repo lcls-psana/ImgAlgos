@@ -322,7 +322,8 @@ public:
 
   	  if (cmtype & 1) {
             //common mode for 352x96-pixel 16 banks
-	    medianInRegionV2<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+	    medianInRegionV3<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+	    //medianInRegionV2<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
 	    //medianInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
 	    //meanInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
 	  }
@@ -330,7 +331,8 @@ public:
 	  if (cmtype & 2) {
             //common mode for 96-pixel rows in 16 banks
 	    for(size_t r=0; r<nrows; r++) {
-	      medianInRegionV2<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
+	      medianInRegionV3<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
+	      //medianInRegionV2<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
 	      //medianInRegion<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
 	      //meanInRegion<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
 	    }
@@ -339,11 +341,13 @@ public:
 	  if (cmtype & 4) {
             //common mode for 352-pixel columns in 16 banks
 	    for(size_t c=0; c<ncols; c++) {
-	      medianInRegionV2<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
+	      medianInRegionV3<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
+	      //medianInRegionV2<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
 	      //medianInRegion<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
 	      //meanInRegion<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
 	    }
           }
+
 	}
 
         return true; 

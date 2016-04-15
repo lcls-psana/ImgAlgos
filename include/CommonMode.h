@@ -15,6 +15,7 @@
 //-----------------
 
 #include <string>
+#include <vector>
 #include <fstream>   // ofstream
 #include <iomanip>   // for setw, setfill
 #include <sstream>   // for stringstream
@@ -547,6 +548,73 @@ template <typename T>
 
 //--------------------
 
+template <typename T>
+T median(std::vector<T> v)
+{
+    int size = v.size();
+    //int mid = (float(size)/2);
+    int mid = size/2;
+    sort(v.begin(), v.end());
+    // cout << "size=" << size; for (int i=mid-5; i<mid+5; i++) cout << ' ' << v[i]; cout << '\n';
+    return (size % 2 == 0) ? (v[mid] + v[mid-1]) / 2 : v[mid];
+}
+
+//--------------------
+//--------------------
+// Another median algorithm
+
+  template <typename T>
+  void medianInRegionV3(const double* pars
+                    , ndarray<T,2>& data 
+	            , ndarray<const uint16_t,2>& status
+	            , const size_t& rowmin
+                    , const size_t& colmin
+                    , const size_t& nrows
+                    , const size_t& ncols
+                    , const size_t& srows = 1
+                    , const size_t& scols = 1
+		    , const unsigned& pbits=0
+                    ) {
+
+    //static unsigned nentry=0; nentry++;
+    //if(nentry<2) cout << "medianInRegionV2\n";
+
+      T half_range = (T)pars[1];
+      T maxcorr    = (T)pars[2];
+      T d = 0;
+
+      bool check_status = (status.data()) ? true : false;
+
+      std::vector<T> vec(nrows*ncols);
+      vec.clear();
+
+      // fill vector
+      for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
+        for (size_t c=colmin; c<colmin+ncols; c+=scols) {
+          if (check_status && status[r][c]) continue;
+	  d = data[r][c]; 
+	  if(d >  half_range) continue;
+	  if(d < -half_range) continue;	  
+          vec.push_back(d);
+        }
+      }
+
+      if (vec.size() < 10) return;
+
+      T cm = median<T>(vec);
+
+      if (maxcorr && fabs(cm)>maxcorr) return; // do not apply cm correction
+
+      if (pbits & 1) MsgLog("medianInRegionV3", info, "vec.size = " << vec.size() << "  cm correction = " << cm);
+      //cout << "medianInRegionV3 vec.size = " << vec.size() << "  cm correction = " << cm << "\n";
+
+      // Apply common mode correction to data
+      for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
+        for (size_t c=colmin; c<colmin+ncols; c+=scols) {
+          data[r][c] -= cm;
+        }
+      }
+  }
 
 //--------------------
   /**

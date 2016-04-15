@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-07
+2016-04-15 Mikhail S. Dubrovin
+- CommonMode.h, CommonModeCorrection.h - impement median algorithm w/o histogram and use it for Epix100a (PSAS-147)
+	
 Tag: V00-04-06
 2016-04-14 Mikhail S. Dubrovin
 - CommonMode.h/cpp, CommonModeCorrection.h - implement float median algorithm and use it for Epix100a (PSAS-147)
