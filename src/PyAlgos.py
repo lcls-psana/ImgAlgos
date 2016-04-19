@@ -188,9 +188,9 @@ class PyAlgos :
 
     def __init__(self, windows=None, mask=None, pbits=0) :
         """Constructor.
-        @param windows - tuple, list or numpy array of windows or None
-        @param mask  - n-d array with mask or None
-        @param pbits - print control bit-word
+        - windows - tuple, list or numpy array of windows or None
+        - mask  - n-d array with mask or None
+        - pbits - print control bit-word
         """
         if pbits & 128 : print 'in c-tor %s' % self.__class__.__name__
 
@@ -209,7 +209,7 @@ class PyAlgos :
 
     def set_windows(self, windows) :
         """
-        @param windows - tuple of windows
+        - windows - tuple of windows
         """
         if self.pbits & 128 : print 'in PyAlgos.set_windows()'
 
@@ -220,8 +220,8 @@ class PyAlgos :
 
     def set_son_pars(self, r0=10, dr=0.05) :
         """ Set parameters for SoN (S/N) evaluation
-        @param r0 - ring internal radius
-        @param dr - ring width
+        - r0 - ring internal radius
+        - dr - ring width
         """
         if self.pbits & 128 : print 'in PyAlgos.set_son_pars()'
 
@@ -229,13 +229,13 @@ class PyAlgos :
 
 ##-----------------------------
 
-    def set_peak_selection_pars(self, npix_min=2, npix_max=200, amax_thr=0, atot_thr=0, son_min=3) :
+    def set_peak_selection_pars(self, npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=0, son_min=0) :
         """
-        @param npix_min - minimal number of pixels in peak
-        @param npix_max - maximal number of pixels in peak
-        @param amax_thr - threshold on pixel amplitude
-        @param amax_thr - threshold on total amplitude
-        @param son_min - minimal S/N in peak
+        - npix_min - minimal number of pixels in peak
+        - npix_max - maximal number of pixels in peak
+        - amax_thr - threshold on pixel amplitude
+        - amax_thr - threshold on total amplitude
+        - son_min - minimal S/N in peak
         """
         if self.pbits & 128 : print 'in PyAlgos.set_peak_selection_pars()'
 
@@ -245,7 +245,7 @@ class PyAlgos :
 
     def set_mask(self, mask) :
         """
-        @param mask - array with mask 1/0 - good/bad pixel
+        - mask - array with mask 1/0 - good/bad pixel
         """
         if self.pbits & 128 : print 'in PyAlgos.set_mask()'
 
