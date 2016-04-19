@@ -31,24 +31,6 @@ namespace ImgAlgos {
 // Constructors --
 //--------------------
 
-/*
-AlgArrProc::AlgArrProc()
-  : m_pbits(0)
-  , m_is_inited(false)
-  , m_mask_def(0)
-  , m_mask(0)
-{
-  if(m_pbits & 256) MsgLog(_name(), info, "in c-tor:0 AlgArrProc()");
-
-  default init
-  v_winds.clear();
-  setSoNPars();
-  setPeakSelectionPars();
-}
-*/
-
-//--------------------
-
 AlgArrProc::AlgArrProc(const unsigned& pbits)
   : m_pbits(pbits)
   , m_is_inited(false)
@@ -259,9 +241,6 @@ AlgArrProc::mapsOfLocalMaximums()
 }
 
 //--------------------
-//--------------------
-//--------------------
 } // namespace ImgAlgos
-//--------------------
 //--------------------
 

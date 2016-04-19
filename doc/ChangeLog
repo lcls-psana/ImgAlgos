@@ -11,6 +11,11 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-08
+2016-04-18 Mikhail S. Dubrovin
+- AlgArrProc, AlgImgProc, pyImgAlgos.cpp, PyAlgos - add revision-1 for peakFinderV2,3,4
+	- do not pre-select peaks before S/N, returns background-corrected amp_max, amp_tot, son (total).
+
 Tag: V00-04-07
 2016-04-15 Mikhail S. Dubrovin
 - CommonMode.h, CommonModeCorrection.h - impement median algorithm w/o histogram and use it for Epix100a (PSAS-147)

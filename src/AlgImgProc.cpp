@@ -43,11 +43,12 @@ AlgImgProc::AlgImgProc ( const size_t&   seg
   , m_r0(5)
   , m_dr(0.05)
   , m_sonres_def()
-  , m_peak_npix_min(2)
-  , m_peak_npix_max(200)
+  , m_peak_npix_min(0)
+  , m_peak_npix_max(1e6)
   , m_peak_amax_thr(0)
-  , m_peak_atot_thr(150)
-  , m_peak_son_min(3)
+  , m_peak_atot_thr(0)
+  , m_peak_son_min(0)
+  , m_do_preselect(true)
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in c-tor AlgImgProc, seg=" << m_seg);
   m_win.set(seg, rowmin, rowmax, colmin, colmax);
@@ -137,6 +138,7 @@ AlgImgProc::_findConnectedPixels(const unsigned& r, const unsigned& c)
 bool
 AlgImgProc::_peakWorkIsPreSelected(const PeakWork& pw)
 {
+  if (! m_do_preselect) return true;
   if (pw.peak_npix < m_peak_npix_min) return false;
   if (pw.peak_npix > m_peak_npix_max) return false;
   if (pw.peak_amax < m_peak_amax_thr) return false;
@@ -149,6 +151,7 @@ AlgImgProc::_peakWorkIsPreSelected(const PeakWork& pw)
 bool
 AlgImgProc::_peakIsPreSelected(const Peak& peak)
 {
+  if (! m_do_preselect) return true;
   if (peak.npix    < m_peak_npix_min) return false;
   if (peak.npix    > m_peak_npix_max) return false;
   if (peak.amp_max < m_peak_amax_thr) return false;
@@ -162,6 +165,13 @@ bool
 AlgImgProc::_peakIsSelected(const Peak& peak)
 {
   if (peak.son < m_peak_son_min) return false;
+
+  if (! m_do_preselect) {
+    if (peak.npix    < m_peak_npix_min) return false;
+    if (peak.npix    > m_peak_npix_max) return false;
+    if (peak.amp_max < m_peak_amax_thr) return false;
+    if (peak.amp_tot < m_peak_atot_thr) return false;
+  }
   return true;
 }
 
