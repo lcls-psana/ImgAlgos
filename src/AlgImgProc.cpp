@@ -374,8 +374,7 @@ AlgImgProc::printMatrixOfDiagIndexes()
     for (int j = indmin; j <= indmax; ++ j) {
       int status = 1;
       if (i==0 || j==0) status = 0;
-      if (m_rank>2 && floor(std::sqrt(float(i*i + j*j)))>(int)m_rank) status = 0;
-
+      //if (m_rank>2 && floor(std::sqrt(float(i*i + j*j)))>(int)m_rank) status = 0;
       if (i==0 && j==0) ss << " +";
       else              ss << " " << status;
     }

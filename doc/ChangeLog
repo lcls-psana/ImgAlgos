@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-10
+2016-04-21 Mikhail S. Dubrovin
+- AlgImgProc.cpp - minor: bring printMatrixOfDiagIndexes doing the same as _evaluateDiagIndexes
+
 Tag: V00-04-09
 2016-04-19 Mikhail S. Dubrovin
 - PyAlgos - change set_peak_selection_pars default pars 
