@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-11
+2016-05-03 Mikhail S. Dubrovin
+- AlgImgProc - upgrade peakFinderV3r1 to sequence: 1) find seed peaks, 2) S and N, 3) peak processing, 4) peak selection (PSAS-147)
+
 Tag: V00-04-10
 2016-04-21 Mikhail S. Dubrovin
 - AlgImgProc.cpp - minor: bring printMatrixOfDiagIndexes doing the same as _evaluateDiagIndexes

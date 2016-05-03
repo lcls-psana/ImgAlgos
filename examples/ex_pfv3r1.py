@@ -83,7 +83,9 @@ def test_01() :
     fig, axim, axcb = gg.fig_axes() # if not do_plot else (None, None, None)
  
     #shape = (2, 185, 388)
-    shape = (100, 100)
+    #shape = (100, 100)
+    #shape = (1000, 1000)
+    shape = (400, 400)
     #shape = (200, 200)
     mask = np.ones(shape)
 
@@ -92,7 +94,7 @@ def test_01() :
     #         (1, 100, 200, 100, 200))
     winds = None
     
-    alg = PyAlgos(windows=winds, mask=mask, pbits=0)
+    alg = PyAlgos(windows=winds, mask=mask, pbits=2)
     alg.set_peak_selection_pars(npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=0, son_min=6)
     #alg.set_peak_selection_pars(npix_min=5, npix_max=500, amax_thr=0, atot_thr=1000, son_min=6)
     #alg = PyAlgos()
@@ -113,7 +115,7 @@ def test_01() :
         #print_arr_attr(nda, 'nda')
 
         t0_sec = time()
-        peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=6.0, dr=0.5)
+        peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=6, dr=2)
         #peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=5.0, dr=0.05)
         print '  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec)
 

@@ -103,6 +103,7 @@ struct Peak{
   float row;
   float col;
   float npix;
+  float npos;
   float amp_max;
   float amp_tot;
   float row_cgrav; 
@@ -661,7 +662,7 @@ _procLocalMaximum( const ndarray<const T,2>&      data
                  , const size_t& rank
                  , const unsigned& r0
                  , const unsigned& c0
-            )
+                 )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _procLocalMaximum, seg=" << m_seg << " r0=" << r0 << " c0=" << c0 << " rank=" << rank);
 
@@ -726,11 +727,11 @@ _procLocalMaximum( const ndarray<const T,2>&      data
 template <typename T>
 void
 _procLocalMaximumV2( const ndarray<const T,2>& data
-                 , const ndarray<const mask_t,2>& mask
-                 , const size_t& rank
-                 , const unsigned& r0
-                 , const unsigned& c0
-            )
+                   , const ndarray<const mask_t,2>& mask
+                   , const size_t& rank
+                   , const unsigned& r0
+                   , const unsigned& c0
+                   )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _procLocalMaximumV2, seg=" << m_seg << " r0=" << r0 << " c0=" << c0 << " rank=" << rank);
 
@@ -777,6 +778,7 @@ _procLocalMaximumV2( const ndarray<const T,2>& data
   peak.row       = r0;
   peak.col       = c0;
   peak.npix      = npix;
+  peak.npos      = npos;
   peak.amp_max   = a0;
   peak.amp_tot   = samp;
   peak.row_cgrav = sar1/swei;
@@ -800,6 +802,90 @@ _procLocalMaximumV2( const ndarray<const T,2>& data
 
   if(v_peaks.size()<m_npksmax-1) v_peaks.push_back(peak);
   //if(_peakIsPreSelected(peak) && v_peaks.size()<m_npksmax-1) v_peaks.push_back(peak);
+}
+
+//--------------------
+  /**
+   * @brief _procLocalMaximumV3 - process peak after S/N is available.
+   */
+
+template <typename T>
+void
+_procLocalMaximumV3( const ndarray<const T,2>& data
+                   , const ndarray<const mask_t,2>& mask
+                   , const size_t& rank
+                   , Peak& peak
+                   )
+{
+  unsigned r0   = peak.row;   // already filled in _makePeaksFromMapOfLocalMaximumsV3
+  unsigned c0   = peak.col;   // already filled in _makePeaksFromMapOfLocalMaximumsV3
+  //double bkgd = peak.bkgd;  // already evaluated in _addSoNToPeaks;
+  //double noise= peak.noise; // already evaluated in _addSoNToPeaks;
+
+  if(m_pbits & 512) MsgLog(_name(), info, "in _procLocalMaximumV2, seg=" << m_seg 
+                           << " r0=" << r0 << " c0=" << c0 << " rank=" << rank);
+   
+  double   a0 = data[r0][c0] - peak.bkgd;
+
+  unsigned npix = 0;
+  unsigned npos = 0;
+  double   samp = 0;
+  double   swei = 0;
+  double   sac1 = 0;
+  double   sac2 = 0;
+  double   sar1 = 0;
+  double   sar2 = 0;
+
+  unsigned rmin = std::max((int)m_win.rowmin, int(r0-rank));
+  unsigned rmax = std::min((int)m_win.rowmax, int(r0+rank+1));
+  unsigned cmin = std::max((int)m_win.colmin, int(c0-rank));
+  unsigned cmax = std::min((int)m_win.colmax, int(c0+rank+1));
+
+  for(unsigned r = rmin; r<rmax; r++) {
+    for(unsigned c = cmin; c<cmax; c++) {
+
+      if(!mask[r][c]) continue;
+      double a = data[r][c] - peak.bkgd;
+      samp += a;
+      npix += 1;
+      if(!(a>0)) continue;
+      npos += 1;
+      swei += a;
+      sar1 += a*r;
+      sac1 += a*c;
+      sar2 += a*r*r;
+      sac2 += a*c*c;
+    }
+  }
+
+  //if(!(samp>0)) return;
+  //if(npos<npix-npos) return;
+  //cout << "fraction of positive=" << float(npos)/npix << '\n';
+
+  //peak.seg       = m_seg; // already set in _makePeaksFromMapOfLocalMaximumsV3
+  //peak.row       = r0;
+  //peak.col       = c0;
+  peak.npix      = npos; // npix;
+  peak.npos      = npos;
+  peak.amp_max   = a0;
+  peak.amp_tot   = samp;
+  peak.row_cgrav = sar1/swei;
+  peak.col_cgrav = sac1/swei;
+  peak.row_sigma = (npos>1) ? std::sqrt(sar2/swei - peak.row_cgrav * peak.row_cgrav) : 0;
+  peak.col_sigma = (npos>1) ? std::sqrt(sac2/swei - peak.col_cgrav * peak.col_cgrav) : 0;
+  peak.row_min   = rmin;
+  peak.row_max   = rmax;
+  peak.col_min   = cmin;
+  peak.col_max   = cmax;  
+
+  double noise_tot = peak.noise * std::sqrt(npix);
+  peak.son   = (noise_tot>0) ? peak.amp_tot / noise_tot : 0;
+  /*
+  cout << "peak.row_sigma=" << peak.row_sigma 
+       << " col_sigma=" << peak.col_sigma 
+       << " samp=" << samp 
+       << '\n';
+  */
 }
 
 //--------------------
@@ -830,13 +916,17 @@ _makePeaksFromMapOfLocalMaximums( const ndarray<const T,2>&      data
 //--------------------
   /**
    * @brief The same as _makePeaksFromMapOfLocalMaximums, but uses _procLocalMaximumV2<T>(data,mask,rank,r,c);
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
    */
 template <typename T>
 void 
 _makePeaksFromMapOfLocalMaximumsV2( const ndarray<const T,2>&      data
-                                , const ndarray<const mask_t,2>& mask
-                                , const size_t& rank
-                                )
+                                  , const ndarray<const mask_t,2>& mask
+                                  , const size_t& rank
+                                  )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _makePeaksFromMapOfLocalMaximumsV2, seg=" << m_seg<< ", rank=" << rank);
 
@@ -849,8 +939,68 @@ _makePeaksFromMapOfLocalMaximumsV2( const ndarray<const T,2>&      data
 }
 
 //--------------------
+  /**
+   * @brief The same as _makePeaksFromMapOfLocalMaximums and V2, but fills a vector of seed peaks;
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   */
+template <typename T>
+void 
+_makePeaksFromMapOfLocalMaximumsV3( const ndarray<const T,2>&      data
+                                  , const ndarray<const mask_t,2>& mask
+                                  , const size_t& rank
+                                  )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makePeaksFromMapOfLocalMaximumsV2, seg=" << m_seg<< ", rank=" << rank);
+
+  v_peaks.clear();
+
+  for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
+    for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
+      if(m_local_maximums[r][c] & 4) {
+        //_procLocalMaximumV2<T>(data,mask,rank,r,c);	
+        Peak peak;
+        
+        peak.seg       = m_seg;
+        peak.row       = r;
+        peak.col       = c;
+        //peak.npix      = npix;
+        //peak.bkgd      = 0; //sonres.avg;
+        //peak.noise     = 0; //sonres.rms;
+        //peak.son       = 0; //sonres.son;
+        
+        v_peaks.push_back(peak);
+      }
+}
+
 //--------------------
 //--------------------
+//--------------------
+  /**
+   * @brief Process peaks after S/N is evaluated for pfv3
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   */
+
+template <typename T>
+void _procSeedPeaks( const ndarray<const T,2>& data
+                   , const ndarray<const mask_t,2>& mask
+                   , const size_t& rank
+                   )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _procSeedPeaks, seg=" << m_seg);
+
+  std::vector<Peak>::iterator it;
+  for(it=v_peaks.begin(); it!=v_peaks.end(); ++it) { 
+    //Peak& peak = (*it);    
+    _procLocalMaximumV3<T>(data, mask, rank, *it);
+  }
+}
+
 //--------------------
 //--------------------
 //--------------------
@@ -1304,7 +1454,7 @@ peakFinderV3( const ndarray<const T,2>&      data
 
 template <typename T>
 std::vector<Peak>&
-peakFinderV3r1( const ndarray<const T,2>&      data
+peakFinderV3r1dep( const ndarray<const T,2>&      data
               , const ndarray<const mask_t,2>& mask
               , const size_t rank = 4
 	      , const float r0 = 5
@@ -1321,6 +1471,40 @@ peakFinderV3r1( const ndarray<const T,2>&      data
   _makePeaksFromMapOfLocalMaximumsV2<T>(data, mask, rank);
   _addSoNToPeaksV2<T>(data, mask, r0, dr);
   _makeVectorOfSelectedPeaks();
+
+  return v_peaks_sel; 
+}
+
+//--------------------
+  /**
+   * @brief peakFinderV3r2 - "Ranker" - the same as V3r1, evaluate peak info after SoN algorithm.
+   * Changes: 
+   *   _makePeaksFromMapOfLocalMaximumsV3<T>(data, mask, rank); - makes list of empty seed peaks
+   *   _addSoNToPeaks<T>(data, mask, r0, dr); - use older version of SoN algorithm (do not correct peak data yet)
+   * 
+   * 
+   */
+
+template <typename T>
+std::vector<Peak>&
+peakFinderV3r1( const ndarray<const T,2>&      data
+              , const ndarray<const mask_t,2>& mask
+              , const size_t rank = 4
+	      , const float r0 = 5
+	      , const float dr = 0.05
+              )
+{
+  m_win.validate(data.shape());
+
+  if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV3r1, seg=" << m_seg << " win" << m_win << " rank=" << rank);
+
+  _makeMapOfLocalMaximums<T>(data, mask, rank);
+
+  m_do_preselect = false;
+  _makePeaksFromMapOfLocalMaximumsV3<T>(data, mask, rank); // makes vector of seed peaks
+  _addSoNToPeaks<T>(data, mask, r0, dr);                   // adds S, N, and redundant S/N 
+  _procSeedPeaks<T>(data, mask, rank);                     // process seed peaks
+  _makeVectorOfSelectedPeaks();                            // make vector of selected peaks
 
   return v_peaks_sel; 
 }

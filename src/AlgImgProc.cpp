@@ -288,6 +288,7 @@ AlgImgProc::_evaluateRingIndexes(const float& r0, const float& dr)
   }
 
   if(m_pbits & 2) printMatrixOfRingIndexes();
+  if(m_pbits & 4) printVectorOfRingIndexes();
 }
 
 //--------------------
@@ -322,7 +323,7 @@ AlgImgProc::printMatrixOfRingIndexes()
 {
   int indmax = (int)std::ceil(m_r0 + m_dr);
   int indmin = -indmax;
-
+  unsigned counter = 0;
   std::stringstream ss; 
   ss << "printMatrixOfRingIndexes(), seg=" << m_seg << "  r0=" << m_r0 << "  dr=" << m_dr << '\n';
 
@@ -331,12 +332,13 @@ AlgImgProc::printMatrixOfRingIndexes()
 
       float r = std::sqrt( float(i*i + j*j) );
       int status = ( r < m_r0 || r > m_r0 + m_dr ) ? 0 : 1;
+      if (status) counter++;
       if (i==0 && j==0) ss << " +";
       else              ss << " " << status;
     }
     ss << '\n';
   }
-
+  ss << "Number of pixels to estimate background = " << counter << '\n';
   MsgLog(_name(), info, ss.str());
 }
 
@@ -355,7 +357,6 @@ AlgImgProc::printVectorOfRingIndexes()
     ss << " (" << ij->i << "," << ij->j << ")";
     if ( ++n_pairs_in_line > 9 ) {ss << "\n"; n_pairs_in_line=0;}
   }   
-
   MsgLog(_name(), info, ss.str());
 }
 
