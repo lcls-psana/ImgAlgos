@@ -11,6 +11,12 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-12
+2016-05-06 Mikhail S. Dubrovin
+- upgrade of peakFinderV3r1 (PSAS-147)
+  - add parameter nsigm - intensity threshold in terms of background rms (thr = nsigm * rms),
+  - _evaluateBkgdAvgRms - discard all type of local maximums in evaluation of the background level.
+
 Tag: V00-04-11
 2016-05-03 Mikhail S. Dubrovin
 - AlgImgProc - upgrade peakFinderV3r1 to sequence: 1) find seed peaks, 2) S and N, 3) peak processing, 4) peak selection (PSAS-147)

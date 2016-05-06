@@ -89,29 +89,29 @@ ndarray<const conmap_t, 3> (AlgArrProc::*p_get_pfv02) () = &AlgArrProc::mapsOfCo
 
 //-------------------
 
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_f2) (ndarray<const float,   2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<float,   2>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_d2) (ndarray<const double,  2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<double,  2>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_i2) (ndarray<const int,     2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<int,     2>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_s2) (ndarray<const int16_t, 2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<int16_t, 2>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_u2) (ndarray<const uint16_t,2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<uint16_t,2>;
-																		  
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_f3) (ndarray<const float,   3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<float,   3>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_d3) (ndarray<const double,  3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<double,  3>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_i3) (ndarray<const int,     3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<int,     3>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_s3) (ndarray<const int16_t, 3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<int16_t, 3>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03_u3) (ndarray<const uint16_t,3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3<uint16_t,3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_f2) (ndarray<const float,   2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<float,   2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_d2) (ndarray<const double,  2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<double,  2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_i2) (ndarray<const int,     2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<int,     2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_s2) (ndarray<const int16_t, 2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<int16_t, 2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_u2) (ndarray<const uint16_t,2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<uint16_t,2>;
+														      			  
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_f3) (ndarray<const float,   3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<float,   3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_d3) (ndarray<const double,  3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<double,  3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_i3) (ndarray<const int,     3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<int,     3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_s3) (ndarray<const int16_t, 3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<int16_t, 3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03_u3) (ndarray<const uint16_t,3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&) = &AlgArrProc::peakFinderV3<uint16_t,3>;
 
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_f2) (ndarray<const float,   2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<float,   2>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_d2) (ndarray<const double,  2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<double,  2>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_i2) (ndarray<const int,     2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<int,     2>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_s2) (ndarray<const int16_t, 2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<int16_t, 2>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_u2) (ndarray<const uint16_t,2>, ndarray<const mask_t,2>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<uint16_t,2>;
-					       													  				   
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_f3) (ndarray<const float,   3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<float,   3>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_d3) (ndarray<const double,  3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<double,  3>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_i3) (ndarray<const int,     3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<int,     3>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_s3) (ndarray<const int16_t, 3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<int16_t, 3>;
-ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_u3) (ndarray<const uint16_t,3>, ndarray<const mask_t,3>, const size_t&,   const float&, const float&) = &AlgArrProc::peakFinderV3r1<uint16_t,3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_f2) (ndarray<const float,   2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<float,   2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_d2) (ndarray<const double,  2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<double,  2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_i2) (ndarray<const int,     2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<int,     2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_s2) (ndarray<const int16_t, 2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<int16_t, 2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_u2) (ndarray<const uint16_t,2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<uint16_t,2>;
+					       													                      				   
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_f3) (ndarray<const float,   3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<float,   3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_d3) (ndarray<const double,  3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<double,  3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_i3) (ndarray<const int,     3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<int,     3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_s3) (ndarray<const int16_t, 3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<int16_t, 3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_u3) (ndarray<const uint16_t,3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<uint16_t,3>;
 
 ndarray<const pixel_maximums_t, 3> (AlgArrProc::*p_get_pfv03) () = &AlgArrProc::mapsOfLocalMaximums;
 

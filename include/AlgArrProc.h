@@ -127,7 +127,7 @@ namespace ImgAlgos {
  *  
  *  // The same peak-finders after revision-1
  *  ndarray<const float, 2> peaks = alg->peakFinderV2r1<T>(data, mask, thr, r0, dr);
- *  ndarray<const float, 2> peaks = alg->peakFinderV3r1<T>(data, mask, rank, r0, dr);
+ *  ndarray<const float, 2> peaks = alg->peakFinderV3r1<T>(data, mask, rank, r0, dr, nsigm);
  *  ndarray<const float, 2> peaks = alg->peakFinderV4r1<T>(data, mask, thr_low, hr_high, rank, r0, dr);
  *  
  *  // Call after peakFinderV2(...) ONLY!
@@ -584,9 +584,10 @@ public:
   ndarray<const float, 2>
   peakFinderV3r1( const ndarray<const T, NDim> data
                 , const ndarray<const mask_t, NDim> mask
-                , const size_t& rank = 2
-	        , const float& r0=5
-                , const float& dr=0.05
+                , const size_t& rank = 5
+	        , const float& r0=7
+                , const float& dr=2
+	        , const float& nsigm=0 // 0-turns off threshold algorithm, 1.64-leaves 5% of noise, etc.; 
                 )
   {
     if(m_pbits & 256) MsgLog(_name(), info, "in peakFinderV3r1");
@@ -601,7 +602,7 @@ public:
 	const ndarray<const T,2>      seg_data(&data.data()[ind], m_sshape);
 	const ndarray<const mask_t,2> seg_mask(&m_mask[ind], m_sshape);
 
-        std::vector<Peak>& peaks = (*it) -> peakFinderV3r1<T>(seg_data, seg_mask, rank, r0, dr);
+        std::vector<Peak>& peaks = (*it) -> peakFinderV3r1<T>(seg_data, seg_mask, rank, r0, dr, nsigm);
 	npeaks += peaks.size();
     }
 

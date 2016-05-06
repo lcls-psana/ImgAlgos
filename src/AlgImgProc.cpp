@@ -40,8 +40,8 @@ AlgImgProc::AlgImgProc ( const size_t&   seg
   , m_npksmax(npksmax)
   , m_seg(seg)
   , m_init_son_is_done(false)
-  , m_r0(5)
-  , m_dr(0.05)
+  , m_r0(7.0)
+  , m_dr(2.0)
   , m_sonres_def()
   , m_peak_npix_min(0)
   , m_peak_npix_max(1e6)
@@ -202,10 +202,20 @@ AlgImgProc::_makeVectorOfPeaks()
     peak.col       = pw.peak_col;
     peak.amp_max   = pw.peak_amax;
     peak.amp_tot   = pw.peak_atot;
-    peak.row_cgrav = pw.peak_ar1/pw.peak_atot;
-    peak.col_cgrav = pw.peak_ac1/pw.peak_atot;
-    peak.row_sigma = (peak.npix>1) ? std::sqrt( pw.peak_ar2/pw.peak_atot - peak.row_cgrav * peak.row_cgrav ) : 0;
-    peak.col_sigma = (peak.npix>1) ? std::sqrt( pw.peak_ac2/pw.peak_atot - peak.col_cgrav * peak.col_cgrav ) : 0;
+
+    if (pw.peak_atot>0) {
+      peak.row_cgrav = pw.peak_ar1/pw.peak_atot;
+      peak.col_cgrav = pw.peak_ac1/pw.peak_atot;
+      peak.row_sigma = std::sqrt(pw.peak_ar2/pw.peak_atot - peak.row_cgrav * peak.row_cgrav);
+      peak.col_sigma = std::sqrt(pw.peak_ac2/pw.peak_atot - peak.col_cgrav * peak.col_cgrav);
+    }
+    else {
+      peak.row_cgrav = pw.peak_row;
+      peak.col_cgrav = pw.peak_col;
+      peak.row_sigma = 0;
+      peak.col_sigma = 0;
+    }
+
     peak.row_min   = pw.peak_rmin;
     peak.row_max   = pw.peak_rmax;
     peak.col_min   = pw.peak_cmin;

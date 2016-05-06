@@ -176,6 +176,25 @@ struct SoNResult {
   }
 };
 
+/**
+ * @brief Structure to hold background average and rms algorithm results
+ */ 
+
+struct BkgdAvgRms {
+  double avg; // average intensity in the ring
+  double rms; // rms in the ring
+
+  BkgdAvgRms(const double& av=0, 
+             const double& rm=0) :
+    avg(av), rms(rm) {}
+
+  BkgdAvgRms& operator=(const BkgdAvgRms& rhs) {
+    avg = rhs.avg;
+    rms = rhs.rms;
+    return *this;
+  }
+};
+
 /// @addtogroup ImgAlgos
 
 /**
@@ -384,7 +403,8 @@ private:
   float    m_dr;       // ring width for S/N evaluation algorithm 
   size_t   m_rank;     // rank of maximum for peakFinderV3
 
-  SoNResult m_sonres_def;
+  SoNResult  m_sonres_def;
+  BkgdAvgRms m_bkgdavgrms_def;
 
   float    m_peak_npix_min; // peak selection parameter
   float    m_peak_npix_max; // peak selection parameter
@@ -781,10 +801,20 @@ _procLocalMaximumV2( const ndarray<const T,2>& data
   peak.npos      = npos;
   peak.amp_max   = a0;
   peak.amp_tot   = samp;
-  peak.row_cgrav = sar1/swei;
-  peak.col_cgrav = sac1/swei;
-  peak.row_sigma = (npos>1) ? std::sqrt(sar2/swei - peak.row_cgrav * peak.row_cgrav) : 0;
-  peak.col_sigma = (npos>1) ? std::sqrt(sac2/swei - peak.col_cgrav * peak.col_cgrav) : 0;
+
+  if (swei>0) {
+    peak.row_cgrav = sar1/swei;
+    peak.col_cgrav = sac1/swei;
+    peak.row_sigma = std::sqrt(sar2/swei - peak.row_cgrav * peak.row_cgrav);
+    peak.col_sigma = std::sqrt(sac2/swei - peak.col_cgrav * peak.col_cgrav);  
+  } 
+  else {
+    peak.row_cgrav = r0;
+    peak.col_cgrav = c0;
+    peak.row_sigma = 0;
+    peak.col_sigma = 0;
+  }
+
   peak.row_min   = rmin;
   peak.row_max   = rmax;
   peak.col_min   = cmin;
@@ -792,13 +822,6 @@ _procLocalMaximumV2( const ndarray<const T,2>& data
   peak.bkgd      = 0; //sonres.avg;
   peak.noise     = 0; //sonres.rms;
   peak.son       = 0; //sonres.son;
-
-  /*
-  cout << "peak.row_sigma=" << peak.row_sigma 
-       << " col_sigma=" << peak.col_sigma 
-       << " samp=" << samp 
-       << '\n';
-  */
 
   if(v_peaks.size()<m_npksmax-1) v_peaks.push_back(peak);
   //if(_peakIsPreSelected(peak) && v_peaks.size()<m_npksmax-1) v_peaks.push_back(peak);
@@ -815,17 +838,20 @@ _procLocalMaximumV3( const ndarray<const T,2>& data
                    , const ndarray<const mask_t,2>& mask
                    , const size_t& rank
                    , Peak& peak
+		   , const float& nsigm=0 // 0-turns off threshold algorithm, 1.64-leaves 5% of noise, etc.
                    )
 {
-  unsigned r0   = peak.row;   // already filled in _makePeaksFromMapOfLocalMaximumsV3
-  unsigned c0   = peak.col;   // already filled in _makePeaksFromMapOfLocalMaximumsV3
-  //double bkgd = peak.bkgd;  // already evaluated in _addSoNToPeaks;
-  //double noise= peak.noise; // already evaluated in _addSoNToPeaks;
+  unsigned r0   = (unsigned)peak.row;   // already filled in _makePeaksFromMapOfLocalMaximumsV3
+  unsigned c0   = (unsigned)peak.col;   // already filled in _makePeaksFromMapOfLocalMaximumsV3
+  //double bkgd = peak.bkgd;  // already evaluated in _addBkgdAvgRmsToPeaks;
+  //double noise= peak.noise; // already evaluated in _addBkgdAvgRmsToPeaks;
 
   if(m_pbits & 512) MsgLog(_name(), info, "in _procLocalMaximumV2, seg=" << m_seg 
                            << " r0=" << r0 << " c0=" << c0 << " rank=" << rank);
    
-  double   a0 = data[r0][c0] - peak.bkgd;
+  double   a0  = data[r0][c0] - peak.bkgd;
+  double   thr = (nsigm) ? peak.noise * nsigm : 0;
+  double   noise_tot = 0;
 
   unsigned npix = 0;
   unsigned npos = 0;
@@ -846,9 +872,9 @@ _procLocalMaximumV3( const ndarray<const T,2>& data
 
       if(!mask[r][c]) continue;
       double a = data[r][c] - peak.bkgd;
-      samp += a;
       npix += 1;
-      if(!(a>0)) continue;
+      samp += a;
+      if(!(a>thr)) continue;
       npos += 1;
       swei += a;
       sar1 += a*r;
@@ -868,24 +894,37 @@ _procLocalMaximumV3( const ndarray<const T,2>& data
   peak.npix      = npos; // npix;
   peak.npos      = npos;
   peak.amp_max   = a0;
-  peak.amp_tot   = samp;
-  peak.row_cgrav = sar1/swei;
-  peak.col_cgrav = sac1/swei;
-  peak.row_sigma = (npos>1) ? std::sqrt(sar2/swei - peak.row_cgrav * peak.row_cgrav) : 0;
-  peak.col_sigma = (npos>1) ? std::sqrt(sac2/swei - peak.col_cgrav * peak.col_cgrav) : 0;
+
+  if (swei>0 && npos>1) {
+    peak.row_cgrav = sar1/swei;
+    peak.col_cgrav = sac1/swei;
+    peak.row_sigma = std::sqrt(sar2/swei - peak.row_cgrav * peak.row_cgrav);
+    peak.col_sigma = std::sqrt(sac2/swei - peak.col_cgrav * peak.col_cgrav);  
+  } 
+  else {
+    peak.row_cgrav = r0;
+    peak.col_cgrav = c0;
+    peak.row_sigma = 0;
+    peak.col_sigma = 0;
+  }
+
   peak.row_min   = rmin;
   peak.row_max   = rmax;
   peak.col_min   = cmin;
   peak.col_max   = cmax;  
 
-  double noise_tot = peak.noise * std::sqrt(npix);
-  peak.son   = (noise_tot>0) ? peak.amp_tot / noise_tot : 0;
-  /*
-  cout << "peak.row_sigma=" << peak.row_sigma 
-       << " col_sigma=" << peak.col_sigma 
-       << " samp=" << samp 
-       << '\n';
-  */
+  if (nsigm) {
+    peak.amp_tot   = swei;  
+    noise_tot = peak.noise * std::sqrt(npos);
+  }
+  else {
+    peak.amp_tot   = samp;
+    noise_tot = peak.noise * std::sqrt(npix);
+  }
+
+  peak.son = (noise_tot>0) ? peak.amp_tot / noise_tot : 0;
+
+  //cout << "samp:" << samp << "  swei:" << swei << "  npos:" << npos  << "  noise_tot:" <<  noise_tot << "  son:" << peak.son << '\n';  //cout << "peak.row_sigma=" << peak.row_sigma << " col_sigma=" << peak.col_sigma << " samp=" << samp << '\n';
 }
 
 //--------------------
@@ -960,9 +999,8 @@ _makePeaksFromMapOfLocalMaximumsV3( const ndarray<const T,2>&      data
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
       if(m_local_maximums[r][c] & 4) {
-        //_procLocalMaximumV2<T>(data,mask,rank,r,c);	
-        Peak peak;
-        
+
+        Peak peak;        
         peak.seg       = m_seg;
         peak.row       = r;
         peak.col       = c;
@@ -990,6 +1028,7 @@ template <typename T>
 void _procSeedPeaks( const ndarray<const T,2>& data
                    , const ndarray<const mask_t,2>& mask
                    , const size_t& rank
+                   , const float& nsigm=0 // 0-turns off threshold algorithm, 1.64-leaves 5% of noise, etc.
                    )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _procSeedPeaks, seg=" << m_seg);
@@ -997,7 +1036,7 @@ void _procSeedPeaks( const ndarray<const T,2>& data
   std::vector<Peak>::iterator it;
   for(it=v_peaks.begin(); it!=v_peaks.end(); ++it) { 
     //Peak& peak = (*it);    
-    _procLocalMaximumV3<T>(data, mask, rank, *it);
+    _procLocalMaximumV3<T>(data, mask, rank, *it, nsigm);
   }
 }
 
@@ -1015,10 +1054,44 @@ void _procSeedPeaks( const ndarray<const T,2>& data
    */
 
 template <typename T>
+void _addBkgdAvgRmsToPeaks( const ndarray<const T,2>& data
+                          , const ndarray<const mask_t,2>& mask
+	                  , const float r0 = 7.0
+	                  , const float dr = 2.0
+                          )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _addBkgdAvgRmsToPeaks, seg=" << m_seg);
+
+  setSoNPars(r0, dr);
+
+  std::vector<Peak>::iterator it;
+
+  for(it=v_peaks.begin(); it!=v_peaks.end(); ++it) { 
+    Peak& peak = (*it);
+    
+    BkgdAvgRms res = _evaluateBkgdAvgRms<T>((unsigned) peak.row, (unsigned) peak.col, data, mask);
+
+    peak.bkgd  = res.avg;
+    peak.noise = res.rms;
+  }
+}
+
+//--------------------
+
+  /**
+   * @brief Loops over list of peaks m_peaks, evaluates SoN info and adds it to each peak.
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  r0   - radial parameter of the ring for S/N evaluation algorithm
+   * @param[in]  dr   - ring width for S/N evaluation algorithm
+   */
+
+template <typename T>
 void _addSoNToPeaks( const ndarray<const T,2>& data
                    , const ndarray<const mask_t,2>& mask
-	           , const float r0 = 5
-	           , const float dr = 0.05
+	           , const float r0 = 7.0
+	           , const float dr = 2.0
                    )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _addSoNToPeaks, seg=" << m_seg);
@@ -1030,7 +1103,7 @@ void _addSoNToPeaks( const ndarray<const T,2>& data
   for(it=v_peaks.begin(); it!=v_peaks.end(); ++it) { 
     Peak& peak = (*it);
     
-    SoNResult sonres = evaluateSoNForPixel<T>((unsigned) peak.row, (unsigned) peak.col, data, mask);
+    SoNResult sonres = _evaluateSoNForPixel<T>((unsigned) peak.row, (unsigned) peak.col, data, mask);
 
     peak.bkgd  = sonres.avg;
     peak.noise = sonres.rms;
@@ -1047,8 +1120,8 @@ void _addSoNToPeaks( const ndarray<const T,2>& data
 template <typename T>
 void _addSoNToPeaksV2( const ndarray<const T,2>& data
                      , const ndarray<const mask_t,2>& mask
-	             , const float r0 = 5
-	             , const float dr = 0.05
+	             , const float r0 = 7.0
+	             , const float dr = 2.0
                      )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _addSoNToPeaks, seg=" << m_seg);
@@ -1060,7 +1133,7 @@ void _addSoNToPeaksV2( const ndarray<const T,2>& data
   for(it=v_peaks.begin(); it!=v_peaks.end(); ++it) { 
     Peak& peak = (*it);
     
-    SoNResult sonres = evaluateSoNForPixel<T>((unsigned) peak.row, (unsigned) peak.col, data, mask);
+    SoNResult sonres = _evaluateSoNForPixel<T>((unsigned) peak.row, (unsigned) peak.col, data, mask);
 
     peak.amp_max -= sonres.avg;
     peak.amp_tot -= sonres.avg * peak.npix;
@@ -1264,7 +1337,7 @@ peakFinderV1( const ndarray<const T,2>&      data
             , const T& thr_low
             , const T& thr_high
             , const unsigned& rad=5
-            , const float&    dr=0.05
+            , const float&    dr=2.0
             )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV1, seg=" << m_seg);
@@ -1298,8 +1371,8 @@ peakFinderV4( const ndarray<const T,2>&      data
             , const T& thr_low
             , const T& thr_high
             , const unsigned& rank = 5
-            , const float&    r0   = 5
-            , const float&    dr   = 0.05
+            , const float&    r0   = 7.0
+            , const float&    dr   = 2.0
             )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV4, seg=" << m_seg);
@@ -1327,8 +1400,8 @@ peakFinderV4r1( const ndarray<const T,2>&      data
               , const T& thr_low
               , const T& thr_high
               , const unsigned& rank = 5
-              , const float&    r0   = 5
-              , const float&    dr   = 0.05
+              , const float&    r0   = 7.0
+              , const float&    dr   = 2.0
               )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV4r1, seg=" << m_seg);
@@ -1363,8 +1436,8 @@ std::vector<Peak>&
 peakFinderV2( const ndarray<const T,2>&      data
             , const ndarray<const mask_t,2>& mask
             , const T& thr
-	    , const float r0 = 5
-	    , const float dr = 0.05
+	    , const float r0 = 7.0
+	    , const float dr = 2.0
             )
 {
   m_win.validate(data.shape());
@@ -1393,8 +1466,8 @@ std::vector<Peak>&
 peakFinderV2r1( const ndarray<const T,2>&      data
               , const ndarray<const mask_t,2>& mask
               , const T& thr
-	      , const float r0 = 5
-	      , const float dr = 0.05
+	      , const float r0 = 7.0
+	      , const float dr = 2.0
               )
 {
   m_win.validate(data.shape());
@@ -1427,8 +1500,8 @@ std::vector<Peak>&
 peakFinderV3( const ndarray<const T,2>&      data
             , const ndarray<const mask_t,2>& mask
             , const size_t rank = 2
-	    , const float r0 = 5
-	    , const float dr = 0.05
+	    , const float r0 = 7.0
+	    , const float dr = 2.0
             )
 {
   m_win.validate(data.shape());
@@ -1457,8 +1530,8 @@ std::vector<Peak>&
 peakFinderV3r1dep( const ndarray<const T,2>&      data
               , const ndarray<const mask_t,2>& mask
               , const size_t rank = 4
-	      , const float r0 = 5
-	      , const float dr = 0.05
+	      , const float r0 = 7.0
+	      , const float dr = 2.0
               )
 {
   m_win.validate(data.shape());
@@ -1480,18 +1553,20 @@ peakFinderV3r1dep( const ndarray<const T,2>&      data
    * @brief peakFinderV3r2 - "Ranker" - the same as V3r1, evaluate peak info after SoN algorithm.
    * Changes: 
    *   _makePeaksFromMapOfLocalMaximumsV3<T>(data, mask, rank); - makes list of empty seed peaks
-   *   _addSoNToPeaks<T>(data, mask, r0, dr); - use older version of SoN algorithm (do not correct peak data yet)
-   * 
-   * 
+   *   _addBkgdAvgRmsToPeaks<T>(data, mask, r0, dr); - use it in stead of of SoN algorithm
+   *   _procSeedPeaks<T>(data, mask, rank, nsigm);
+   *
+   *  nsigm=0-turns off threshold algorithm, 1.64-leaves 5% of noise, etc.; 
    */
 
 template <typename T>
 std::vector<Peak>&
 peakFinderV3r1( const ndarray<const T,2>&      data
               , const ndarray<const mask_t,2>& mask
-              , const size_t rank = 4
-	      , const float r0 = 5
-	      , const float dr = 0.05
+              , const size_t rank = 5
+	      , const float r0 = 7.0
+	      , const float dr = 2.0
+	      , const float nsigm = 0 // 0-turns off threshold algorithm, 1.64-leaves 5% of noise, etc.; 
               )
 {
   m_win.validate(data.shape());
@@ -1502,8 +1577,8 @@ peakFinderV3r1( const ndarray<const T,2>&      data
 
   m_do_preselect = false;
   _makePeaksFromMapOfLocalMaximumsV3<T>(data, mask, rank); // makes vector of seed peaks
-  _addSoNToPeaks<T>(data, mask, r0, dr);                   // adds S, N, and redundant S/N 
-  _procSeedPeaks<T>(data, mask, rank);                     // process seed peaks
+  _addBkgdAvgRmsToPeaks<T>(data, mask, r0, dr);            // adds background average and rms to peak
+  _procSeedPeaks<T>(data, mask, rank, nsigm);              // process seed peaks
   _makeVectorOfSelectedPeaks();                            // make vector of selected peaks
 
   return v_peaks_sel; 
@@ -1526,13 +1601,13 @@ peakFinderV3r1( const ndarray<const T,2>&      data
 
 template <typename T>
 SoNResult
-evaluateSoNForPixel( const unsigned& row
-                   , const unsigned& col
-                   , const ndarray<const T,2>& data
-                   , const ndarray<const mask_t,2>& mask
-                   )
+_evaluateSoNForPixel( const unsigned& row
+                    , const unsigned& col
+                    , const ndarray<const T,2>& data
+                    , const ndarray<const mask_t,2>& mask
+                    )
 {
-  //if(m_pbits & 512) MsgLog(_name(), info, "in evaluateSoNForPixel, seg=" << m_seg << " row=" << row << ", col=" << col);
+  //if(m_pbits & 512) MsgLog(_name(), info, "in _evaluateSoNForPixel, seg=" << m_seg << " row=" << row << ", col=" << col);
 
   // S/N algorithm initialization
   if(! m_init_son_is_done) {
@@ -1569,9 +1644,76 @@ evaluateSoNForPixel( const unsigned& row
 
   if(sum0) {
     res.avg = sum1/sum0;                              // Averaged background level
-    res.rms = std::sqrt(sum2/sum0 - res.avg*res.avg); // RMS os the background around peak
+    res.rms = std::sqrt(sum2/sum0 - res.avg*res.avg); // RMS of the background around peak
     res.sig = data[row][col]      - res.avg;          // Signal above the background
     if (res.rms>0) res.son = res.sig/res.rms;         // S/N ratio
+  }
+
+  return res;
+}
+
+//--------------------
+  /**
+   * @brief Evaluate background average and rms in the ring around pixel using data and mask
+   * 
+   * Background average and rms are evaluated for any pixel specified by the (row,col).  
+   * If mask is provided, and pixel is masked (0) then default result is returned.
+   * This algorithm uses non-masked surrounding pixels in the ring m_r0, m_dr.
+   * Thresholds are not applied in order to prevent offset of the average value of the background level.
+   * 
+   * @param[in]  row  - pixel row
+   * @param[in]  col  - pixel column
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   */
+
+template <typename T>
+BkgdAvgRms
+_evaluateBkgdAvgRms( const unsigned& row
+                   , const unsigned& col
+                   , const ndarray<const T,2>& data
+                   , const ndarray<const mask_t,2>& mask
+                   )
+{
+  //if(m_pbits & 512) MsgLog(_name(), info, "in _evaluateBkgdAvgRms, seg=" << m_seg << " row=" << row << ", col=" << col);
+
+  // S/N algorithm initialization
+  if(! m_init_son_is_done) {
+    _evaluateRingIndexes(m_r0, m_dr);
+    m_win.validate(data.shape());
+    m_use_mask = (mask.empty()) ? false : true;
+    m_init_son_is_done = true;
+  }
+
+  if(m_use_mask && (!mask[row][col])) return m_bkgdavgrms_def;
+
+  double   amp  = 0;
+  unsigned sum0 = 0;
+  double   sum1 = 0;
+  double   sum2 = 0;
+
+  for(vector<TwoIndexes>::const_iterator ij  = v_indexes.begin();
+                                         ij != v_indexes.end(); ij++) {
+    int ir = row + (ij->i);
+    int ic = col + (ij->j);
+
+    if(ic < (int)m_win.colmin || !(ic < (int)m_win.colmax)) continue;
+    if(ir < (int)m_win.rowmin || !(ir < (int)m_win.rowmax)) continue;
+    if(m_use_mask && (! mask[ir][ic])) continue;
+    if(m_local_maximums[ir][ic]) continue; // discard all types of local maximums from evaluation of bkgd
+
+    amp = (double)data[ir][ic];
+    sum0 ++;
+    sum1 += amp;
+    sum2 += amp*amp;
+  }
+
+  BkgdAvgRms res; // m_bkgdavgrms_def;
+
+  if(sum0) {
+    res.avg = sum1/sum0;                              // Averaged background level
+    res.rms = std::sqrt(sum2/sum0 - res.avg*res.avg); // RMS of the background around peak
+    //cout << "Background avg=" << res.avg << "  rms=" << res.rms << '\n';
   }
 
   return res;
@@ -1600,7 +1742,7 @@ void getSoNResult( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      result[r][c] = evaluateSoNForPixel<T>(r, c, data, mask);
+      result[r][c] = _evaluateSoNForPixel<T>(r, c, data, mask);
     }
   }
 }
@@ -1628,7 +1770,7 @@ void getSoN( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      son[r][c] = evaluateSoNForPixel<T>(r, c, data, mask).son;
+      son[r][c] = _evaluateSoNForPixel<T>(r, c, data, mask).son;
     }
   }
 }

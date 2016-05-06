@@ -60,7 +60,7 @@ namespace ImgAlgos {
   float median_for_hist(const unsigned* hist, const int& low, const int& high, const unsigned& count) {
       float halfst = (float)count/2;
       int i=-1;
-      int s = ceil(halfst);
+      int s = (int)ceil(halfst);
       while(s>0) s -= hist[++i];
       float dx = float(s)/hist[i]; // dx - is a fraction of bin for float correction of median; presumably s<0, hist>0, so x<0
       return float(low+i)+dx+0.8;  // 0.8 - is an imperic number, which should be 1 due to binning, but 0.8 works better
