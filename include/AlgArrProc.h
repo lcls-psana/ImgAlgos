@@ -154,6 +154,7 @@ public:
   typedef PSCalib::CalibPars::pixel_mask_t mask_t;
   typedef uint32_t wind_t;
   typedef AlgImgProc::conmap_t conmap_t;
+  typedef AlgImgProc::pixel_minimums_t pixel_minimums_t;
   typedef AlgImgProc::pixel_maximums_t pixel_maximums_t;
 
   /*
@@ -199,6 +200,7 @@ public:
 
   /// Returns 3-d array of maps of connected pixels for all segments, works after peakFinderV2(...) ONLY!
   ndarray<const conmap_t, 3> mapsOfConnectedPixels();
+  ndarray<const pixel_minimums_t, 3> mapsOfLocalMinimums();
   ndarray<const pixel_maximums_t, 3> mapsOfLocalMaximums();
 
   /// Destructor

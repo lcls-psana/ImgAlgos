@@ -11,6 +11,11 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-13
+2016-05-10 Mikhail S. Dubrovin
+- upgrade of peakFinderV3r1 - extend local extreme finding algorithms for entire sensor range (PSAS-147)
+- pyImgAlgos, PyAlgos, AlgImgProc, AlgArrProc, add maps_of_local_minimums
+	
 Tag: V00-04-12
 2016-05-06 Mikhail S. Dubrovin
 - upgrade of peakFinderV3r1 (PSAS-147)

@@ -311,6 +311,7 @@ public:
   typedef uint32_t conmap_t;
   typedef uint16_t pixel_status_t;
   typedef uint16_t pixel_maximums_t;
+  typedef uint16_t pixel_minimums_t;
   typedef float son_t;
 
   /**
@@ -372,6 +373,9 @@ public:
   ndarray<conmap_t, 2>& mapOfConnectedPixels() { return m_conmap; }
 
   /// Returns map of local maximums after peakFinderV3(.)
+  ndarray<pixel_minimums_t, 2>& mapOfLocalMinimums() { return m_local_minimums; }
+
+  /// Returns map of local maximums after peakFinderV3(.)
   ndarray<pixel_maximums_t, 2>& mapOfLocalMaximums() { return m_local_maximums; }
 
   /// Prints indexes for S/N algorithm
@@ -417,6 +421,7 @@ private:
 
   ndarray<pixel_status_t, 2>   m_pixel_status;
   ndarray<pixel_maximums_t, 2> m_local_maximums;
+  ndarray<pixel_minimums_t, 2> m_local_minimums;
   ndarray<conmap_t, 2>         m_conmap;
   std::vector<PeakWork>        v_peaks_work;
   std::vector<Peak>            v_peaks;
@@ -457,6 +462,9 @@ private:
 
   /// Evaluate "diagonal" region indexes for peakFinderV3
   void _evaluateDiagIndexes(const size_t& rank);
+
+  /// prints statistics of local maximums and minimums
+  void _printStatisticsOfLocalExtremes();
 
 //--------------------
   /**
@@ -568,6 +576,107 @@ _procConnectedPixels(const ndarray<const T,2>& data)
 
 //--------------------
   /**
+   * @brief Makes map of local minimums of requested rank (IN ROWS AND COLUMNS ONLY!)
+   * 
+   * Map of local minimums is a 2-d array of unsigned integer values of data shape, 
+   * it has 0/1/2 bits for non-maximum / maximum in column / maximum in row of radius rank.   
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   */
+
+template <typename T>
+void
+_makeMapOfLocalMinimums( const ndarray<const T,2>&      data
+                       , const ndarray<const mask_t,2>& mask
+                       , const size_t& rank
+                       )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfLocalMinimums, seg=" << m_seg << " rank=" << rank << "\n    in window: " << m_win);
+  //if(m_pbits & 512) m_win.print();
+
+  if(m_local_minimums.empty()) 
+     m_local_minimums = make_ndarray<pixel_minimums_t>(data.shape()[0], data.shape()[1]);
+  std::fill_n(&m_local_minimums[0][0], int(data.size()), pixel_minimums_t(0));
+
+  unsigned rmin = (int)m_win.rowmin;
+  unsigned rmax = (int)m_win.rowmax;				  
+  unsigned cmin = (int)m_win.colmin;
+  unsigned cmax = (int)m_win.colmax;
+  int irank = (int)rank;
+
+  // check rank minimum in columns and set the 1st bit (1)
+  for(unsigned r = rmin; r<rmax; r++) {
+    for(unsigned c = cmin; c<cmax; c++) {
+      if(!mask[r][c]) continue;
+      m_local_minimums[r][c] = 1;
+
+      // positive side of c 
+      unsigned dmax = min((int)cmax-1, int(c)+irank);
+      for(unsigned cd=c+1; cd<=dmax; cd++) {
+	if(mask[r][cd] && (data[r][cd] < data[r][c])) { 
+          m_local_minimums[r][c] &=~1; // clear 1st bit
+          c=cd-1; // jump ahead 
+	  break;
+	}
+      }
+
+      if(m_local_minimums[r][c] & 1) {
+        // negative side of c 
+        unsigned dmin = max((int)cmin, int(c)-irank);
+        for(unsigned cd=dmin; cd<c; cd++) {
+	  if(mask[r][cd] && (data[r][cd] < data[r][c])) { 
+            m_local_minimums[r][c] &=~1; // clear 1st bit
+            c=cd+rank; // jump ahead 
+	    break;
+	  }
+        }
+      }
+
+      // (r,c) is a local dip, jump ahead through the tested rank range
+      if(m_local_minimums[r][c] & 1) c+=rank;
+    }
+  }
+
+  // check rank minimum in rows and set the 2nd bit (2)
+  for(unsigned c = cmin; c<cmax; c++) {
+    for(unsigned r = rmin; r<rmax; r++) {
+      // if it is not a local maximum from previous algorithm
+      //if(!m_local_minimums[r][c]) continue;
+
+      if(!mask[r][c]) continue;
+      m_local_minimums[r][c] |= 2; // set 2nd bit
+
+      // positive side of r 
+      unsigned dmax = min((int)rmax-1, int(r)+irank);
+      for(unsigned rd=r+1; rd<=dmax; rd++) {
+	if(mask[rd][c] && (data[rd][c] < data[r][c])) { 
+          m_local_minimums[r][c] &=~2; // clear 2nd bit
+          r=rd-1; // jump ahead 
+	  break;
+	}
+      }
+
+      if(m_local_minimums[r][c] & 2) {
+        // negative side of r
+        unsigned dmin = max((int)rmin, int(r)-irank);
+        for(unsigned rd=dmin; rd<r; rd++) {
+	  if(mask[rd][c] && (data[rd][c] < data[r][c])) { 
+            m_local_minimums[r][c] &=~2; // clear 2nd bit
+            r=rd+rank; // jump ahead 
+	    break;
+	  }
+        }
+      }
+
+      // (r,c) is a local dip, jump ahead through the tested rank range
+      if(m_local_minimums[r][c] & 2) r+=rank;
+    }
+  }
+}
+
+//--------------------
+  /**
    * @brief Makes map of local maximums of requested rank
    * 
    * Map of local maximums is a 2-d array of unsigned integer values of data shape, 
@@ -594,11 +703,225 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>&      data
      m_local_maximums = make_ndarray<pixel_maximums_t>(data.shape()[0], data.shape()[1]);
   std::fill_n(&m_local_maximums[0][0], int(data.size()), pixel_maximums_t(0));
 
+  unsigned rmin = (int)m_win.rowmin;
+  unsigned rmax = (int)m_win.rowmax;				  
+  unsigned cmin = (int)m_win.colmin;
+  unsigned cmax = (int)m_win.colmax;
+  int irank = (int)rank;
+
+  // check rank maximum in columns and set the 1st bit (1)
+  for(unsigned r = rmin; r<rmax; r++) {
+    for(unsigned c = cmin; c<cmax; c++) {
+      if(!mask[r][c]) continue;
+      m_local_maximums[r][c] = 1;
+
+      // positive side of c 
+      unsigned dmax = min((int)cmax-1, int(c)+irank);
+      for(unsigned cd=c+1; cd<=dmax; cd++) {
+	if(mask[r][cd] && (data[r][cd] > data[r][c])) { 
+          m_local_maximums[r][c] &=~1; // clear 1st bit
+          c=cd-1; // jump ahead 
+	  break;
+	}
+      }
+
+      if(m_local_maximums[r][c] & 1) {
+        // negative side of c 
+        unsigned dmin = max((int)cmin, int(c)-irank);
+        for(unsigned cd=dmin; cd<c; cd++) {
+	  if(mask[r][cd] && (data[r][cd] > data[r][c])) { 
+            m_local_maximums[r][c] &=~1; // clear 1st bit
+            c=cd+rank; // jump ahead 
+	    break;
+	  }
+        }
+      }
+
+      // (r,c) is a local dip, jump ahead through the tested rank range
+      if(m_local_maximums[r][c] & 1) c+=rank;
+    }
+  }
+
+  // check rank maximum in rows and set the 2nd bit (2)
+  for(unsigned c = cmin; c<cmax; c++) {
+    for(unsigned r = rmin; r<rmax; r++) {
+      // if it is not a local maximum from previous algorithm
+      //if(!m_local_maximums[r][c]) continue;
+
+      if(!mask[r][c]) continue;
+      m_local_maximums[r][c] |= 2; // set 2nd bit
+
+      // positive side of r 
+      unsigned dmax = min((int)rmax-1, int(r)+irank);
+      for(unsigned rd=r+1; rd<=dmax; rd++) {
+	if(mask[rd][c] && (data[rd][c] > data[r][c])) { 
+          m_local_maximums[r][c] &=~2; // clear 2nd bit
+          r=rd-1; // jump ahead 
+	  break;
+	}
+      }
+
+      if(m_local_maximums[r][c] & 2) {
+        // negative side of r
+        unsigned dmin = max((int)rmin, int(r)-irank);
+        for(unsigned rd=dmin; rd<r; rd++) {
+	  if(mask[rd][c] && (data[rd][c] > data[r][c])) { 
+            m_local_maximums[r][c] &=~2; // clear 2nd bit
+            r=rd+rank; // jump ahead 
+	    break;
+	  }
+        }
+      }
+
+      // (r,c) is a local dip, jump ahead through the tested rank range
+      if(m_local_maximums[r][c] & 2) r+=rank;
+    }
+  }
+
+  // check rank maximum in "diagonal" regions and set the 3rd bit (4)
+  for(unsigned r = rmin; r<rmax; r++) {
+    for(unsigned c = cmin; c<cmax; c++) {
+      // if it is not a local maximum from two previous algorithm
+
+      if(m_local_maximums[r][c] != 3) continue;
+      m_local_maximums[r][c] |= 4; // set 3rd bit
+
+      for(vector<TwoIndexes>::const_iterator ij  = v_inddiag.begin();
+                                             ij != v_inddiag.end(); ij++) {
+        int ir = r + (ij->i);
+        int ic = c + (ij->j);
+
+        if(  ir<(int)rmin)  continue;
+        if(  ic<(int)cmin)  continue;
+        if(!(ir<(int)rmax)) continue;
+        if(!(ic<(int)cmax)) continue;
+
+	if(mask[ir][ic] && (data[ir][ic] > data[r][c])) {
+          m_local_maximums[r][c] &=~4; // clear 3rd bit
+	  break;
+	}
+      }
+
+      // (r,c) is a local peak, jump ahead through the tested rank range
+      if(m_local_maximums[r][c] & 4) c+=rank;
+    }
+  }
+
+}
+
+//--------------------
+//--------------------
+//--------------------
+//--------------------
+  /**
+   * @brief Makes map of local minimums of requested rank (IN ROWS AND COLUMNS ONLY!)
+   * 
+   * V0 - pixels at distance < rank from the boarder are not considered for local extremes.
+   * Map of local minimums is a 2-d array of unsigned integer values of data shape, 
+   * it has 0/1/2 bits for non-maximum / maximum in column / maximum in row of radius rank.   
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   */
+
+template <typename T>
+void
+_makeMapOfLocalMinimumsV0( const ndarray<const T,2>&      data
+                         , const ndarray<const mask_t,2>& mask
+                         , const size_t& rank
+                         )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfLocalMinimums, seg=" << m_seg << " rank=" << rank << "\n    in window: " << m_win);
+  //if(m_pbits & 512) m_win.print();
+
+  if(m_local_minimums.empty()) 
+     m_local_minimums = make_ndarray<pixel_minimums_t>(data.shape()[0], data.shape()[1]);
+  std::fill_n(&m_local_minimums[0][0], int(data.size()), pixel_minimums_t(0));
+
   unsigned rmin = max((int)m_win.rowmin, int(0+rank));
   unsigned rmax = min((int)m_win.rowmax, int(data.shape()[0]-rank));
   unsigned cmin = max((int)m_win.colmin, int(0+rank));
   unsigned cmax = min((int)m_win.colmax, int(data.shape()[1]-rank));
 
+
+  // check rank minimum in columns and set the 1st bit (1)
+  for(unsigned r = rmin; r<rmax; r++) {
+    for(unsigned c = cmin; c<cmax; c++) {
+      if(!mask[r][c]) continue;
+      m_local_minimums[r][c] = 1;
+      int cp=c; 
+      int cm=c;
+      for(unsigned d=0; d<rank; ++d) {
+        cp++; cm--;
+	if((mask[r][cp] && (data[r][cp] < data[r][c])) 
+	|| (mask[r][cm] && (data[r][cm] < data[r][c]))) {
+          m_local_minimums[r][c] &=~1; // clear 1st bit
+          c=--cp; // jump ahead 
+	  break;
+	}
+      }
+      // (r,c) is a local dip, jump ahead through the tested rank range
+      if(m_local_minimums[r][c] & 1) c+=rank;
+    }
+  }
+
+  // check rank minimum in rows and set the 2nd bit (2)
+  for(unsigned c = cmin; c<cmax; c++) {
+    for(unsigned r = rmin; r<rmax; r++) {
+      // if it is not a local maximum from previous algorithm
+      //if(!m_local_minimums[r][c]) continue;
+      if(!mask[r][c]) continue;
+      m_local_minimums[r][c] |= 2; // set 2nd bit
+      int rp=r; 
+      int rm=r;
+      for(unsigned d=0; d<rank; ++d) { 
+        rp++; rm--;
+	if((mask[rp][c] && (data[rp][c] < data[r][c]))
+	|| (mask[rm][c] && (data[rm][c] < data[r][c]))) {
+          m_local_minimums[r][c] &=~2; // clear 2nd bit
+          r=--rp; // jump ahead 
+	  break;
+	}
+      }
+      // if (r,c) is a local peak, jump ahead through the tested rank range
+      if(m_local_minimums[r][c] & 2) r+=rank;
+    }
+  }
+}
+
+//--------------------
+  /**
+   * @brief Makes map of local maximums of requested rank
+   * 
+   * V0 - pixels at distance < rank from the boarder are not considered for local extremes.
+   * Map of local maximums is a 2-d array of unsigned integer values of data shape, 
+   * it has 0/1/2/4 bits for non-maximum / maximum in column / maximum in row / local maximum in rectangle of radius rank.   
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   */
+
+template <typename T>
+void
+_makeMapOfLocalMaximumsV0( const ndarray<const T,2>&      data
+                         , const ndarray<const mask_t,2>& mask
+                         , const size_t& rank
+                         )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfLocalMaximums, seg=" << m_seg << " rank=" << rank << "\n    in window: " << m_win);
+  //if(m_pbits & 512) m_win.print();
+
+  // initialization of indexes
+  if(v_inddiag.empty()) _evaluateDiagIndexes(rank);
+
+  if(m_local_maximums.empty()) 
+     m_local_maximums = make_ndarray<pixel_maximums_t>(data.shape()[0], data.shape()[1]);
+  std::fill_n(&m_local_maximums[0][0], int(data.size()), pixel_maximums_t(0));
+
+  unsigned rmin = max((int)m_win.rowmin, int(0+rank));
+  unsigned rmax = min((int)m_win.rowmax, int(data.shape()[0]-rank));
+  unsigned cmin = max((int)m_win.colmin, int(0+rank));
+  unsigned cmax = min((int)m_win.colmax, int(data.shape()[1]-rank));
 
   // check rank maximum in columns and set the 1st bit (1)
   for(unsigned r = rmin; r<rmax; r++) {
@@ -609,9 +932,10 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>&      data
       int cm=c;
       for(unsigned d=0; d<rank; ++d) {
         cp++; cm--;
-	if((mask[r][cp] && data[r][cp] > data[r][c]) 
-	|| (mask[r][cm] && data[r][cm] > data[r][c])) {
+	if((mask[r][cp] && (data[r][cp] > data[r][c])) 
+	|| (mask[r][cm] && (data[r][cm] > data[r][c]))) {
           m_local_maximums[r][c] &=~1; // clear 1st bit
+          c=--cp; // jump ahead 
 	  break;
 	}
       }
@@ -624,15 +948,17 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>&      data
   for(unsigned c = cmin; c<cmax; c++) {
     for(unsigned r = rmin; r<rmax; r++) {
       // if it is not a local maximum from previous algorithm
-      if(!m_local_maximums[r][c]) continue;
+      //if(!m_local_maximums[r][c]) continue;
+      if(!mask[r][c]) continue;
       m_local_maximums[r][c] |= 2; // set 2nd bit
       int rp=r; 
       int rm=r;
       for(unsigned d=0; d<rank; ++d) { 
         rp++; rm--;
-	if((mask[rp][c] && data[rp][c] > data[r][c])
-	|| (mask[rm][c] && data[rm][c] > data[r][c])) {
+	if((mask[rp][c] && (data[rp][c] > data[r][c]))
+	|| (mask[rm][c] && (data[rm][c] > data[r][c]))) {
           m_local_maximums[r][c] &=~2; // clear 2nd bit
+          r=--rp; // jump ahead 
 	  break;
 	}
       }
@@ -645,7 +971,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>&      data
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
       // if it is not a local maximum from two previous algorithm
-      if(!(m_local_maximums[r][c] & 2)) continue;
+      if(m_local_maximums[r][c] != 3) continue;
       m_local_maximums[r][c] |= 4; // set 3rd bit
 
       for(vector<TwoIndexes>::const_iterator ij  = v_inddiag.begin();
@@ -653,7 +979,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>&      data
         int ir = r + (ij->i);
         int ic = c + (ij->j);
 
-	if(mask[ir][ic] && data[ir][ic] > data[r][c]) {
+	if(mask[ir][ic] && (data[ir][ic] > data[r][c])) {
           m_local_maximums[r][c] &=~4; // clear 3rd bit
 	  break;
 	}
@@ -1574,6 +1900,8 @@ peakFinderV3r1( const ndarray<const T,2>&      data
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV3r1, seg=" << m_seg << " win" << m_win << " rank=" << rank);
 
   _makeMapOfLocalMaximums<T>(data, mask, rank);
+  _makeMapOfLocalMinimums<T>(data, mask, rank);
+  if(m_pbits & 8) _printStatisticsOfLocalExtremes();
 
   m_do_preselect = false;
   _makePeaksFromMapOfLocalMaximumsV3<T>(data, mask, rank); // makes vector of seed peaks
@@ -1701,6 +2029,7 @@ _evaluateBkgdAvgRms( const unsigned& row
     if(ir < (int)m_win.rowmin || !(ir < (int)m_win.rowmax)) continue;
     if(m_use_mask && (! mask[ir][ic])) continue;
     if(m_local_maximums[ir][ic]) continue; // discard all types of local maximums from evaluation of bkgd
+    if(m_local_minimums[ir][ic]) continue; // discard all types of local minimums from evaluation of bkgd
 
     amp = (double)data[ir][ic];
     sum0 ++;

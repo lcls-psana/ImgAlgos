@@ -75,8 +75,8 @@ def test_02() :
 ##-----------------------------
 ##-----------------------------
 
-def test_01() :
-    print '%s\n%s\n' % (80*'_','test_01')
+def test_11() :
+    print '%s\n%s\n' % (80*'_','test_01 for alg.maps_of_local_minimums')
 
     import pyimgalgos.GlobalGraphics as gg
 
@@ -85,8 +85,98 @@ def test_01() :
     #shape = (2, 185, 388)
     #shape = (100, 100)
     #shape = (1000, 1000)
-    shape = (400, 400)
-    #shape = (200, 200)
+    #shape = (400, 400)
+    shape = (200, 200)
+    mask = np.ones(shape)
+
+    #winds = [(s, 0, 185, 0, 388) for s in (0,1,7,8,9,15,16,17,23,24,25,31)]
+    #winds = ((0,   0, 100,   0, 100), \
+    #         (1, 100, 200, 100, 200))
+    winds = None
+    
+    alg = PyAlgos(windows=winds, mask=mask, pbits=2)
+    alg.set_peak_selection_pars(npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=0, son_min=6)
+    #alg.set_peak_selection_pars(npix_min=5, npix_max=500, amax_thr=0, atot_thr=1000, son_min=6)
+    #alg = PyAlgos()
+    alg.print_attributes()
+    #alg.set_windows(windows)
+
+    rank=5
+
+    mu, sigma = 0, 20
+
+    map_stat = np.zeros((8,), dtype=np.float)
+    counter = 0
+    for i in range(10) :
+
+        print '\nEvent # %d' % i
+
+        nda = np.array(mu + sigma*np.random.standard_normal(shape), dtype=np.float64)
+        #print_arr_attr(nda, 'nda')
+
+        t0_sec = time()
+        peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=6, dr=2)
+        #peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=5.0, dr=0.05)
+        print '  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec)
+
+        maps = alg.maps_of_local_minimums()
+        print_arr_attr(maps, 'maps')
+        maps.shape = shape 
+
+        map_stat += np.bincount(maps.flatten(), weights=None, minlength=map_stat.size)
+        counter += 1
+
+        print hdr
+        reg = 'IMG'
+
+        for pk in peaks :
+            # get peak parameters
+            seg,row,col,npix,amax,atot,rcent,ccent,rsigma,csigma,\
+            rmin,rmax,cmin,cmax,bkgd,rms,son = pk[0:17]
+
+            rec = fmt % (i, reg, seg, row, col, npix, amax, atot, rcent, ccent, rsigma, csigma,\
+                  rmin, rmax, cmin, cmax, bkgd, rms, son) #,\
+                  #imrow, imcol, xum, yum, rum, phi)
+            print rec
+
+        img, amin, amax = maps, -1, 3 #, 0, 10
+        #img = nda
+        #ave, rms = img.mean(), img.std()
+        #amin, amax = ave-2*rms, ave+2*rms
+        
+        gg.plot_img(img, mode='do not hold', amin=amin, amax=amax)
+        fig.canvas.set_window_title('Event: %d' % i)    
+        fig.canvas.draw() # re-draw figure content
+
+
+    map_stat = map_stat / counter
+    map_frac = map_stat / np.sum(map_stat)
+    print 'map_stat', map_stat
+    print 'rank=%d,  fractions=%s' % (rank, map_frac)
+
+    gg.save_fig(fig, fname='map-locmax-100x100-rank-%d.png'%rank, pbits=1)
+    #gg.save_fig(fig, fname='map-locmax-100x100-random.png', pbits=1)
+
+    gg.show() # hold image untill it is closed
+
+
+
+
+##-----------------------------
+##-----------------------------
+
+def test_01() :
+    print '%s\n%s\n' % (80*'_','test_01 for alg.maps_of_local_maximums')
+
+    import pyimgalgos.GlobalGraphics as gg
+
+    fig, axim, axcb = gg.fig_axes() # if not do_plot else (None, None, None)
+ 
+    #shape = (2, 185, 388)
+    #shape = (100, 100)
+    #shape = (1000, 1000)
+    #shape = (400, 400)
+    shape = (200, 200)
     mask = np.ones(shape)
 
     #winds = [(s, 0, 185, 0, 388) for s in (0,1,7,8,9,15,16,17,23,24,25,31)]
@@ -123,7 +213,7 @@ def test_01() :
         #print_arr_attr(maps, 'maps')
         maps.shape = shape 
 
-        map_stat += np.bincount(maps.flatten(), weights=None, minlength=None)
+        map_stat += np.bincount(maps.flatten(), weights=None, minlength=map_stat.size)
         counter += 1
 
         print hdr
@@ -139,7 +229,7 @@ def test_01() :
                   #imrow, imcol, xum, yum, rum, phi)
             print rec
 
-        img, amin, amax = maps, -3, 7
+        img, amin, amax = maps, 0, 10
         #img = nda
         #ave, rms = img.mean(), img.std()
         #amin, amax = ave-2*rms, ave+2*rms
@@ -171,9 +261,10 @@ def usage() : return 'Use command: python %s <test-number>, where <test-number> 
 def main() :
     if len(sys.argv) != 2 : test_01()
     if len(sys.argv) != 2 : print '\n%s\n%s\n' %  (80*'_', usage())
-    elif sys.argv[1]=='1' : test_01()
-    elif sys.argv[1]=='2' : test_02()
-    elif sys.argv[1]=='3' : test_03()
+    elif sys.argv[1]== '1' : test_01() # maps_of_local_maximums
+    elif sys.argv[1]== '2' : test_02()
+    elif sys.argv[1]== '3' : test_03()
+    elif sys.argv[1]=='11' : test_11() # maps_of_local_minimums
     else                  : print '\n%s\nTest id parameter is not recognized.\n%s' % (80*'_', usage())
 
 ##-----------------------------

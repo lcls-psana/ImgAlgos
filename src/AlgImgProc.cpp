@@ -232,8 +232,6 @@ AlgImgProc::_makeVectorOfPeaks()
 void
 AlgImgProc::_makeVectorOfSelectedPeaks()
 {
-  if(m_pbits & 512) MsgLog(_name(), info, "in _makeVectorOfSelectedPeaks, seg=" << m_seg);
-
   v_peaks_sel.clear();
 
   //std::vector<Peak>::iterator it;
@@ -241,6 +239,9 @@ AlgImgProc::_makeVectorOfSelectedPeaks()
     Peak& peak = (*it);
     if(_peakIsSelected(peak)) v_peaks_sel.push_back(peak);
   }
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeVectorOfSelectedPeaks, seg=" << m_seg 
+                           << "  #peaks raw=" << v_peaks.size() 
+                           << "  sel=" << v_peaks_sel.size());
 }
 
 //--------------------
@@ -410,6 +411,30 @@ AlgImgProc::printVectorOfDiagIndexes()
     ss << " (" << ij->i << "," << ij->j << ")";
     if ( ++n_pairs_in_line > 9 ) {ss << "\n"; n_pairs_in_line=0;}
   }   
+
+  MsgLog(_name(), info, ss.str());
+}
+
+//--------------------
+
+void 
+AlgImgProc::_printStatisticsOfLocalExtremes()
+{
+  std::stringstream ss; 
+  ss << "_printStatisticsOfLocalExtremes(): seg=" << m_seg << "  rank=" << m_rank << '\n';
+  ss << "1=c 2=r 4=rect" << std::right << '\n';
+  unsigned hismax[8] = {}; // all zeros
+  unsigned hismin[8] = {}; // all zeros
+  unsigned totmax = 0;
+  unsigned totmin = 0;
+  ndarray<pixel_maximums_t, 2>::iterator itx;
+  ndarray<pixel_minimums_t, 2>::iterator itn;
+  for(itx=m_local_maximums.begin(); itx!=m_local_maximums.end(); ++itx) {hismax[*itx]++; if(*itx) totmax++;}
+  for(itn=m_local_minimums.begin(); itn!=m_local_minimums.end(); ++itn) {hismin[*itn]++; if(*itn) totmin++;}
+
+  ss << "bin#    : "; for(int i=0; i<8; i++) ss << std::setw(8) << i;         ss << "     total\n";
+  ss << "maximums: "; for(int i=0; i<8; i++) ss << std::setw(8) << hismax[i]; ss << "  " << std::setw(8) << totmax << '\n';
+  ss << "minimums: "; for(int i=0; i<8; i++) ss << std::setw(8) << hismin[i]; ss << "  " << std::setw(8) << totmin << '\n';
 
   MsgLog(_name(), info, ss.str());
 }

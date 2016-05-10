@@ -578,6 +578,15 @@ class PyAlgos :
 
 ##-----------------------------
 
+    def maps_of_local_minimums(self) :
+
+        if self.pbits & 128 : print 'in PyAlgos.maps_of_local_minimums()'
+        arr = self.aap.maps_of_local_minimums()
+        if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_local_minimums arr:')
+        return arr
+
+##-----------------------------
+
     def maps_of_local_maximums(self) :
 
         if self.pbits & 128 : print 'in PyAlgos.maps_of_local_maximums()'
