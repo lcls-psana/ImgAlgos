@@ -116,6 +116,8 @@ void commonModeMedian(const T* data, const uint16_t* mask, const unsigned length
 
   const uint32_t lMax = 32768;//2**14*2;  // here I may be assuming data in ADU
   const uint32_t lHalfMax = 16384;//2**14;
+  const int      iMax = (int)lMax;
+  const int      iHalfMax = (int)lHalfMax;
   unsigned hist[lMax];
   //memset(hist, 0, sizeof(unsigned)*lMax);
   std::fill_n(&hist[0], int(lMax), unsigned(0));
@@ -130,7 +132,7 @@ void commonModeMedian(const T* data, const uint16_t* mask, const unsigned length
       // unsigned long?  check range or raise?
       int bin = (int)cval+lHalfMax;
       if (bin<0) bin = 0;
-      if (!(bin<lMax)) bin = lMax-1;
+      if (!(bin<iMax)) bin = lMax-1;
       hist[bin]++;
     }
   }
@@ -139,10 +141,10 @@ void commonModeMedian(const T* data, const uint16_t* mask, const unsigned length
 
   unsigned medianCount = (unsigned)ceil(nSummed/2.);
   unsigned histSum = 0;
-  for (unsigned bin=0; bin<lMax; bin++) {
+  for (int bin=0; bin<iMax; bin++) {
     histSum += hist[bin];
     if (histSum>=medianCount) {
-      T median = (int)bin - (int)lHalfMax;
+      T median = (int)bin - iHalfMax;
       if (fabs(median)<=maxCorrection) {
         cm = median;
       }

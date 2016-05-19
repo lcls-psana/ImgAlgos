@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-14
+2016-05-19 Mikhail S. Dubrovin
+- CommonMode.h - fix gcc warnung in RHEL5 for comparison int and uint.
+	
 Tag: V00-04-13
 2016-05-10 Mikhail S. Dubrovin
 - upgrade of peakFinderV3r1 - extend local extreme finding algorithms for entire sensor range (PSAS-147)
