@@ -11,15 +11,20 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-15
+2016-06-22 Mikhail S. Dubrovin
+- AlgArrProc.cpp - fix size of returned peak record to 17 (of floats) (PSAS-147)
+- pyext/pyImgAlgos.cpp - switch to revision1 (r1) algorithms for peak_finder_v2,3,4
+
 Tag: V00-04-14
 2016-05-19 Mikhail S. Dubrovin
 - CommonMode.h - fix gcc warnung in RHEL5 for comparison int and uint.
-	
+
 Tag: V00-04-13
 2016-05-10 Mikhail S. Dubrovin
 - upgrade of peakFinderV3r1 - extend local extreme finding algorithms for entire sensor range (PSAS-147)
 - pyImgAlgos, PyAlgos, AlgImgProc, AlgArrProc, add maps_of_local_minimums
-	
+
 Tag: V00-04-12
 2016-05-06 Mikhail S. Dubrovin
 - upgrade of peakFinderV3r1 (PSAS-147)
@@ -36,10 +41,10 @@ Tag: V00-04-10
 
 Tag: V00-04-09
 2016-04-19 Mikhail S. Dubrovin
-- PyAlgos - change set_peak_selection_pars default pars 
+- PyAlgos - change set_peak_selection_pars default pars
 	from npix_min=2, npix_max=200, amax_thr=0, atot_thr=0, son_min=3
 	to   npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=0, son_min=0
-	
+
 Tag: V00-04-08
 2016-04-18 Mikhail S. Dubrovin
 - AlgArrProc, AlgImgProc, pyImgAlgos.cpp, PyAlgos - add revision-1 for peakFinderV2,3,4
@@ -48,11 +53,11 @@ Tag: V00-04-08
 Tag: V00-04-07
 2016-04-15 Mikhail S. Dubrovin
 - CommonMode.h, CommonModeCorrection.h - impement median algorithm w/o histogram and use it for Epix100a (PSAS-147)
-	
+
 Tag: V00-04-06
 2016-04-14 Mikhail S. Dubrovin
 - CommonMode.h/cpp, CommonModeCorrection.h - implement float median algorithm and use it for Epix100a (PSAS-147)
-	
+
 Tag: V00-04-05
 2016-04-11 Christopher O'Grady
 - Eliminate TIFF writer in GlobalMethods.h to avoid dependency on system-installed tiff.h
@@ -75,14 +80,14 @@ Tag: V00-04-01
 
 Tag: V00-04-00
 2015-12-11 Mikhail S. Dubrovin
-- AlgArrProc.h, NDArrDropletFinder.h, CSPadBkgdSubtract.cpp, CSPadCommonModeCorrection.cpp, 
+- AlgArrProc.h, NDArrDropletFinder.h, CSPadBkgdSubtract.cpp, CSPadCommonModeCorrection.cpp,
   ImgPeakFinder.cpp, ImgRadialCorrection.cpp, NDArrDropletFinder.cpp - fix complains of rhel7-gcc48
-	
+
 Tag: V00-03-99
 2015-10-19 Mikhail S. Dubrovin
 - in CommonMode.h add commonModeMedian(...) from psalg, fix problem with filling memory and array indexing (PSAS-193)
 - in CommonModeCorrection.h switch using commonModeMedian from CommonMode.h in stead of psalg
-- NDArrCalib.h - fix complain from compiler about not usede variable. 
+- NDArrCalib.h - fix complain from compiler about not usede variable.
 
 Tag: V00-03-98
 2015-10-14 Mikhail S. Dubrovin

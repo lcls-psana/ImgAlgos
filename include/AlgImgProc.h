@@ -123,6 +123,7 @@ struct Peak{
     row         = rhs.row;
     col         = rhs.col;
     npix        = rhs.npix;
+    npos        = rhs.npos;
     amp_max	= rhs.amp_max;
     amp_tot	= rhs.amp_tot;
     row_cgrav 	= rhs.row_cgrav;
@@ -1048,6 +1049,7 @@ _procLocalMaximum( const ndarray<const T,2>&      data
   peak.row       = r0;
   peak.col       = c0;
   peak.npix      = npix;
+  peak.npos      = npix;
   peak.amp_max   = a0;
   peak.amp_tot   = samp;
   peak.row_cgrav = sar1/samp;

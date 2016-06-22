@@ -160,7 +160,8 @@ AlgArrProc::_ndarrayOfPeakPars(const unsigned& npeaks)
 {
     if(m_pbits & 256) MsgLog(_name(), info, "in _ndarrayOfPeakPars, npeaks = " << npeaks);
 
-    unsigned sizepk = sizeof(Peak) / sizeof(float);
+    //unsigned sizepk = sizeof(Peak) / sizeof(float);
+    unsigned sizepk = 17;
     if(m_pbits & 1) MsgLog(_name(), info, "List of found peaks, npeaks = " << npeaks << " peak size = " << sizepk); 
 
     ndarray<float, 2> nda = make_ndarray<float>(npeaks,sizepk);
