@@ -289,114 +289,151 @@ public:
 //-------------------
 
   template <typename T>
-    bool do_common_mode_median(T* data)
+    bool do_common_mode_fccd960(T* data)
     {
       const common_mode_t* pars = &m_cmod_pars[1]; 
       // [0] element=mode is excluded from parameters
       unsigned cmtype = (unsigned) m_cmod_pars[1];
-
       unsigned pbits = (m_pbits & 256) ? 0xffff : 0;
 
-      // EPIX100A, common_mode file example: 4 1 20
-      if (m_dettype == EPIX100A) {
+      if (m_pbits & 128) MsgLog(_name_(), info, "FCCD960 cmtype:" << cmtype);
 
-        if ( m_pbits & 128 ) MsgLog(_name_(), info, "EPIX100A cmtype:" << cmtype);
+      //T maxCorrection = (T) m_cmod_pars[2];
 
-        //T maxCorrection = (T) m_cmod_pars[2];
+      unsigned shape[2] = {960, 960};
 
-	unsigned shape[2] = {704, 768};
-
-	size_t nregs  = 16;	
-	size_t nrows  = shape[0]/2; // 352
-	size_t ncols  = shape[1]/8; // 96
-	size_t rowmin = 0;
+      ndarray<T,2> d(data, shape);
+      ndarray<const pixel_status_t,2> stat(m_status, shape);
+      
+      if (cmtype & 1) {
+        //common mode correction for 1x160-pixel rows with stride 2
+        size_t nregs  = 6;	
+        size_t ncols  = shape[1]/nregs; // 160-pixel
+        size_t nrows  = 1;
         size_t colmin = 0;
-        
-        ndarray<T,2> d(data, shape);
-        ndarray<const pixel_status_t,2> stat(m_status, shape);
 
-	for(size_t s=0; s<nregs; s++) {
-	  //meanInRegion  <T>(pars, d, stat, rowmin[s], colmin[s], nrows, ncols, 1, 1, pbits); 
-          rowmin = (s/8)*nrows;
-          colmin = (s%8)*ncols;
-
-  	  if (cmtype & 1) {
-            //common mode for 352x96-pixel 16 banks
-	    medianInRegionV3<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
-	    //medianInRegionV2<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
-	    //medianInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
-	    //meanInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
-	  }
-
-	  if (cmtype & 2) {
-            //common mode for 96-pixel rows in 16 banks
-	    for(size_t r=0; r<nrows; r++) {
-	      medianInRegionV3<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
-	      //medianInRegionV2<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
-	      //medianInRegion<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
-	      //meanInRegion<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
-	    }
+        for(size_t row=0; row<shape[1]; row++) {
+          for(size_t s=0; s<nregs; s++) {
+            colmin = s * ncols;
+            for(size_t k=0; k<2; k++)
+              medianInRegion<T>(pars, d, stat, row, colmin+k, nrows, ncols, 1, 2, pbits); 
           }
-
-	  if (cmtype & 4) {
-            //common mode for 352-pixel columns in 16 banks
-	    for(size_t c=0; c<ncols; c++) {
-	      medianInRegionV3<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
-	      //medianInRegionV2<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
-	      //medianInRegion<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
-	      //meanInRegion<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
-	    }
-          }
-
-	}
-
-        return true; 
+        }
       }
 
-      // FCCD960, common_mode file example: 4 1 20
-      else if (m_dettype == FCCD960) {
-
-        if (m_pbits & 128) MsgLog(_name_(), info, "FCCD960 cmtype:" << cmtype);
-
-        //T maxCorrection = (T) m_cmod_pars[2];
-
-	unsigned shape[2] = {960, 960};
-
-        ndarray<T,2> d(data, shape);
-        ndarray<const pixel_status_t,2> stat(m_status, shape);
-	
-  	if (cmtype & 1) {
-          //common mode correction for 1x160-pixel rows with stride 2
-	  size_t nregs  = 6;	
-	  size_t ncols  = shape[1]/nregs; // 160-pixel
-	  size_t nrows  = 1;
-          size_t colmin = 0;
-
-	  for(size_t row=0; row<shape[1]; row++) {
-	    for(size_t s=0; s<nregs; s++) {
-	      colmin = s * ncols;
-	      for(size_t k=0; k<2; k++)
-	        medianInRegion<T>(pars, d, stat, row, colmin+k, nrows, ncols, 1, 2, pbits); 
-	    }
-	  }
-	}
-
-  	if (cmtype & 2) {
-          //common mode correction for 480x10-pixel 96*2 supercolumns
-	  size_t nregs  = 96*2;	
-	  size_t nrows  = shape[0]/2;
-	  size_t ncols  = shape[1]/96;
-        
-	  for(size_t s=0; s<nregs; s++) {
-	    //meanInRegion  <T>(pars, d, stat, rowmin[s], colmin[s], nrows, ncols, 1, 1); 
-            size_t rowmin = (s/96)*nrows;
-            size_t colmin = (s%96)*ncols;
-	    medianInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
-	  }
-	}
-        return true; 
+      if (cmtype & 2) {
+        //common mode correction for 480x10-pixel 96*2 supercolumns
+        size_t nregs  = 96*2;	
+        size_t nrows  = shape[0]/2;
+        size_t ncols  = shape[1]/96;
+      
+        for(size_t s=0; s<nregs; s++) {
+          //meanInRegion  <T>(pars, d, stat, rowmin[s], colmin[s], nrows, ncols, 1, 1); 
+          size_t rowmin = (s/96)*nrows;
+          size_t colmin = (s%96)*ncols;
+          medianInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+        }
       }
+      return true; 
+    }
 
+//-------------------
+// Common mode correction algorithm for Epix100
+
+  template <typename T>
+    bool do_common_mode_epix100_v1(T* data)
+    {
+      const common_mode_t* pars = &m_cmod_pars[1]; 
+      // [0] element=mode is excluded from parameters
+      unsigned cmtype = (unsigned) m_cmod_pars[1];
+      unsigned pbits = (m_pbits & 256) ? 0xffff : 0;
+
+      // EPIX100A, common_mode file example: 4 6 30 10
+      if (m_pbits & 128) MsgLog(_name_(), info, "EPIX100A cmtype:" << cmtype);
+
+      //T maxCorrection = (T) m_cmod_pars[2];
+
+      unsigned shape[2] = {704, 768};
+
+      size_t nregs  = 16;	
+      size_t nrows  = shape[0]/2; // 352
+      size_t ncols  = shape[1]/8; // 96
+      size_t rowmin = 0;
+      size_t colmin = 0;
+      
+      ndarray<T,2> d(data, shape);
+      ndarray<const pixel_status_t,2> stat(m_status, shape);
+
+      for(size_t s=0; s<nregs; s++) {
+        //meanInRegion  <T>(pars, d, stat, rowmin[s], colmin[s], nrows, ncols, 1, 1, pbits); 
+        rowmin = (s/8)*nrows;
+        colmin = (s%8)*ncols;
+
+        if (cmtype & 1) {
+          //common mode for 352x96-pixel 16 banks
+          medianInRegionV3<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+          //medianInRegionV2<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+          //medianInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+          //meanInRegion<T>(pars, d, stat, rowmin, colmin, nrows, ncols, 1, 1, pbits); 
+        }
+
+        if (cmtype & 2) {
+          //common mode for 96-pixel rows in 16 banks
+          for(size_t r=0; r<nrows; r++) {
+            medianInRegionV3<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
+            //medianInRegionV2<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
+            //medianInRegion<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
+            //meanInRegion<T>(pars, d, stat, rowmin+r, colmin, 1, ncols, 1, 1, pbits); 
+          }
+        }
+
+        if (cmtype & 4) {
+          //common mode for 352-pixel columns in 16 banks
+          for(size_t c=0; c<ncols; c++) {
+            medianInRegionV3<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
+            //medianInRegionV2<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
+            //medianInRegion<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
+            //meanInRegion<T>(pars, d, stat, rowmin, colmin+c, nrows, 1, 1, 1, pbits); 
+          }
+        }
+      }
+      return true; 
+    }
+
+//-------------------
+// Optimized common mode correction algorithm for Epix100
+
+  template <typename T>
+    bool do_common_mode_epix100_v2(T* data)
+    {
+      const common_mode_t* pars = &m_cmod_pars[1]; 
+      // [0] element=mode is excluded from parameters
+      unsigned cmtype = (unsigned) m_cmod_pars[1];
+      unsigned pbits = (m_pbits & 256) ? 0xffff : 0;
+
+      // EPIX100A, common_mode file example: 4 6 30 10
+      if (m_pbits & 128) MsgLog(_name_(), info, "EPIX100A cmtype:" << cmtype);
+
+      //T maxCorrection = (T) m_cmod_pars[2];
+
+      unsigned shape[2] = {704, 768};
+
+      ndarray<T,2> d(data, shape);
+      ndarray<const pixel_status_t,2> stat(m_status, shape);
+
+      medianEpix100V1<T>(pars, d, stat, pbits);
+
+      return true;
+    }
+
+//-------------------
+
+  template <typename T>
+    bool do_common_mode_median(T* data)
+    {
+      if      (m_dettype == EPIX100A) return do_common_mode_epix100_v1<T>(data);
+      //if      (m_dettype == EPIX100A) return do_common_mode_epix100_v2<T>(data);
+      else if (m_dettype == FCCD960)  return do_common_mode_fccd960<T>(data);
       return false; 
     }
 

@@ -22,7 +22,8 @@
 #include <stdint.h>  // uint8_t, uint32_t, etc.
 #include <iostream>
 #include <cmath>
-#include <algorithm> // for fill_n
+#include <algorithm> // for fill_n, std::sort
+
 //#include <cstring>   // for memcpy
 //#include <math.h>
 //#include <stdio.h>
@@ -41,6 +42,37 @@
 namespace ImgAlgos {
 
 using namespace std;
+
+//--------------------
+typedef float work_t;
+
+//--------------------
+
+class SingleStore{
+public:
+  static SingleStore* instance();
+  void print();
+  void make_ndarrays();
+
+  // arrays for Epix100 common mode correction
+  //const static unsigned shasd[2] = {704, 768};
+  //const static unsigned shtrd[2] = {768, 704};
+
+  ndarray<work_t,2> m_wasd; // (shasd); // work array shaped as data
+  ndarray<work_t,2> m_wtrd; // (shtrd); // work array transposed from data
+  ndarray<work_t,2> m_ctrd; // (shtrd); // array of corrected transposed data
+ 
+private:
+
+  SingleStore() ;                 // !!!!! Private so that it can not be called from outside
+  virtual ~SingleStore(){};
+ 
+  static SingleStore* m_pInstance; // !!!!! Singleton instance
+
+  // Copy constructor and assignment are disabled by default
+  SingleStore (const SingleStore&) ;
+  SingleStore& operator = (const SingleStore&) ;
+};
 
 //--------------------
 
@@ -662,6 +694,149 @@ applyCModeUnbond( const double* pars,
   } 
   return (float)mean;
 }
+
+//--------------------
+
+
+//--------------------
+// Optimized common mode correction algorithm for Epix100
+//
+// Optimizetion
+// ------------
+// 1. remove redundant loops comparing to medianInRegionV3
+// 2. work with float values in stead of double
+// 3. do not use vector-s
+
+  template <typename T>
+  void medianEpix100V1(const double* pars
+                      ,ndarray<T,2>& data 
+	              ,ndarray<const uint16_t,2>& status
+		      ,const unsigned& pbits=0
+                      ) {
+
+    const unsigned shasd[2] = {704, 768};
+    //const unsigned shtrd[2] = {768, 704};
+
+    static unsigned nentry=0; nentry++;
+    if(nentry==1) {
+      //cout << "medianEpix100V1: cmpars = "; for(int i=0; i<3; i++) cout << " " << pars[i]; cout << '\n';
+      //cout << "medianEpix100V1: sizeof(float)=" << sizeof(float) << '\n'; // the answer is 4 byte
+      if (pbits & 1) MsgLog("medianEpix100V1", info, "cmpars = " << pars[0] << " " << pars[1] << " " << pars[2]);
+
+      //SingleStore::instance()->print()
+    }
+
+    ndarray<work_t,2>& m_wasd = SingleStore::instance()->m_wasd;
+    ndarray<work_t,2>& m_wtrd = SingleStore::instance()->m_wtrd;
+    ndarray<work_t,2>& m_ctrd = SingleStore::instance()->m_ctrd;
+
+    const work_t BADDATA = -100000.;
+
+    //size_t nregs  = 16;	
+    size_t nrows  = shasd[0]; // 704
+    size_t ncols  = shasd[1]; // 768
+    T half_range  = (T)pars[1];
+    T maxcorr     = (work_t)pars[2];
+
+    bool check_status = (status.data()) ? true : false;
+
+    typename ndarray<T, 2>::iterator itd;
+    typename ndarray<const uint16_t, 2>::iterator its=status.begin();
+    typename ndarray<work_t, 2>::iterator itw=m_wasd.begin();
+
+    // --------------------------------
+    // Correction of 96 pixels in rows
+    // --------------------------------
+
+    // conditional copy of data to work array in right order
+    for(itd=data.begin(); itd!=data.end(); itd++, its++, itw++) {
+      bool bad_pixel = (check_status && *its) or (*itd>half_range) or (*itd<-half_range);
+      *itw = (bad_pixel) ? BADDATA : (work_t)(*itd);
+    }
+
+    // loop over 1-d row parts in 2-d m_wasd array
+    size_t grlen = 96; // ncols/8
+    itd=data.begin();
+    for(itw=m_wasd.begin(); itw!=m_wasd.end(); itw+=grlen, itd+=grlen) {
+
+      // Edges of the row
+      work_t* pbeg = itw;
+      work_t* pend = itw+grlen; // assuming as usually [pbe,pend)
+
+      // Sort elements
+      std::sort(pbeg,pend);
+      //cout << "\nXXX sorted:"; for(work_t* p=pbeg; p<pend; p++) cout << " " << *p; cout << '\n'; 
+
+      // Discard bad pixels 
+      for(; pbeg!=pend; pbeg++)
+        if(*pbeg!=BADDATA) break;
+      //cout << "\nXXX clean sorted:"; for(work_t* p=pbeg; p<pend; p++) cout << " " << *p; cout << '\n'; 
+
+      int npix_good = pend-pbeg;
+      if(npix_good<10) continue; // do not apply correction for small number of good pixels
+      work_t cm = *(pbeg + npix_good/2);
+      //cout << "\nXXX npix_good=" << npix_good << "  cm=" << cm << '\n'; 
+
+      if(maxcorr && fabs(cm)>maxcorr) continue;  // do not apply large correction
+      
+      // apply correction to data part of the row
+      for(T* p=itd; p!=itd+grlen; p++) *p -= cm;
+    }
+
+    // --------------------------------
+    // Correction of 352 pixels in cols
+    // --------------------------------
+
+    // data has changed, so need to repeat conditional copy array again
+    its=status.begin();
+    itw=m_wasd.begin();
+    for(itd=data.begin(); itd!=data.end(); itd++, its++, itw++) {
+      bool bad_pixel = (check_status && *its) or (*itd>half_range) or (*itd<-half_range);
+      *itw = (bad_pixel) ? BADDATA : (work_t)(*itd);
+    }
+
+    // Fill in transposed array
+    for(size_t r=0; r<nrows; r++)
+      for(size_t c=0; c<ncols; c++) {
+	m_wtrd[c][r] = m_wasd[r][c];
+	m_ctrd[c][r] = data[r][c];
+      }
+
+    // loop over 1-d row parts in 2-d m_wtrd array
+    grlen = 352; // nrows/2
+    typename ndarray<work_t, 2>::iterator itc=m_ctrd.begin();
+    typename ndarray<work_t, 2>::iterator itr=m_wtrd.begin();
+    for(itr=m_wtrd.begin(); itr!=m_wtrd.end(); itr+=grlen, itc+=grlen) {
+
+      // Edges of the row
+      work_t* pbeg = itr;
+      work_t* pend = itr+grlen; // assuming as usually [pbe,pend)
+
+      // Sort elements
+      std::sort(pbeg,pend);
+      //cout << "\nXXX sorted:"; for(work_t* p=pbeg; p<pend; p++) cout << " " << *p; cout << '\n'; 
+
+      // Discard bad pixels 
+      for(; pbeg!=pend; pbeg++)
+        if(*pbeg!=BADDATA) break;
+      //cout << "\nXXX clean sorted:"; for(work_t* p=pbeg; p<pend; p++) cout << " " << *p; cout << '\n'; 
+
+      int npix_good = pend-pbeg;
+      if(npix_good<10) continue; // do not apply correction for small number of good pixels
+      work_t cm = *(pbeg + npix_good/2);
+      //cout << "\nXXX npix_good=" << npix_good << "  cm=" << cm << '\n'; 
+
+      if(maxcorr && fabs(cm)>maxcorr) continue;  // do not apply large correction
+      
+      // apply correction to transposed data part of the row
+      for(work_t* p=itc; p!=itc+grlen; p++) *p -= cm;
+    }
+
+    // copy transposed corrected array to data
+    for(size_t r=0; r<nrows; r++)
+      for(size_t c=0; c<ncols; c++)
+	data[r][c] = (T)m_ctrd[c][r];
+  }
 
 //--------------------
 

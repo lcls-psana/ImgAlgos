@@ -14,7 +14,7 @@
 // This Class's Header --
 //-----------------------
 #include "ImgAlgos/CommonMode.h"
-
+ 
 //-----------------
 // C/C++ Headers --
 //-----------------
@@ -43,6 +43,36 @@ using namespace ImgAlgos;
 
 namespace ImgAlgos {
 
+  //typedef CommonMode::work_t work_t;
+
+SingleStore* SingleStore::m_pInstance = NULL; // !!!!!! make global pointer !!!!!
+ 
+//----------------
+SingleStore::SingleStore()
+{
+  //print();
+  make_ndarrays();
+}
+
+//----------------
+SingleStore* SingleStore::instance()
+{
+  if(!m_pInstance) m_pInstance = new SingleStore();
+  return m_pInstance;
+}
+
+//----------------
+void SingleStore::print(){std::cout << "SingleStore::print() Single instance for singleton class SingleStore is created\n";}
+
+//----------------
+void SingleStore::make_ndarrays(){
+      m_wasd = make_ndarray<work_t>(704, 768);
+      m_wtrd = make_ndarray<work_t>(768, 704);
+      m_ctrd = make_ndarray<work_t>(768, 704);
+}
+
+//--------------------
+//--------------------
 //--------------------
 
 // Original version of the median estimation in integer numbers
@@ -66,7 +96,6 @@ namespace ImgAlgos {
       return float(low+i)+dx+0.8;  // 0.8 - is an imperic number, which should be 1 due to binning, but 0.8 works better
   }
 
-//--------------------
 //--------------------
 //--------------------
 //--------------------
