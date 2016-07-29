@@ -332,7 +332,7 @@ public:
 	    , const size_t&   colmin  = 0
 	    , const size_t&   colmax  = 1e6
 	    , const unsigned& pbits   = 0
-	    , const unsigned& npksmax = 10000
+	    , const unsigned& npksmax = 80000
 	    ) ;
 
   /// Destructor

@@ -11,10 +11,14 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-17
+2016-07-29 Mikhail S. Dubrovin
+- AlgImgProc.h - increase npksmax from 10000 to 80000 (PSAS-147)
+
 Tag: V00-04-16
 2016-06-24 Mikhail S. Dubrovin
 - CommonMode(Correction) - add one more "optimized" version of cm algorithm for Epix100. Old works faster...
-	
+
 Tag: V00-04-15
 2016-06-22 Mikhail S. Dubrovin
 - AlgArrProc.cpp - fix size of returned peak record to 17 (of floats) (PSAS-147)
