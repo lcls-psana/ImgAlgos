@@ -96,9 +96,9 @@ namespace ImgAlgos {
  *
  *  @li Define input parameters
  *  @code
- *  ndarray<const T,2> data = ....;    // calibrated data ndarray
- *  ndarray<mask_t,2>  mask = ....;    // mask ndarray, may be omitted
- *  ndarray<mask_t,2>  son;            // output S/N ndarray
+ *  ndarray<const T,3> data = ....;    // calibrated data ndarray
+ *  ndarray<mask_t,3>  mask = ....;    // mask ndarray, may be omitted
+ *  ndarray<mask_t,3>  son;            // output S/N ndarray
  *  ndarray<const wind_t,2> winds = ((0,  0, 185,   0, 388), \
  *                                   (1, 10, 103,  10, 204), \
  *                                   (1, 10, 103, 250, 380));
@@ -120,18 +120,21 @@ namespace ImgAlgos {
  *  @code
  *  unsigned npix = alg->numberOfPixAboveThr<T>(data, mask, thr);
  *  double intensity = alg->intensityOfPixAboveThr<T>(data, mask, thr);
- *  ndarray<const float, 2> peaks = alg->peakFinderV1<T>(data, mask, thr_low, hr_high, radius, dr);
- *  ndarray<const float, 2> peaks = alg->peakFinderV2<T>(data, mask, thr, r0, dr);
- *  ndarray<const float, 2> peaks = alg->peakFinderV3<T>(data, mask, rank, r0, dr);
- *  ndarray<const float, 2> peaks = alg->peakFinderV4<T>(data, mask, thr_low, hr_high, rank, r0, dr);
+ *  ndarray<const float, 3> peaks = alg->peakFinderV1<T>(data, mask, thr_low, hr_high, radius, dr);
+ *  ndarray<const float, 3> peaks = alg->peakFinderV2<T>(data, mask, thr, r0, dr);
+ *  ndarray<const float, 3> peaks = alg->peakFinderV3<T>(data, mask, rank, r0, dr);
+ *  ndarray<const float, 3> peaks = alg->peakFinderV4<T>(data, mask, thr_low, hr_high, rank, r0, dr);
  *  
  *  // The same peak-finders after revision-1
- *  ndarray<const float, 2> peaks = alg->peakFinderV2r1<T>(data, mask, thr, r0, dr);
- *  ndarray<const float, 2> peaks = alg->peakFinderV3r1<T>(data, mask, rank, r0, dr, nsigm);
- *  ndarray<const float, 2> peaks = alg->peakFinderV4r1<T>(data, mask, thr_low, hr_high, rank, r0, dr);
+ *  ndarray<const float, 3> peaks = alg->peakFinderV2r1<T>(data, mask, thr, r0, dr);
+ *  ndarray<const float, 3> peaks = alg->peakFinderV3r1<T>(data, mask, rank, r0, dr, nsigm);
+ *  ndarray<const float, 3> peaks = alg->peakFinderV4r1<T>(data, mask, thr_low, hr_high, rank, r0, dr);
  *  
  *  // Call after peakFinderV2(...) ONLY!
- *  ndarray<conmap_t, 3> maps =  alg->mapsOfConnectedPixels();
+ *  ndarray<conmap_t, 3> maps = alg->mapsOfConnectedPixels();
+ *  
+ *  // Chuck's algorithm of photon counting (apply correction on split between pixels photons)
+ *  ndarray<const nphoton_t, 3> maps = alg->mapsOfPhotonNumbers<T>(data, mask);
  *  @endcode
  *
  *
@@ -156,6 +159,7 @@ public:
   typedef AlgImgProc::conmap_t conmap_t;
   typedef AlgImgProc::pixel_minimums_t pixel_minimums_t;
   typedef AlgImgProc::pixel_maximums_t pixel_maximums_t;
+  typedef AlgImgProc::nphoton_t nphoton_t;
 
   /*
   typedef unsigned shape_t;
@@ -612,6 +616,39 @@ public:
 
     return _ndarrayOfPeakPars(npeaks);
   }
+
+//--------------------
+//--------------------
+/// mapsOfPhotonNumbersV1 - Chuck's photon counting algorithm - apply fancy correction for split photons.
+
+template <typename T>
+ndarray<const nphoton_t, 3>
+mapsOfPhotonNumbersV1( const ndarray<const T, 3> data
+                     , const ndarray<const mask_t, 3> mask
+                     )
+{
+  if(m_pbits & 256) MsgLog(_name(), info, "in mapsOfPhotonNumbers");
+
+  if(! _initAlgImgProc<T,3>(data, mask)) { ndarray<const nphoton_t, 3> empty; return empty; }
+
+  unsigned shape[3] = {m_nsegs, m_nrows, m_ncols};
+  ndarray<nphoton_t, 3> maps(shape);
+
+  for(std::vector<AlgImgProc*>::iterator it = v_algip.begin(); it != v_algip.end(); ++it) {
+
+    size_t ind = (*it)->segind() * m_stride;              
+    const ndarray<const T,2>      seg_data(&data.data()[ind], m_sshape);
+    const ndarray<const mask_t,2> seg_mask(&m_mask[ind], m_sshape);
+
+    ndarray<nphoton_t, 2>& map = (*it) -> mapOfPhotonNumbersV1<T>(seg_data, seg_mask);
+    const Window& win = (*it) -> window();
+
+    for(unsigned r = win.rowmin; r<win.rowmax; r++) 
+      for(unsigned c = win.colmin; c<win.colmax; c++)
+        maps[win.segind][r][c] = map[r][c];
+  }
+  return maps;
+}
 
 //--------------------
 //--------------------

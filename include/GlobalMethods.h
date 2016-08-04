@@ -144,6 +144,14 @@ using namespace std;
 struct TwoIndexes {
   int i;
   int j;
+
+  TwoIndexes(const int& ii=0, const int& jj=0) : i(ii), j(jj) {}
+
+  TwoIndexes& operator=(const TwoIndexes& rhs) {
+    i = rhs.i;
+    j = rhs.j;
+    return *this;
+  }
 };
 
 //--------------------

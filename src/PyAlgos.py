@@ -605,14 +605,110 @@ def subtract_bkgd(data, bkgd, mask=None, winds=None, pbits=0) :
     return piagu.subtract_bkgd(data, bkgd, mask, winds, pbits)
 
 ##-----------------------------
+
+def photons_2d(data, mask=None) :
+    """returns 2-d array with number of merged photons per pixel
+    """
+    nda = data
+    msk = mask
+    if mask is None :
+        msk = np.ones(nda.shape, dtype=np.uint16)
+    else :
+        if msk.dtype != np.uint16 : raise ValueError('Mask dtype=%s, but expected np.uint16' % str(msk.dtype))
+        if msk.shape != nda.shape : raise ValueError('msk.shape=%s is different from array shape=%s' % (str(msk.shape), str(nda.shape)))
+        
+    ndim, dtype = len(nda.shape), nda.dtype
+
+    if ndim != 2 : raise ValueError('photons_2d: number of dimensions is %d, expected 2-d' % ndim)
+
+    if dtype == np.float32: return ImgAlgos.map_photon_numbers_v1_f2(nda, msk)
+    if dtype == np.float64: return ImgAlgos.map_photon_numbers_v1_d2(nda, msk)
+    if dtype == np.int    : return ImgAlgos.map_photon_numbers_v1_i2(nda, msk)
+    if dtype == np.int16  : return ImgAlgos.map_photon_numbers_v1_s2(nda, msk)
+    if dtype == np.uint16 : return ImgAlgos.map_photon_numbers_v1_u2(nda, msk)
+
+    print 'WARNING: PyAlgos.photons_2d method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+    return None
+
+#arr = ImgAlgos.local_maximums_f2(data, mask, 5)
+#arr = ImgAlgos.local_maximums_cross1(data)
+
+##-----------------------------
+##-----------------------------
+##-----------------------------
+
+def photons(data, mask) :
+    """returns 2-d or 3-d array with number of merged photons per pixel
+    """
+    ndim = len(data.shape)
+    if ndim == 2 : return photons_2d(data, mask)
+
+    nda = data if ndim == 3 else reshape_nda_to_3d(data)
+
+    if mask is None : return np.array([photons_2d(nda[s,:,:]) for s in range(nda.shape[0])], dtype=np.uint16)
+
+    msk = mask if ndim == 3 else reshape_nda_to_3d(mask)
+    return np.array([photons_2d(nda[s,:,:], msk[s,:,:]) for s in range(nda.shape[0])], dtype=np.uint16)
+
+##-----------------------------
 ##---------- TEST -------------
 ##-----------------------------
 
-from time import time
+def test_photons_2d() :
+
+    mean, sigma = 0,10
+    shape = (50,50)
+    mask  = np.ones(shape, dtype=np.uint16)
+    data  = np.array(mean + sigma * np.random.standard_normal(size=shape), dtype=np.float64)
+
+    piagu.print_ndarr(data, 'data', last=10)
+    piagu.print_ndarr(mask, 'mask', last=10)
+
+    arr = photons_2d(data, mask)
+
+    piagu.print_ndarr(arr, 'arr', last=10)
+
+    from pyimgalgos.GlobalGraphics import plotImageLarge, show
+    plotImageLarge(data, title='data')
+    plotImageLarge(arr, title='array')
+    show()
 
 ##-----------------------------
 
-if __name__ == "__main__" :
+def test_photons_3d() :
+
+    from time import time
+
+    mean, sigma = 0,10
+    shape = (32,185,388)
+    #shape = (4,512,512)
+    mask  = np.ones(shape, dtype=np.uint16)
+    data  = np.array(mean + sigma * np.random.standard_normal(size=shape), dtype=np.float64)
+
+    piagu.print_ndarr(data, 'data')
+    piagu.print_ndarr(mask, 'mask')
+
+    t0_sec = time()
+    arr3d = photons(data, mask)
+    print '\nTime consumed by photons(data, mask) (sec) = %10.6f' % (time()-t0_sec)
+
+
+    arr2d = arr3d[1,:]
+    arr2d.shape = (shape[-2], shape[-1])
+
+    piagu.print_ndarr(arr3d, 'arr3d')
+    piagu.print_ndarr(arr2d, 'arr2d')
+
+    from pyimgalgos.GlobalGraphics import plotImageLarge, show
+    #plotImageLarge(data, title='data')
+    plotImageLarge(arr2d, title='arr2d')
+    show()
+
+##-----------------------------
+
+def test_pyalgos() :
+
+    from time import time
 
     t0_sec = time()
 
@@ -625,6 +721,22 @@ if __name__ == "__main__" :
     alg.print_attributes()
 
     print '\nC++ consumed time to get raw data (sec) = %10.6f' % (time()-t0_sec)
+
+##-----------------------------
+##-----------------------------
+##-----------------------------
+
+if __name__ == "__main__" :
+
+    if len(sys.argv)==1    :
+        print 'For test(s) use command: python', sys.argv[0], '<test-number=1-...>'
+        test_pyalgos()
+
+    elif(sys.argv[1]=='1') : test_pyalgos()
+    elif(sys.argv[1]=='2') : test_photons_2d()
+    elif(sys.argv[1]=='3') : test_photons_3d()
+
+    else : print 'Non-expected arguments: sys.argv=', sys.argv, ' use 0,1,2,...'
 
     sys.exit ('Self test is done.')
 

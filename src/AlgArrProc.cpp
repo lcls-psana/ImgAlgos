@@ -27,6 +27,7 @@ namespace ImgAlgos {
   typedef AlgImgProc::conmap_t conmap_t;
   typedef AlgImgProc::pixel_minimums_t pixel_minimums_t;
   typedef AlgImgProc::pixel_maximums_t pixel_maximums_t;
+  //typedef AlgImgProc::nphoton_t nphoton_t;
 
 //--------------------
 // Constructors --
@@ -263,6 +264,8 @@ AlgArrProc::mapsOfLocalMaximums()
   }
   return maps;
 }
+
+//--------------------
 
 //--------------------
 } // namespace ImgAlgos

@@ -54,10 +54,6 @@ AlgImgProc::AlgImgProc ( const size_t&   seg
   m_win.set(seg, rowmin, rowmax, colmin, colmax);
 
   if(m_pbits & 2) printInputPars();
-
-  v_peaks_work.reserve(m_npksmax);
-  v_peaks.reserve(m_npksmax);
-  v_peaks_sel.reserve(m_npksmax);
 }
 
 //--------------------
@@ -67,6 +63,18 @@ AlgImgProc::~AlgImgProc()
   if(m_pbits & 512) MsgLog(_name(), info, "in d-tor ~AlgImgProc, seg=" << m_seg);
   //v_peaks.resize(0); 
   //v_peaks_work.resize(0);
+}
+
+//--------------------
+
+void 
+AlgImgProc::_reserveVectorOfPeaks()
+{
+  if(v_peaks_work.capacity() == m_npksmax)  return;
+
+  v_peaks_work.reserve(m_npksmax);
+  v_peaks.reserve(m_npksmax);
+  v_peaks_sel.reserve(m_npksmax);
 }
 
 //--------------------
@@ -186,6 +194,7 @@ AlgImgProc::_makeVectorOfPeaks()
   if(m_numreg==0) return;
 
   //v_peaks.reserve(m_numreg+1); // this does not always work
+  _reserveVectorOfPeaks();
   v_peaks.clear();
 
   for(unsigned i=0; i<min(m_numreg, m_npksmax); i++) {
@@ -265,7 +274,8 @@ AlgImgProc::_evaluateDiagIndexes(const size_t& rank)
       if (i==0 || j==0) continue;
       // use ring region (if un-commented)
       //if (m_rank>2 && floor(std::sqrt(float(i*i + j*j)))>(int)m_rank) continue;
-      TwoIndexes inds = {i,j};
+      //TwoIndexes inds = {i,j};
+      TwoIndexes inds(i,j);
       v_inddiag.push_back(inds);
     }
   }
@@ -293,13 +303,25 @@ AlgImgProc::_evaluateRingIndexes(const float& r0, const float& dr)
 
       float r = std::sqrt( float(i*i + j*j) );
       if ( r < m_r0 || r > m_r0 + m_dr ) continue;
-      TwoIndexes inds = {i,j};
+      //TwoIndexes inds = {i,j};
+      TwoIndexes inds(i,j);
       v_indexes.push_back(inds);
     }
   }
 
   if(m_pbits & 2) printMatrixOfRingIndexes();
   if(m_pbits & 4) printVectorOfRingIndexes();
+}
+
+//--------------------
+
+void 
+AlgImgProc::_fillCrossIndexes()
+{
+  v_indcross.push_back(TwoIndexes(-1, 0));
+  v_indcross.push_back(TwoIndexes( 1, 0));
+  v_indcross.push_back(TwoIndexes( 0,-1));
+  v_indcross.push_back(TwoIndexes( 0, 1));
 }
 
 //--------------------
@@ -327,6 +349,92 @@ AlgImgProc::setPeakSelectionPars(const float& npix_min, const float& npix_max,
   m_peak_son_min  = son_min;
 }
 
+//--------------------
+
+void
+AlgImgProc::_mergeConnectedPixelCouples(const fphoton_t& thr_on_max, const fphoton_t& thr_on_tot, const bool& DO_TEST)
+{
+  // Available ndarrays:
+  // m_nphoton - uint number of photons
+  // m_fphoton - fractional number of photons [0,1)
+  // m_mphoton - for test output only
+  // m_local_maximums - map of local maximums
+  // m_pixel_status - is not used
+  // m_conmap - map of connected pixels (coupled pixels marked by the same group number) - busy pixels
+
+  const unsigned* shape = m_fphoton.shape();
+
+  if(m_pbits & 512) MsgLog(_name(), info, "in _mergeConnectedPixelCouples, seg=" << m_seg << "\n    in window: " << m_win);
+
+  if(DO_TEST) {
+    if(m_mphoton.empty()) 
+       m_mphoton = make_ndarray<nphoton_t>(shape[0], shape[1]);
+    std::fill_n(&m_mphoton[0][0], int(m_nphoton.size()), nphoton_t(0));
+  }
+
+  if(m_conmap.empty()) 
+     m_conmap = make_ndarray<conmap_t>(shape[0], shape[1]);
+  std::fill_n(m_conmap.data(), int(m_fphoton.size()), conmap_t(0));
+
+  m_numreg=0;
+
+  //if(m_pixel_status.empty()) 
+  //   m_pixel_status = make_ndarray<pixel_status_t>(shape[0], shape[1]);
+  //std::fill_n(&m_pixel_status[0][0], int(m_fphoton.size()), pixel_status_t(0));
+
+  /*
+  int rmin = (int)m_win.rowmin;
+  int rmax = (int)m_win.rowmax;				  
+  int cmin = (int)m_win.colmin;
+  int cmax = (int)m_win.colmax;
+  */
+
+  if(v_indcross.empty()) _fillCrossIndexes();
+
+  // loop over internal image pixels ignoring first and last rows and columns
+  for(unsigned r = m_win.rowmin+1; r<m_win.rowmax-1; r++) {
+    for(unsigned c = m_win.colmin+1; c<m_win.colmax-1; c++) {
+
+      if(m_local_maximums[r][c] != 3)  continue; // check local maximums only
+      if(m_fphoton[r][c] < thr_on_max) continue; // apply threshold on max
+
+      fphoton_t vmax = 0;
+      TwoIndexes ijmax(0,0);
+
+      // find not-busy neighbor pixel with maximal intensity
+      for(vector<TwoIndexes>::const_iterator ij  = v_indcross.begin();
+                                             ij != v_indcross.end(); ij++) {
+         int ir = r + (ij->i);
+         int ic = c + (ij->j);
+
+         if(m_conmap[ir][ic]) continue; // pixel is already used for other pair
+
+         if(m_fphoton[ir][ic] < vmax) continue; // not a maximal neighbor
+
+	 vmax = m_fphoton[ir][ic];
+         ijmax = *ij;
+      }
+
+      if(! vmax) continue; // if the neighbour pixel with maximal intensity is not found
+
+      fphoton_t vtot = m_fphoton[r][c] + m_fphoton[r + ijmax.i][c + ijmax.j];
+
+      if(vtot < thr_on_max) continue; // if pair intensity is below threshold 
+
+      m_numreg ++;
+      m_conmap[r][c] = m_numreg;
+      m_conmap[r + ijmax.i][c + ijmax.j] = m_numreg;
+      	
+      // DO MERGE FOR A COUPLE OF SELECTED PIXELS      
+      m_nphoton[r][c] ++;  // increment number of photons
+
+      if(DO_TEST) m_mphoton[r][c] = 1; // vtot*100;
+
+    } // column loop
+  } // row loop
+}
+
+//--------------------
 //--------------------
 
 void 
@@ -463,6 +571,24 @@ AlgImgProc::_printStatisticsOfLocalExtremes()
        << " S/N:"     << std::setw( 5) << std::setprecision(1) << p.son;
     return os;
   }
+
+
+//--------------------
+//--------------------
+//-- NON-CLASS METHODS
+//--------------------
+
+ndarray<const AlgImgProc::pixel_maximums_t, 2>
+mapOfLocalMaximumsRank1Cross(const ndarray<const AlgImgProc::fphoton_t,2> fphoton)
+{
+  AlgImgProc* algo = new AlgImgProc(0); // , 0, 1e6, 0, 1e6, 1023);
+  algo->validate_window(fphoton.shape());
+  algo->_makeMapOfLocalMaximumsRank1Cross<AlgImgProc::fphoton_t>(fphoton);
+  return algo->mapOfLocalMaximums();
+}
+
+//--------------------
+
 //--------------------
 } // namespace ImgAlgos
 //--------------------

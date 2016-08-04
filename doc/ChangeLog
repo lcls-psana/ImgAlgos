@@ -11,6 +11,19 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-18
+2016-08-02 Mikhail S. Dubrovin
+- AlgImgProc - move vector size reservation to _reserveVectorOfPeaks() and use it in peakFinderV# only (PSAS-147).
+- add algorithm which merging split photons (for Chuck)
+M       include/AlgArrProc.h
+M       include/AlgImgProc.h
+A       include/AlgUtils.h
+M       include/GlobalMethods.h
+M       pyext/pyImgAlgos.cpp
+M       src/AlgArrProc.cpp
+M       src/AlgImgProc.cpp
+M       src/PyAlgos.py
+	
 Tag: V00-04-17
 2016-07-29 Mikhail S. Dubrovin
 - AlgImgProc.h - increase npksmax from 10000 to 80000 (PSAS-147)

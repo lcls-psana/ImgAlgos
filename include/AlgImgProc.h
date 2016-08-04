@@ -314,6 +314,8 @@ public:
   typedef uint16_t pixel_maximums_t;
   typedef uint16_t pixel_minimums_t;
   typedef float son_t;
+  typedef uint16_t nphoton_t;
+  typedef float    fphoton_t;
 
   /**
    * @brief Class constructor is used for initialization of all paramaters. 
@@ -360,6 +362,9 @@ public:
 
   /// Returns reference to Window object
   const Window& window(){ return m_win; }
+
+  /// Returns reference to Window object
+  void validate_window(const Window::shape_t* shape=0){ if (shape) m_win.validate(shape); }
 
   /// Returns segment index in the ndarray
   const size_t& segind(){ return m_seg; }
@@ -429,6 +434,10 @@ private:
   std::vector<Peak>            v_peaks_sel;
   std::vector<TwoIndexes>      v_indexes;
   std::vector<TwoIndexes>      v_inddiag;
+  std::vector<TwoIndexes>      v_indcross;
+  ndarray<nphoton_t, 2>        m_nphoton; // map with integer (floor) number of photons 
+  ndarray<fphoton_t, 2>        m_fphoton; // map with fractional number of photons  
+  ndarray<nphoton_t, 2>        m_mphoton; // map of merged (integer) number of photons
 
   //ndarray<Peak, 1>           m_peaks;
   // mask_t*                    m_seg_mask_def;
@@ -437,7 +446,10 @@ private:
   /// Returns string name of the class for messanger
   inline const char* _name() {return "ImgAlgos::AlgImgProc";}
 
-  /// Recursive method which checks m_pixel_status[r][c] and numerates connected regions in m_conmap[r][c].
+  /// Reserves vectors of peaks sizes
+  void _reserveVectorOfPeaks();
+
+  /// Recursive method which checks m_pixel_status[r][c] and numerates connected regions in m_conmap[r][c]
   void _findConnectedPixels(const unsigned& r, const unsigned& c);
 
   /// Makes m_conmap - map of connected pixels with enumerated regions from m_pixel_status and counts m_numreg
@@ -464,8 +476,14 @@ private:
   /// Evaluate "diagonal" region indexes for peakFinderV3
   void _evaluateDiagIndexes(const size_t& rank);
 
+  /// Fill "cross" region indexes for mapOfPhotonNumbersV1 
+  void _fillCrossIndexes();
+
   /// prints statistics of local maximums and minimums
   void _printStatisticsOfLocalExtremes();
+
+  /// Join local maximum fractional intensity with largest adjesent pixel (very special algorithm for Chuck's photon counting)
+  void _mergeConnectedPixelCouples(const fphoton_t& thr_on_max = 0.25, const fphoton_t& thr_on_tot = 0.75, const bool& DO_TEST = false);
 
 //--------------------
   /**
@@ -576,6 +594,8 @@ _procConnectedPixels(const ndarray<const T,2>& data)
 }
 
 //--------------------
+public:
+//--------------------
   /**
    * @brief Makes map of local minimums of requested rank (IN ROWS AND COLUMNS ONLY!)
    * 
@@ -594,7 +614,7 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>&      data
                        )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfLocalMinimums, seg=" << m_seg << " rank=" << rank << "\n    in window: " << m_win);
-  //if(m_pbits & 512) m_win.print();
+  if(m_pbits & 512) m_win.print();
 
   if(m_local_minimums.empty()) 
      m_local_minimums = make_ndarray<pixel_minimums_t>(data.shape()[0], data.shape()[1]);
@@ -695,7 +715,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>&      data
                        )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfLocalMaximums, seg=" << m_seg << " rank=" << rank << "\n    in window: " << m_win);
-  //if(m_pbits & 512) m_win.print();
+  if(m_pbits & 512) m_win.print();
 
   // initialization of indexes
   if(v_inddiag.empty()) _evaluateDiagIndexes(rank);
@@ -991,6 +1011,100 @@ _makeMapOfLocalMaximumsV0( const ndarray<const T,2>&      data
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+//--------------------
+//--------------------
+  /**
+   * @brief Makes map of local maximums of runk=1 cross(+) region (very special case for Chuck's algorithm)
+   * 
+   * It does not use mask, because works with special array of "fractional number of photons" - bad pixels are set to 0.
+   * Map of local maximums is a 2-d array of unsigned integer values of data shape, 
+   * it has 0/1/2 bits for non-maximum / maximum in column, then local maximum in cross = 3.   
+   * @param[in]  data - ndarray with (positive or zero) fractional number of photons
+   */
+
+template <typename T>
+void
+_makeMapOfLocalMaximumsRank1Cross(const ndarray<const T,2>& data)
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfLocalMaximumsRank1Cross, seg=" << m_seg << "\n    in window: " << m_win);
+  if(m_pbits & 512) m_win.print();
+
+  if(m_local_maximums.empty()) 
+     m_local_maximums = make_ndarray<pixel_maximums_t>(data.shape()[0], data.shape()[1]);
+  std::fill_n(&m_local_maximums[0][0], int(data.size()), pixel_maximums_t(0));
+
+  unsigned rmin = (int)m_win.rowmin;
+  unsigned rmax = (int)m_win.rowmax;				  
+  unsigned cmin = (int)m_win.colmin;
+  unsigned cmax = (int)m_win.colmax;
+
+  // check local maximum in columns and set the 1st bit (1)
+  for(unsigned r = rmin; r<rmax; r++) {
+
+    // first pixel in the row
+    unsigned c = cmin;
+    if(data[r][c] > data[r][c+1]) {
+      m_local_maximums[r][c] |= 1;  // set 1st bit
+      c+=2;
+    }
+    else c+=1;
+
+    // all internal pixels in the row
+    for(; c<cmax-1; c++) {
+      if(data[r][c+1] > data[r][c]) continue;         // go to the next pixel
+      if(data[r][c-1] > data[r][c]) {c+=1; continue;} // jump ahead 
+      m_local_maximums[r][c] |= 1;  // set 1st bit
+      c+=1; // jump ahead 
+    }
+
+    // last pixel in the row
+    if(data[r][cmax-1] > data[r][cmax-2]) m_local_maximums[r][cmax-1] |= 1;  // set 1st bit
+  } // rows loop
+
+  // check local maximum in rows and set the 2nd bit (2)
+  for(unsigned c = cmin; c<cmax; c++) {
+
+    // first pixel in the column
+    unsigned r = rmin;
+    if(data[r][c] > data[r+1][c]) {
+      m_local_maximums[r][c] |= 2; // set 2nd bit
+      r+=2;
+    }
+    else r+=1;
+
+    // all internal pixels in the column
+    for(; r<rmax-1; r++) {
+      if(data[r+1][c] > data[r][c]) continue;         // go to the next pixel
+      if(data[r-1][c] > data[r][c]) {r+=1; continue;} // jump ahead 
+      m_local_maximums[r][c] |= 2; // set 2nd bit
+      r+=1; // jump ahead 
+    }
+
+    // last pixel in the column
+    if(data[rmax-1][c] > data[rmax-2][c]) m_local_maximums[rmax-1][c] |= 2;  // set 2nd bit
+  } // columns loop
+}
+
+//--------------------
+//--------------------
+
+
+
+//--------------------
+private:
 //--------------------
   /**
    * @brief _procLocalMaximum - process local maximum and fill pre-selected peak in v_peaks.
@@ -1272,6 +1386,7 @@ _makePeaksFromMapOfLocalMaximums( const ndarray<const T,2>&      data
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _makePeaksFromMapOfLocalMaximums, seg=" << m_seg<< ", rank=" << rank);
 
+  _reserveVectorOfPeaks();
   v_peaks.clear(); // this vector will be filled out for each window
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
@@ -1297,6 +1412,7 @@ _makePeaksFromMapOfLocalMaximumsV2( const ndarray<const T,2>&      data
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _makePeaksFromMapOfLocalMaximumsV2, seg=" << m_seg<< ", rank=" << rank);
 
+  _reserveVectorOfPeaks();
   v_peaks.clear(); // this vector will be filled out for each window
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
@@ -1322,6 +1438,7 @@ _makePeaksFromMapOfLocalMaximumsV3( const ndarray<const T,2>&      data
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _makePeaksFromMapOfLocalMaximumsV2, seg=" << m_seg<< ", rank=" << rank);
 
+  _reserveVectorOfPeaks();
   v_peaks.clear();
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
@@ -1573,6 +1690,7 @@ _makeVectorOfDroplets( const ndarray<const T,2>&      data
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV1, seg=" << m_seg);
 
+  _reserveVectorOfPeaks();
   v_peaks.clear(); // this vector will be filled out for each window
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
@@ -1846,38 +1964,6 @@ peakFinderV3( const ndarray<const T,2>&      data
 
 //--------------------
   /**
-   * @brief peakFinderV3r1 - "Ranker" - the same as V3, but returns background-corrected amp_max, amp_tot, son (total).
-   * Changes: 
-   *   m_do_preselect = false; 
-   *   _addSoNToPeaksV2<T>(data, mask, r0, dr);
-   *   _makePeaksFromMapOfLocalMaximumsV2<T>(data, mask, rank); // counts all pixels inside rank region (not only a>0)
-   */
-
-template <typename T>
-std::vector<Peak>&
-peakFinderV3r1dep( const ndarray<const T,2>&      data
-              , const ndarray<const mask_t,2>& mask
-              , const size_t rank = 4
-	      , const float r0 = 7.0
-	      , const float dr = 2.0
-              )
-{
-  m_win.validate(data.shape());
-
-  if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV3r1, seg=" << m_seg << " win" << m_win << " rank=" << rank);
-
-  _makeMapOfLocalMaximums<T>(data, mask, rank);
-
-  m_do_preselect = false;
-  _makePeaksFromMapOfLocalMaximumsV2<T>(data, mask, rank);
-  _addSoNToPeaksV2<T>(data, mask, r0, dr);
-  _makeVectorOfSelectedPeaks();
-
-  return v_peaks_sel; 
-}
-
-//--------------------
-  /**
    * @brief peakFinderV3r2 - "Ranker" - the same as V3r1, evaluate peak info after SoN algorithm.
    * Changes: 
    *   _makePeaksFromMapOfLocalMaximumsV3<T>(data, mask, rank); - makes list of empty seed peaks
@@ -2109,8 +2195,178 @@ void getSoN( const ndarray<const T,2>& data
 //--------------------
 //--------------------
 //--------------------
+  /**
+   * @brief Split calibrated data representing number of photons for integer (floor) and float fractional arrays.
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   */
+
+template <typename T>
+void
+_splitDataForUintAndFloat( const ndarray<const T,2>&      data
+                         , const ndarray<const mask_t,2>& mask
+                         )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _splitDataForUintAndFloat, seg=" << m_seg << "\n    in window: " << m_win);
+  //if(m_pbits & 512) m_win.print();
+
+  if(m_nphoton.empty()) 
+     m_nphoton = make_ndarray<nphoton_t>(data.shape()[0], data.shape()[1]);
+     m_fphoton = make_ndarray<fphoton_t>(data.shape()[0], data.shape()[1]);
+
+  std::fill_n(&m_nphoton[0][0], int(data.size()), nphoton_t(0));
+  std::fill_n(&m_fphoton[0][0], int(data.size()), fphoton_t(0));
+
+  unsigned rmin = (unsigned)m_win.rowmin;
+  unsigned rmax = (unsigned)m_win.rowmax;				  
+  unsigned cmin = (unsigned)m_win.colmin;
+  unsigned cmax = (unsigned)m_win.colmax;
+
+  // 
+  for(unsigned r = rmin; r<rmax; r++) {
+    for(unsigned c = cmin; c<cmax; c++) {
+      if(m_use_mask && (! mask[r][c])) continue; // leave 0-s
+
+      T v = data[r][c];
+      if (v>0) {
+        m_nphoton[r][c] = floor(v);
+        m_fphoton[r][c] = v - m_nphoton[r][c];
+      }
+    }
+  }
+}
+
+//--------------------
+  /**
+   * @brief mapOfPhotonNumbersV1 - Chuck's photon counting algorithm - apply fancy correction for split photons.
+   * 
+   * 1) splits calibrated data for uint (floor) and float leftover fractional number of photons
+   * 2) merge fractional number of photons to largest intensity integer  
+   * 3) sum together uint and merged fractional maps
+   * 
+   * Returns array with (uint16) number of photons per pixel from input array of calibrated intensities.
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   */
+
+template <typename T>
+ndarray<nphoton_t, 2>& 
+mapOfPhotonNumbersV1( const ndarray<const T,2>&      data
+                    , const ndarray<const mask_t,2>& mask
+                    )
+{
+  m_win.validate(data.shape());
+
+  if(m_pbits & 512) MsgLog(_name(), info, "in mapOfPhotonNumbersV1, seg=" << m_seg << "\n    in window: " << m_win);
+
+  _splitDataForUintAndFloat<T>(data, mask);
+
+  //size_t rank=1;
+  //_makeMapOfLocalMaximums<fphoton_t>(m_fphoton, mask, rank);
+
+  _makeMapOfLocalMaximumsRank1Cross<fphoton_t>(m_fphoton);
+
+  const fphoton_t thr_on_max = 0.25; const fphoton_t thr_on_tot = 0.75; const bool DO_TEST = false;
+  _mergeConnectedPixelCouples(thr_on_max, thr_on_tot, DO_TEST); // DO_TEST fills m_mphoton
+
+  return m_nphoton; 
+  //return m_conmap
+  //return m_mphoton;
+  //return m_local_maximums;
+}
+
+//--------------------
+//--------------------
 
 };
+
+//--------------------
+//--------------------
+// Wrappers for 2-d methods
+//--------------------
+//--------------------
+  /**
+   * @brief Wrapper for AlgImgProc::mapOfPhotonNumbersV1.
+   * 
+   * Returns array with (uint16) number of photons per pixel from input array of calibrated intensities.
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   */
+
+template <typename T>
+ndarray<const AlgImgProc::nphoton_t, 2>
+mapOfPhotonNumbersV1( const ndarray<const T,2> data
+		    , const ndarray<const AlgImgProc::mask_t,2> mask
+                    )
+{
+  size_t      seg  = 0;
+  AlgImgProc* algo = new AlgImgProc(seg);
+  return algo->mapOfPhotonNumbersV1<T>(data, mask);
+}
+
+//--------------------
+  /**
+   * @brief Makes map of local maximums of requested rank
+   * 
+   * Map of local maximums is a 2-d array of unsigned integer values of data shape, 
+   * it has 0/1/2/4 bits for non-maximum / maximum in column / maximum in row / local maximum in rectangle of radius rank.   
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   */
+
+template <typename T>
+ndarray<const AlgImgProc::pixel_maximums_t, 2> 
+mapOfLocalMaximums( const ndarray<const T,2> data
+                  , const ndarray<const AlgImgProc::mask_t,2> mask
+                  , const size_t& rank
+                  )
+{
+  AlgImgProc* algo = new AlgImgProc(0); // , 0, 1e6, 0, 1e6, 1023);
+  algo->validate_window(data.shape());
+  algo->_makeMapOfLocalMaximums<T>(data, mask, rank);
+  return algo->mapOfLocalMaximums();
+}
+
+//--------------------
+  /**
+   * @brief Makes map of local minimums of requested rank (IN ROWS AND COLUMNS ONLY!)
+   * 
+   * Map of local minimums is a 2-d array of unsigned integer values of data shape, 
+   * it has 0/1/2 bits for non-maximum / maximum in column / maximum in row of radius rank.   
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in]  rank - radius of the region in which central pixel has a maximal value
+   */
+
+template <typename T>
+ndarray<const AlgImgProc::pixel_minimums_t, 2> 
+mapOfLocalMinimums( const ndarray<const T,2> data
+                  , const ndarray<const AlgImgProc::mask_t,2> mask
+                  , const size_t& rank
+                  )
+{
+  AlgImgProc* algo = new AlgImgProc(0); // , 0, 1e6, 0, 1e6, 1023);
+  algo->validate_window(data.shape());
+  algo->_makeMapOfLocalMinimums<T>(data, mask, rank);
+  return algo->mapOfLocalMinimums();
+}
+
+//--------------------
+//--------------------
+
+  /**
+   * @brief Wrapper for _makeMapOfLocalMaximumsRank1Cross
+   *
+   * Returns (uint16) array with local maximum bit info 1/2 - in row/column (=3 - maximum in cross region) 
+   * @param[in]  fphoton - (float) ndarray of fractional number of photons per pixel
+   */
+ndarray<const AlgImgProc::pixel_maximums_t, 2>
+mapOfLocalMaximumsRank1Cross(const ndarray<const AlgImgProc::fphoton_t,2> fphoton);
+
+//--------------------
+//--------------------
 
 } // namespace ImgAlgos
 

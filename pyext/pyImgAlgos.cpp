@@ -1,9 +1,13 @@
 
+
+
 #include <boost/python.hpp>
 #include "ndarray/ndarray.h"
 //#include <cstddef>  // for size_t
 
 #include "ImgAlgos/AlgArrProc.h"
+#include "ImgAlgos/AlgImgProc.h"
+#include "ImgAlgos/AlgUtils.h"
 
 //-------------------
 using namespace ImgAlgos;
@@ -146,6 +150,25 @@ ndarray<const float, 2> (AlgArrProc::*p_pfv04r1_u3) (ndarray<const uint16_t,3>, 
 //-------------------
 //void (AlgArrProc::*p_set01) (const float&, const float&) = &AlgArrProc::setSoNPars;
 //void (ImgAlgos::AlgArrProc::*print_1) () = &ImgAlgos::AlgArrProc::printInputPars;
+void (*p_print_1) () = &test_print_1;
+
+ndarray<const AlgImgProc::nphoton_t, 2> (*p_photnums_v01_f2) (ndarray<const float,  2>, ndarray<const AlgImgProc::mask_t,2>) = &mapOfPhotonNumbersV1<float>;
+ndarray<const AlgImgProc::nphoton_t, 2> (*p_photnums_v01_d2) (ndarray<const double, 2>, ndarray<const AlgImgProc::mask_t,2>) = &mapOfPhotonNumbersV1<double>;
+
+ndarray<const pixel_minimums_t, 2> (*p_loc_min_f2) (ndarray<const float,   2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMinimums<float>;
+ndarray<const pixel_minimums_t, 2> (*p_loc_min_d2) (ndarray<const double,  2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMinimums<double>;
+ndarray<const pixel_minimums_t, 2> (*p_loc_min_i2) (ndarray<const int,     2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMinimums<int>;
+ndarray<const pixel_minimums_t, 2> (*p_loc_min_s2) (ndarray<const int16_t, 2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMinimums<int16_t>;
+ndarray<const pixel_minimums_t, 2> (*p_loc_min_u2) (ndarray<const uint16_t,2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMinimums<uint16_t>;
+
+ndarray<const pixel_maximums_t, 2> (*p_loc_max_f2) (ndarray<const float,   2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMaximums<float>;
+ndarray<const pixel_maximums_t, 2> (*p_loc_max_d2) (ndarray<const double,  2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMaximums<double>;
+ndarray<const pixel_maximums_t, 2> (*p_loc_max_i2) (ndarray<const int,     2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMaximums<int>;
+ndarray<const pixel_maximums_t, 2> (*p_loc_max_s2) (ndarray<const int16_t, 2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMaximums<int16_t>;
+ndarray<const pixel_maximums_t, 2> (*p_loc_max_u2) (ndarray<const uint16_t,2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMaximums<uint16_t>;
+
+ndarray<const pixel_maximums_t, 2> (*p_loc_max_cross1) (ndarray<const float, 2>) = &mapOfLocalMaximumsRank1Cross;
+
 //-------------------
 
 // BOOST wrapper to create imgalgos_ext module that contains the ImgAlgos::AlgArrProc
@@ -321,6 +344,28 @@ BOOST_PYTHON_MODULE(imgalgos_ext)
     .def("peak_finder_v4r1_s3", p_pfv04r1_s3)
     .def("peak_finder_v4r1_u3", p_pfv04r1_u3)
   ;
+
+  // Global methods from AlgUtils
+  def("test_print_1", p_print_1);
+
+  // Global methods from AlgImgProc
+  def("map_photon_numbers_v1_f2", p_photnums_v01_f2);
+  def("map_photon_numbers_v1_d2", p_photnums_v01_d2);
+
+  def("local_minimums_f2", p_loc_min_f2);
+  def("local_minimums_d2", p_loc_min_d2);
+  def("local_minimums_i2", p_loc_min_i2);
+  def("local_minimums_s2", p_loc_min_s2);
+  def("local_minimums_u2", p_loc_min_u2);
+
+  def("local_maximums_f2", p_loc_max_f2);
+  def("local_maximums_d2", p_loc_max_d2);
+  def("local_maximums_i2", p_loc_max_i2);
+  def("local_maximums_s2", p_loc_max_s2);
+  def("local_maximums_u2", p_loc_max_u2);
+
+  def("local_maximums_cross1", p_loc_max_cross1);
+
 }
 
 //-------------------
