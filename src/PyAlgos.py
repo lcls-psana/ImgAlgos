@@ -114,6 +114,10 @@ Usage::
     #   For 2-d arrays segment is not used, but still 5 parameters needs to be specified.
     cdata = subtract_bkgd(data, bkgd, mask=None, winds=None, pbits=0)
 
+    # Merges photons split among pixels and returns n-d array with integer number of photons per pixel.
+    nphotons_nda = photons(fphotons_nda, mask)
+
+
 This software was developed for the LCLS project.
 If you use all or part of it, please give an appropriate acknowledgment.
 
@@ -612,9 +616,9 @@ def photons_2d(data, mask=None) :
     nda = data
     msk = mask
     if mask is None :
-        msk = np.ones(nda.shape, dtype=np.uint16)
+        msk = np.ones(nda.shape, dtype=np.uint8)
     else :
-        if msk.dtype != np.uint16 : raise ValueError('Mask dtype=%s, but expected np.uint16' % str(msk.dtype))
+        if msk.dtype != np.uint8  : raise ValueError('Mask dtype=%s, but expected np.uint8' % str(msk.dtype))
         if msk.shape != nda.shape : raise ValueError('msk.shape=%s is different from array shape=%s' % (str(msk.shape), str(nda.shape)))
         
     ndim, dtype = len(nda.shape), nda.dtype
@@ -648,6 +652,10 @@ def photons(data, mask) :
     if mask is None : return np.array([photons_2d(nda[s,:,:]) for s in range(nda.shape[0])], dtype=np.uint16)
 
     msk = mask if ndim == 3 else reshape_nda_to_3d(mask)
+
+    # if mask.dtype != np.uint8 :
+    msk = msk.astype(np.uint8, copy=False)
+
     return np.array([photons_2d(nda[s,:,:], msk[s,:,:]) for s in range(nda.shape[0])], dtype=np.uint16)
 
 ##-----------------------------
@@ -655,16 +663,19 @@ def photons(data, mask) :
 ##-----------------------------
 
 def test_photons_2d() :
+    from time import time
 
     mean, sigma = 0,10
     shape = (50,50)
-    mask  = np.ones(shape, dtype=np.uint16)
-    data  = np.array(mean + sigma * np.random.standard_normal(size=shape), dtype=np.float64)
+    mask  = np.ones(shape, dtype=np.uint8)
+    data  = np.array(mean + sigma * np.random.standard_normal(size=shape), dtype=np.float32)
 
     piagu.print_ndarr(data, 'data', last=10)
     piagu.print_ndarr(mask, 'mask', last=10)
 
+    t0_sec = time()
     arr = photons_2d(data, mask)
+    print '\nTime consumed by photons_2d(data, mask) (sec) = %10.6f' % (time()-t0_sec)
 
     piagu.print_ndarr(arr, 'arr', last=10)
 
@@ -676,14 +687,13 @@ def test_photons_2d() :
 ##-----------------------------
 
 def test_photons_3d() :
-
     from time import time
 
     mean, sigma = 0,10
     shape = (32,185,388)
     #shape = (4,512,512)
-    mask  = np.ones(shape, dtype=np.uint16)
-    data  = np.array(mean + sigma * np.random.standard_normal(size=shape), dtype=np.float64)
+    mask  = np.ones(shape, dtype=np.uint8)
+    data  = np.array(mean + sigma * np.random.standard_normal(size=shape), dtype=np.float32)
 
     piagu.print_ndarr(data, 'data')
     piagu.print_ndarr(mask, 'mask')

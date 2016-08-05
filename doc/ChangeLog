@@ -11,6 +11,13 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-19
+2016-08-05 Mikhail S. Dubrovin
+- In method PyAlgos.photon(...) and below use mask of type uint8 (as in the AreaDetector)
+M       include/AlgImgProc.h
+M       pyext/pyImgAlgos.cpp
+M       src/PyAlgos.py
+
 Tag: V00-04-18
 2016-08-02 Mikhail S. Dubrovin
 - AlgImgProc - move vector size reservation to _reserveVectorOfPeaks() and use it in peakFinderV# only (PSAS-147).

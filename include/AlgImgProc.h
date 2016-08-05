@@ -309,6 +309,7 @@ public:
 
   typedef unsigned shape_t;
   typedef PSCalib::CalibPars::pixel_mask_t mask_t;
+  typedef uint8_t  u8mask_t;
   typedef uint32_t conmap_t;
   typedef uint16_t pixel_status_t;
   typedef uint16_t pixel_maximums_t;
@@ -2205,7 +2206,7 @@ void getSoN( const ndarray<const T,2>& data
 template <typename T>
 void
 _splitDataForUintAndFloat( const ndarray<const T,2>&      data
-                         , const ndarray<const mask_t,2>& mask
+                         , const ndarray<const u8mask_t,2>& mask
                          )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _splitDataForUintAndFloat, seg=" << m_seg << "\n    in window: " << m_win);
@@ -2253,7 +2254,7 @@ _splitDataForUintAndFloat( const ndarray<const T,2>&      data
 template <typename T>
 ndarray<nphoton_t, 2>& 
 mapOfPhotonNumbersV1( const ndarray<const T,2>&      data
-                    , const ndarray<const mask_t,2>& mask
+                    , const ndarray<const u8mask_t,2>& mask
                     )
 {
   m_win.validate(data.shape());
@@ -2297,7 +2298,7 @@ mapOfPhotonNumbersV1( const ndarray<const T,2>&      data
 template <typename T>
 ndarray<const AlgImgProc::nphoton_t, 2>
 mapOfPhotonNumbersV1( const ndarray<const T,2> data
-		    , const ndarray<const AlgImgProc::mask_t,2> mask
+		    , const ndarray<const AlgImgProc::u8mask_t,2> mask
                     )
 {
   size_t      seg  = 0;
