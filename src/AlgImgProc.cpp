@@ -421,7 +421,9 @@ AlgImgProc::_mergeConnectedPixelCouples(const fphoton_t& thr_on_max, const fphot
 
       fphoton_t vtot = m_fphoton[r][c] + m_fphoton[r + ijmax.i][c + ijmax.j];
 
-      if(vtot < thr_on_max) continue; // if pair intensity is below threshold 
+// vtot SHOULD BE COMPARED WITH thr_on_tot
+      if(vtot < thr_on_tot) continue; // if pair intensity is below total threshold
+      //if(vtot < thr_on_max) continue; // if pair intensity is below threshold 
 
       m_numreg ++;
       m_conmap[r][c] = m_numreg;

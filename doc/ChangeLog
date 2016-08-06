@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-21
+2016-08-06 Chuck Yoon
+- Fix total sum check for photon conversion
+
 Tag: V00-04-20
 2016-08-05 Chuck Yoon
 - Fix weak single photon conversion
