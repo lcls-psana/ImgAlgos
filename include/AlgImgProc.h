@@ -2269,6 +2269,7 @@ mapOfPhotonNumbersV1( const ndarray<const T,2>&      data
   _makeMapOfLocalMaximumsRank1Cross<fphoton_t>(m_fphoton);
 
   const fphoton_t thr_on_max = 0.5; const fphoton_t thr_on_tot = 0.9; const bool DO_TEST = false;
+
   _mergeConnectedPixelCouples(thr_on_max, thr_on_tot, DO_TEST); // DO_TEST fills m_mphoton
 
   return m_nphoton; 

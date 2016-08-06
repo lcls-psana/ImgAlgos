@@ -396,9 +396,10 @@ AlgImgProc::_mergeConnectedPixelCouples(const fphoton_t& thr_on_max, const fphot
     for(unsigned c = m_win.colmin+1; c<m_win.colmax-1; c++) {
 
       if(m_local_maximums[r][c] != 3)  continue; // check local maximums only
+
       if(m_fphoton[r][c] < thr_on_max) continue; // apply threshold on max
 
-      fphoton_t vmax = 0;
+      fphoton_t vmax = 0.0;
       TwoIndexes ijmax(0,0);
 
       // find not-busy neighbor pixel with maximal intensity
@@ -415,7 +416,8 @@ AlgImgProc::_mergeConnectedPixelCouples(const fphoton_t& thr_on_max, const fphot
          ijmax = *ij;
       }
 
-      if(! vmax) continue; // if the neighbour pixel with maximal intensity is not found
+// SHOULDN'T CHECK FOR THIS
+      //if(! vmax) continue; // if the neighbour pixel with maximal intensity is not found
 
       fphoton_t vtot = m_fphoton[r][c] + m_fphoton[r + ijmax.i][c + ijmax.j];
 
