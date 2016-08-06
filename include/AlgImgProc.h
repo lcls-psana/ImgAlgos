@@ -484,7 +484,7 @@ private:
   void _printStatisticsOfLocalExtremes();
 
   /// Join local maximum fractional intensity with largest adjesent pixel (very special algorithm for Chuck's photon counting)
-  void _mergeConnectedPixelCouples(const fphoton_t& thr_on_max = 0.25, const fphoton_t& thr_on_tot = 0.75, const bool& DO_TEST = false);
+  void _mergeConnectedPixelCouples(const fphoton_t& thr_on_max = 0.5, const fphoton_t& thr_on_tot = 0.9, const bool& DO_TEST = false);
 
 //--------------------
   /**
@@ -2268,7 +2268,7 @@ mapOfPhotonNumbersV1( const ndarray<const T,2>&      data
 
   _makeMapOfLocalMaximumsRank1Cross<fphoton_t>(m_fphoton);
 
-  const fphoton_t thr_on_max = 0.25; const fphoton_t thr_on_tot = 0.75; const bool DO_TEST = false;
+  const fphoton_t thr_on_max = 0.5; const fphoton_t thr_on_tot = 0.9; const bool DO_TEST = false;
   _mergeConnectedPixelCouples(thr_on_max, thr_on_tot, DO_TEST); // DO_TEST fills m_mphoton
 
   return m_nphoton; 
