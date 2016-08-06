@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-20
+2016-08-05 Chuck Yoon
+- Fix weak single photon conversion
+
 Tag: V00-04-19
 2016-08-05 Mikhail S. Dubrovin
 - In method PyAlgos.photon(...) and below use mask of type uint8 (as in the AreaDetector)
