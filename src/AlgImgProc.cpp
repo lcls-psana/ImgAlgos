@@ -416,21 +416,17 @@ AlgImgProc::_mergeConnectedPixelCouples(const fphoton_t& thr_on_max, const fphot
          ijmax = *ij;
       }
 
-// SHOULDN'T CHECK FOR THIS
-      //if(! vmax) continue; // if the neighbour pixel with maximal intensity is not found
+      fphoton_t  vtot = m_fphoton[r][c];
+      if(vmax>0) vtot += m_fphoton[r + ijmax.i][c + ijmax.j];
 
-      fphoton_t vtot = m_fphoton[r][c] + m_fphoton[r + ijmax.i][c + ijmax.j];
-
-// vtot SHOULD BE COMPARED WITH thr_on_tot
       if(vtot < thr_on_tot) continue; // if pair intensity is below total threshold
-      //if(vtot < thr_on_max) continue; // if pair intensity is below threshold 
 
       m_numreg ++;
       m_conmap[r][c] = m_numreg;
       m_conmap[r + ijmax.i][c + ijmax.j] = m_numreg;
       	
       // DO MERGE FOR A COUPLE OF SELECTED PIXELS      
-      m_nphoton[r][c] ++;  // increment number of photons
+      m_nphoton[r][c] ++; // increment number of photons
 
       if(DO_TEST) m_mphoton[r][c] = 1; // vtot*100;
 

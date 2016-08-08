@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-22
+2016-08-08 Mikhail S. Dubrovin
+- AlgImgProc.cpp - fix issue with finding a couple of connected pixels.
+
 Tag: V00-04-21
 2016-08-06 Chuck Yoon
 - Fix total sum check for photon conversion
@@ -29,7 +33,7 @@ M       src/PyAlgos.py
 Tag: V00-04-18
 2016-08-02 Mikhail S. Dubrovin
 - AlgImgProc - move vector size reservation to _reserveVectorOfPeaks() and use it in peakFinderV# only (PSAS-147).
-- add algorithm which merging split photons (for Chuck)
+- add algorithm merging split photons (for Chuck, PSAS-147).
 M       include/AlgArrProc.h
 M       include/AlgImgProc.h
 A       include/AlgUtils.h
