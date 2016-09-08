@@ -327,6 +327,7 @@ public:
    * @param[in] colmin - ROI window limit
    * @param[in] colmax - ROI window limit
    * @param[in] pbits  - print control bit-word; =0-print nothing, +1-input parameters, +2-algorithm area, +128-all details.
+   * @param[in] npksmax - maximal number of reserved peak records.
    */
 
   AlgImgProc( const size_t&   seg

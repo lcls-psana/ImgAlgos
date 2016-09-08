@@ -143,8 +143,8 @@ inline const char* _name() {return "ImgAlgos::AlgUtils";}
  * 3) sum together uint and merged fractional maps
  * 
  * Returns array with (uint16) number of photons per pixel from input array of calibrated intensities.
- * @param[in]  data - ndarray with calibrated intensities
- * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
+ * param[in]  data - ndarray with calibrated intensities
+ * param[in]  mask - ndarray with mask of bad/good (0/1) pixels
  */
 
 //template <typename T>
