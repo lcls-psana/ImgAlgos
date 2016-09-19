@@ -33,13 +33,17 @@
 // 		-- Class Interface --
 //		---------------------
 
+//----------------
+
+namespace ImgAlgos {
+
 
 /// @addtogroup ImgAlgos
 
 /**
  *  @ingroup ImgAlgos
  *
- *  @brief Example module class for psana
+ *  @brief Module class for psana
  *
  *  This software was developed for the LCLS project.  If you use all or 
  *  part of it, please give an appropriate acknowledgment.
@@ -48,10 +52,6 @@
  *
  *  @author Mikhail S. Dubrovin
  */
-
-//----------------
-
-namespace ImgAlgos {
 
 
 class EventCounterFilter : public Module {

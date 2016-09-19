@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-24
+2016-09-19 Mikhail S. Dubrovin
+- AlgImgProc - fix rhel5 gcc complains about type conversion and default initialization.
+	
 Tag: V00-04-23
 2016-09-08 Mikhail S. Dubrovin
 - fix doxy-doc issues in AlgUtils.h and AlgImgProc.h

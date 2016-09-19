@@ -332,9 +332,9 @@ public:
 
   AlgImgProc( const size_t&   seg
 	    , const size_t&   rowmin  = 0
-	    , const size_t&   rowmax  = 1e6
+	    , const size_t&   rowmax  = 1000000
 	    , const size_t&   colmin  = 0
-	    , const size_t&   colmax  = 1e6
+	    , const size_t&   colmax  = 1000000
 	    , const unsigned& pbits   = 0
 	    , const unsigned& npksmax = 80000
 	    ) ;
@@ -2232,8 +2232,8 @@ _splitDataForUintAndFloat( const ndarray<const T,2>&      data
 
       T v = data[r][c];
       if (v>0) {
-        m_nphoton[r][c] = floor(v);
-        m_fphoton[r][c] = v - m_nphoton[r][c];
+        m_nphoton[r][c] = (nphoton_t)floor(v);
+        m_fphoton[r][c] = (fphoton_t)(v - m_nphoton[r][c]);
       }
     }
   }
