@@ -101,7 +101,6 @@ AlgImgProc::printInputPars()
 void 
 AlgImgProc::_makeMapOfConnectedPixels()
 {
-
   //if(m_conmap.size()==0) 
   if(m_conmap.empty()) 
      m_conmap = make_ndarray<conmap_t>(m_pixel_status.shape()[0], m_pixel_status.shape()[1]);
@@ -109,13 +108,12 @@ AlgImgProc::_makeMapOfConnectedPixels()
   std::fill_n(m_conmap.data(), int(m_pixel_status.size()), conmap_t(0));
   m_numreg=0;
 
-  for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
-    for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
+  for(int r = (int)m_win.rowmin; r<(int)m_win.rowmax; r++) {
+    for(int c = (int)m_win.colmin; c<(int)m_win.colmax; c++) {
 
       if(!(m_pixel_status[r][c] & 1)) continue;
       ++ m_numreg;
       //if(m_numreg == m_npksmax) break;
-
       _findConnectedPixels(r, c);
     }
   }
@@ -126,7 +124,7 @@ AlgImgProc::_makeMapOfConnectedPixels()
 //--------------------
 
 void 
-AlgImgProc::_findConnectedPixels(const unsigned& r, const unsigned& c)
+AlgImgProc::_findConnectedPixels(const int& r, const int& c)
 {
   //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixels, seg=" << m_seg);
 
@@ -135,10 +133,12 @@ AlgImgProc::_findConnectedPixels(const unsigned& r, const unsigned& c)
   m_pixel_status[r][c] ^= 1; // set the 1st bit to zero.
   m_conmap[r][c] = m_numreg;
 
-  if(  r+1 < m_win.rowmax  ) _findConnectedPixels(r+1, c);
-  if(  c+1 < m_win.colmax  ) _findConnectedPixels(r, c+1);
-  if(!(r-1 < m_win.rowmin) ) _findConnectedPixels(r-1, c);
-  if(!(c-1 < m_win.colmin) ) _findConnectedPixels(r, c-1);  
+  // cout  << "ZZZ:  r:" << r << " c:" << c << '\n';
+
+  if(  r+1 < (int)m_win.rowmax ) _findConnectedPixels(r+1, c);
+  if(  c+1 < (int)m_win.colmax ) _findConnectedPixels(r, c+1);
+  if(!(r-1 < (int)m_win.rowmin)) _findConnectedPixels(r-1, c);
+  if(!(c-1 < (int)m_win.colmin)) _findConnectedPixels(r, c-1);  
 }
 
 //--------------------

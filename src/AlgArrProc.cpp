@@ -71,7 +71,7 @@ AlgArrProc::~AlgArrProc ()
 { 
     if(m_pbits & 256) MsgLog(_name(), info, "in d-tor ~AlgArrProc");
     //for(std::vector<AlgImgProc*>::iterator it = v_algip.begin(); it != v_algip.end(); ++it) delete *it;
-    delete m_mask_def; 
+    if(m_mask_def) delete m_mask_def; 
 }
 
 //--------------------

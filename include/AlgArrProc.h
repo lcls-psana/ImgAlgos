@@ -261,13 +261,26 @@ public:
   bool
   _initAlgImgProc(const ndarray<const T, NDim>& data, const ndarray<const mask_t, NDim>& mask)
   {
-    if(m_pbits & 256) MsgLog(_name(), info, "in _initAlgImgProc");
-
-    m_mask = (mask.size()) ? mask.data() : m_mask_def;
+    if(m_pbits & 256) MsgLog(_name(), info, "in _initAlgImgProc: mask.size = " << mask.size()
+                                            << " data.size() = " << data.size());
 
     if(m_is_inited) return true;
 
     if(data.empty()) return false;
+
+    //if(mask.empty()) {
+    if(mask.size()) {
+        m_mask = mask.data();
+	if(m_pbits & 256) MsgLog(_name(), info, "Mask is used for pixel processing.");
+    } else {
+      // Define default mask
+      if(m_mask_def) delete m_mask_def;    
+      m_mask_def = new mask_t[data.size()];
+      std::fill_n(m_mask_def, int(data.size()), mask_t(1));
+      m_mask = m_mask_def;
+
+      if(m_pbits & 256) MsgLog(_name(), info, "Mask is empty, all pixels will be processed.");
+    }
 
     m_ndim = NDim;
     if(m_ndim < 2) throw std::runtime_error("Non-acceptable number of dimensions < 2 in input ndarray");
@@ -285,7 +298,7 @@ public:
 
     if(v_winds.empty()) {
         // ALL segments will be processed
-        if(m_pbits & 256) MsgLog(_name(), info, "List of windows is empty, all sensors will be processed, number of windows = " << m_nsegs)
+        if(m_pbits & 256) MsgLog(_name(), info, "List of windows is empty, all sensors will be processed, number of windows = " << m_nsegs);
         v_algip.reserve(m_nsegs);
       
         for(size_t seg=0; seg<m_nsegs; ++seg) {            
@@ -297,7 +310,7 @@ public:
     }
     else {
         // Windows ONLY will be processed
-        if(m_pbits & 256) MsgLog(_name(), info, "Windows from the list will be processed, number of windows = " << v_winds.size())
+        if(m_pbits & 256) MsgLog(_name(), info, "Windows from the list will be processed, number of windows = " << v_winds.size());
 	v_algip.reserve(v_winds.size());
 
         for(std::vector<Window>::iterator it = v_winds.begin(); it != v_winds.end(); ++ it) {
@@ -306,18 +319,6 @@ public:
             p_alg->setSoNPars(m_r0, m_dr);
             p_alg->setPeakSelectionPars(m_peak_npix_min, m_peak_npix_max, m_peak_amax_thr, m_peak_atot_thr, m_peak_son_min);
         }
-    }
-
-    //if(mask.empty()) {
-    if(mask.size() == 0) {
-        // Define default mask
-        if (! m_mask_def) delete m_mask_def;    
-        m_mask_def = new mask_t[data.size()];
-        m_mask = m_mask_def;
-        std::fill_n(m_mask_def, int(data.size()), mask_t(1));
-        if(m_pbits & 256) MsgLog(_name(), info, "Mask is empty, all pixels will be processed.")
-    } else {
-        if(m_pbits & 256) MsgLog(_name(), info, "Mask is used for pixel processing.")
     }
 
     return true;

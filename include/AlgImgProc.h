@@ -452,7 +452,7 @@ private:
   void _reserveVectorOfPeaks();
 
   /// Recursive method which checks m_pixel_status[r][c] and numerates connected regions in m_conmap[r][c]
-  void _findConnectedPixels(const unsigned& r, const unsigned& c);
+  void _findConnectedPixels(const int& r, const int& c);
 
   /// Makes m_conmap - map of connected pixels with enumerated regions from m_pixel_status and counts m_numreg
   void _makeMapOfConnectedPixels();
@@ -1013,19 +1013,6 @@ _makeMapOfLocalMaximumsV0( const ndarray<const T,2>&      data
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 //--------------------
 //--------------------
   /**
@@ -1102,9 +1089,6 @@ _makeMapOfLocalMaximumsRank1Cross(const ndarray<const T,2>& data)
 
 //--------------------
 //--------------------
-
-
-
 //--------------------
 private:
 //--------------------
