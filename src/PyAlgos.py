@@ -13,32 +13,30 @@ Usage::
 
     # !!! None is returned whenever requested information is missing.
 
-    IMPORT
-    =========================
+    # IMPORT
+    # ======
     import psana
     from ImgAlgos.PyAlgos import PyAlgos    
 
 
-    DEFINE INPUT PARAMETERS
-    =========================
+    # INPUT PARAMETERS
+    # ================
     # List of windows
     winds = None # entire size of all segments will be used for peak finding
-    winds = (( 0, 0, 185, 0, 388), \
-             ( 1, 20,160, 30,300), \
-             ( 7, 0, 185, 0, 388))
+    winds = (( 0, 0, 185, 0, 388), ( 1, 20, 160, 30, 300), ( 7, 0, 185, 0, 388))
 
     # Mask
     mask = None                   # (default) all pixels in windows will be used for peak finding
     mask = det.mask()             # see class Detector.PyDetector
     mask = np.loadtxt(fname_mask) # 
-    mask.shape = <should be the same as shape of data n-d array>
+    mask.shape = (32,185,388)     # should be the same as shape of data n-d array
 
     # Data n-d array
     nda = det.calib() # see class Detector.PyDetector
 
 
-    INITIALIZATION
-    =========================
+    # INITIALIZATION
+    # ==============
     # create object:
     alg = PyAlgos(windows=winds, mask=mask, pbits=0)
     # where pbits - is a print info control bit-word:
@@ -53,9 +51,9 @@ Usage::
     alg.set_peak_selection_pars(npix_min=5, npix_max=5000, amax_thr=0, atot_thr=0, son_min=10)
 
     
-    HIT FINDERS
-    =========================
-    Hit finders return simple values for decision on event selection.
+    # HIT FINDERS
+    # ===========
+    # Hit finders return simple values for decision on event selection.
 
     # get number of pixels above threshold
     npix = alg.number_of_pix_above_thr(data, thr=10)
@@ -64,30 +62,27 @@ Usage::
     intensity = alg.intensity_of_pix_above_thr(data, thr=12)
 
 
-    PEAK FINDERS
-    =========================
-    Peak finders return list (numpy.array) of records with found peak parameters.
+    # PEAK FINDERS
+    # ============
+    # Peak finders return list (numpy.array) of records with found peak parameters.
 
     # v1 - aka Droplet Finder - two-threshold peak-finding algorithm in restricted region
     #                           around pixel with maximal intensity.
     peaks = alg.peak_finder_v1(nda, thr_low=10, thr_high=150, radius=5, dr=0.05)
 
     # v2 - define peaks for regoins of connected pixels above threshold
-    peaks = alg.peak_finder_v2  (nda, thr=10, r0=7.0, dr=2.0)
-    peaks = alg.peak_finder_v2r1(nda, thr=10, r0=7.0, dr=2.0)
+    peaks = alg.peak_finder_v2(nda, thr=10, r0=7.0, dr=2.0)
 
     # v3 - define peaks in local maximums of specified rank (radius),
     #      for example rank=2 means 5x5 pixel region around central pixel.
-    peaks = alg.peak_finder_v3  (nda, rank=2, r0=7.0, dr=2.0)
-    peaks = alg.peak_finder_v3r1(nda, rank=5, r0=7.0, dr=2.0, nsigm=0.0)
+    peaks = alg.peak_finder_v3(nda, rank=2, r0=7.0, dr=2.0)
 
     # v4 - aka Droplet Finder - the same as v1, but uses rank and r0 parameters in stead of common radius.
-    peaks = alg.peak_finder_v4  (nda, thr_low=10, thr_high=150, rank=4, r0=7.0, dr=2.0)
-    peaks = alg.peak_finder_v4r1(nda, thr_low=10, thr_high=150, rank=4, r0=7.0, dr=2.0)
+    peaks = alg.peak_finder_v4(nda, thr_low=10, thr_high=150, rank=4, r0=7.0, dr=2.0)
 
 
-    OPTIONAL METHODS
-    =========================
+    # OPTIONAL METHODS
+    # ================
     # print info
     alg.print_attributes()   # attributes of the PyAlgos object 
     alg.print_input_pars()   # member data of C++ objects
@@ -99,7 +94,7 @@ Usage::
     alg.set_mask(mask)
 
     # set windows in segments to search for peaks
-    alg.set_windows(winds) :
+    alg.set_windows(winds)
 
     # Call after alg.peak_finder_v2 ONLY! Returns n-d array with 2-d maps of connected pixels 
     maps = alg.maps_of_connected_pixels()
@@ -107,8 +102,8 @@ Usage::
     # Call after alg.peak_finder_v3 ONLY! Returns n-d array with 2-d maps of local maximums
     maps = alg.maps_of_local_maximums()
 
-    GLOBAL METHODS
-    =========================
+    # GLOBAL METHODS
+    # ==============
     #   Subtracts numpy array of bkgd from data using normalization in windows.
     #   Each window is specified by 5 parameters: (segment, rowmin, rowmax, colmin, colmax)
     #   For 2-d arrays segment is not used, but still 5 parameters needs to be specified.
@@ -117,6 +112,8 @@ Usage::
     # Merges photons split among pixels and returns n-d array with integer number of photons per pixel.
     nphotons_nda = photons(fphotons_nda, mask)
 
+@see classes
+\n  :py:class:`Detector.AreaDetector` - acess to detector data
 
 This software was developed for the LCLS project.
 If you use all or part of it, please give an appropriate acknowledgment.
