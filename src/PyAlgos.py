@@ -75,7 +75,8 @@ Usage::
 
     # v3 - define peaks in local maximums of specified rank (radius),
     #      for example rank=2 means 5x5 pixel region around central pixel.
-    peaks = alg.peak_finder_v3(nda, rank=2, r0=7.0, dr=2.0)
+    #      nsigm - optional threshold (number of noise rms) for pixel selection 
+    peaks = alg.peak_finder_v3(nda, rank=2, r0=7.0, dr=2.0, nsigm=0)
 
     # v4 - aka Droplet Finder - the same as v1, but uses rank and r0 parameters in stead of common radius.
     peaks = alg.peak_finder_v4(nda, thr_low=10, thr_high=150, rank=4, r0=7.0, dr=2.0)
@@ -517,7 +518,7 @@ class PyAlgos :
 
 ##-----------------------------
 
-    def peak_finder_v3(self, arr, rank=2, r0=5, dr=0.05) :
+    def peak_finder_v3(self, arr, rank=2, r0=5, dr=0.05, nsigm=0) :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v3() input arr:')
 
@@ -526,20 +527,20 @@ class PyAlgos :
         nda, msk = arr, self.mask
         
         if ndim == 2 :
-            if dtype == np.float32: return self.aap.peak_finder_v3_f2(nda, msk, rank, r0, dr)
-            if dtype == np.float64: return self.aap.peak_finder_v3_d2(nda, msk, rank, r0, dr)
-            if dtype == np.int    : return self.aap.peak_finder_v3_i2(nda, msk, rank, r0, dr)
-            if dtype == np.int16  : return self.aap.peak_finder_v3_s2(nda, msk, rank, r0, dr)
-            if dtype == np.uint16 : return self.aap.peak_finder_v3_u2(nda, msk, rank, r0, dr)
+            if dtype == np.float32: return self.aap.peak_finder_v3_f2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.float64: return self.aap.peak_finder_v3_d2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.int    : return self.aap.peak_finder_v3_i2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.int16  : return self.aap.peak_finder_v3_s2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.uint16 : return self.aap.peak_finder_v3_u2(nda, msk, rank, r0, dr, nsigm)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
         
-        if dtype == np.float32: return self.aap.peak_finder_v3_f3(nda, msk, rank, r0, dr)
-        if dtype == np.float64: return self.aap.peak_finder_v3_d3(nda, msk, rank, r0, dr)
-        if dtype == np.int    : return self.aap.peak_finder_v3_i3(nda, msk, rank, r0, dr)
-        if dtype == np.int16  : return self.aap.peak_finder_v3_s3(nda, msk, rank, r0, dr)
-        if dtype == np.uint16 : return self.aap.peak_finder_v3_u3(nda, msk, rank, r0, dr)
+        if dtype == np.float32: return self.aap.peak_finder_v3_f3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.float64: return self.aap.peak_finder_v3_d3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.int    : return self.aap.peak_finder_v3_i3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.int16  : return self.aap.peak_finder_v3_s3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.uint16 : return self.aap.peak_finder_v3_u3(nda, msk, rank, r0, dr, nsigm)
 
         if self.pbits :
             print 'WARNING: PyAlgos.peak_finder_v3(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
