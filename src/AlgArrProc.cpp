@@ -24,6 +24,7 @@
 namespace ImgAlgos {
 
   typedef AlgArrProc::wind_t wind_t;
+  typedef AlgImgProc::pixel_status_t pixel_status_t;
   typedef AlgImgProc::conmap_t conmap_t;
   typedef AlgImgProc::pixel_minimums_t pixel_minimums_t;
   typedef AlgImgProc::pixel_maximums_t pixel_maximums_t;
@@ -197,6 +198,28 @@ AlgArrProc::_ndarrayOfPeakPars(const unsigned& npeaks)
       }
     }
     return nda;
+}
+
+//--------------------
+
+ndarray<const pixel_status_t, 3>
+AlgArrProc::mapsOfPixelStatus()
+{
+  if(m_pbits & 256) MsgLog(_name(), info, "in mapsOfPixelStatus");
+
+  unsigned shape[3] = {m_nsegs, m_nrows, m_ncols};
+  ndarray<pixel_status_t, 3> maps(shape);
+
+  for(std::vector<AlgImgProc*>::iterator it = v_algip.begin(); it != v_algip.end(); ++it) {
+
+    ndarray<pixel_status_t, 2>& map = (*it) -> mapOfPixelStatus();
+    const Window& win = (*it) -> window();
+
+    for(unsigned r = win.rowmin; r<win.rowmax; r++) 
+      for(unsigned c = win.colmin; c<win.colmax; c++)
+        maps[win.segind][r][c] = map[r][c];
+  }
+  return maps;
 }
 
 //--------------------

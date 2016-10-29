@@ -156,6 +156,23 @@ struct TwoIndexes {
 
 //--------------------
 
+struct TwoIndValue {
+  int i;
+  int j;
+  double v;
+
+  TwoIndValue(const int& ii=0, const int& jj=0, const double& vv=0) : i(ii), j(jj), v(vv) {}
+
+  TwoIndValue& operator=(const TwoIndValue& rhs) {
+    i = rhs.i;
+    j = rhs.j;
+    v = rhs.v;
+    return *this;
+  }
+};
+
+//--------------------
+
 class NDArrPars {
 public:
   NDArrPars();

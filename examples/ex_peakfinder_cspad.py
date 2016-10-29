@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 import sys
-import psana
 import math
 import numpy as np
 from time import time
-from Detector.PyDetector import PyDetector
-from ImgAlgos.PyAlgos import PyAlgos, print_arr, print_arr_attr
+import psana
 
+from Detector.AreaDetector import AreaDetector
+from ImgAlgos.PyAlgos import PyAlgos, print_arr, print_arr_attr
 from pyimgalgos.PeakStore import PeakStore
 from pyimgalgos.GlobalUtils import subtract_bkgd
 
@@ -22,7 +22,7 @@ print 'Test # %d' % ntest
 
 ##-----------------------------
 SKIP        = 0
-EVTMAX      = 20 + SKIP
+EVTMAX      = 10 + SKIP
 #SKIP        = 70024
 #EVTMAX      = 1000000 + SKIP
 EVTPLOT     = 1 
@@ -58,7 +58,7 @@ runnum = evt.run()
 
 ##-----------------------------
 
-det = PyDetector(src, env, pbits=0)
+det = AreaDetector(src, env, pbits=0)
 print 85*'_', '\nInstrument: %s  run number: %d' % (det.instrument(), runnum)
 
 nda_peds  = det.pedestals(evt)
@@ -92,11 +92,15 @@ winds_equ  = [ (s, 0, 185, 0, 388) for s in (0,1,3,8,9,11,16,17,19,24,25,27)]
 print_arr(winds_arc, 'winds_arc')
 print_arr_attr(winds_arc, 'winds_arc')
 
-alg_arc = PyAlgos(windows=winds_arc, mask=mask_arc, pbits=0)
-alg_arc.set_peak_selection_pars(npix_min=5, npix_max=500, amax_thr=0, atot_thr=1000, son_min=6)
+alg_arc = PyAlgos(windows=winds_arc, mask=mask_arc, pbits=2)
+alg_arc.set_peak_selection_pars(npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=0, son_min=10)
+#alg_arc.set_peak_selection_pars(npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=500, son_min=6) # for v2r1
 
 alg_equ = PyAlgos(windows=winds_equ, mask=mask_equ, pbits=0)
-alg_equ.set_peak_selection_pars(npix_min=5, npix_max=500, amax_thr=0, atot_thr=1000, son_min=6)
+alg_equ.set_peak_selection_pars(npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=0, son_min=10)
+#alg_equ.set_peak_selection_pars(npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=500, son_min=6) # for v2r1
+
+
 
 #alg_equ.print_attributes()
 #alg_equ.print_input_pars()
@@ -181,14 +185,23 @@ for i, evt in enumerate(ds.events()) :
         t0_sec = time()
 
         # run peakfinders and get list of peak records for each region
-        #peaks_arc = alg_arc.peak_finder_v1(nda, thr_low=20, thr_high=150, radius=5, dr=0.05)
-        peaks_arc = alg_arc.peak_finder_v2(nda, thr=20, r0=5, dr=0.05)
+        #peaks_arc = alg_arc.peak_finder_v2r1(nda, thr=30, r0=7, dr=2)
+        #peaks_arc = alg_arc.peak_finder_v3r1(nda, rank=5, r0=7, dr=2, nsigm=0) # 1.64 (5%)
+        #peaks_arc = alg_arc.peak_finder_v4r1(nda, thr_low=10, thr_high=150, rank=5, r0=7, dr=2)
+        peaks_arc = alg_arc.peak_finder_v4r2(nda, thr_low=10, thr_high=150, rank=5, r0=7, dr=2)
 
-        #peaks_equ = alg_equ.peak_finder_v1(nda, thr_low=20, thr_high=150, radius=5, dr=0.05)
-        peaks_equ = alg_equ.peak_finder_v2(nda, thr=20, r0=5, dr=0.05)
-
+        #peaks_equ = alg_equ.peak_finder_v2r1(nda, thr=30, r0=7, dr=2)
+        #peaks_equ = alg_equ.peak_finder_v3r1(nda, rank=5, r0=7, dr=2, nsigm=0) # 1.64 (5%)
+        #peaks_equ = alg_equ.peak_finder_v4r1(nda, thr_low=10, thr_high=150, rank=5, r0=7, dr=2)
+        peaks_equ = alg_equ.peak_finder_v4r2(nda, thr_low=10, thr_high=150, rank=5, r0=7, dr=2)
+ 
+        # available after v2r1, v4r2
         #maps_of_conpix_arc = alg_arc.maps_of_connected_pixels()
         #maps_of_conpix_equ = alg_equ.maps_of_connected_pixels()
+
+        # available after v3r1 ONLY!
+        #maps_of_locmax_arc = alg_arc.maps_of_local_maximums()
+        #maps_of_locmax_equ = alg_equ.maps_of_local_maximums()
 
         ###===================
         if do_print(i) : print '%s\n%s\n%s\n%s' % (85*'_', pstore.header[0:66], pstore.rec_evtid(evt), addhdr)
@@ -225,7 +238,9 @@ for i, evt in enumerate(ds.events()) :
         ###===================
 
         if DO_PLOT and i%EVTPLOT==0 :
-        
+
+            #nda = maps_of_conpix_arc        
+            #nda = maps_of_conpix_equ        
             #nda = nda_bkgd
             #nda = nda_bkgd + regs_check      
             #img = det.image(evt, nda)

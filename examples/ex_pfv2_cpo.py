@@ -1,29 +1,34 @@
 #!/usr/bin/env python
+"""Example for peak_finder_v2
+"""
+#------------------------------
 
-from psana import *
-from ImgAlgos.PyAlgos import PyAlgos
 import sys
 import numpy as np
+import psana
+
+from ImgAlgos.PyAlgos import PyAlgos
 from Detector.GlobalUtils import print_ndarr
 
-ds  = DataSource('exp=cxif5315:run=169')
-src = Source('DetInfo(CxiDs2.0:Cspad.0)')
+#------------------------------
 
-from Detector.PyDetector import PyDetector
-det = PyDetector(src, ds.env(), pbits=0)
+ds  = psana.DataSource('exp=cxif5315:run=169')
+det = psana.Detector('CxiDs2.0:Cspad.0', ds.env())
 
-#windows = [(s, 1, 185, 0, 388) for s in (0,1,7,8,9,15,16,17,23,24,25,31)]
-windows = [(s, 0, 185, 0, 388) for s in (0,1,7,8,9,15,16,17,23,24,25,31)]
-#windows = None
+#src = psana.Source('DetInfo(CxiDs2.0:Cspad.0)')
+#from Detector.AreaDetector import AreaDetector
+#det = AreaDetector(src, ds.env(), pbits=0)
+
+windows = [(s, 0, 185, 0, 388) for s in (0,1,7,8,9,15,16,17,23,24,25,31)] # or None
 #mask_arc = np.loadtxt('/reg/neh/home/cpo/ipsana/cxif5315/masks/roi_mask_nda_arc.txt').reshape((32,185,388))
 mask_arc = np.ones((32,185,388))
-alg_arc = PyAlgos(windows=windows, mask=mask_arc, pbits=0) #1023)
+alg_arc = PyAlgos(windows=windows, mask=mask_arc, pbits=0) # pbits=0177777
 alg_arc.set_peak_selection_pars(npix_min=5, npix_max=500, amax_thr=0, atot_thr=1000, son_min=6)
 #alg_arc.print_input_pars()
 
 for i,evt in enumerate(ds.events()):
 
-    if i>100 : break
+    if i>20 : break
 
     nda = det.calib(evt)
     print '%s\nEvent # %d\n' % (80*'_',i)
@@ -35,3 +40,5 @@ for i,evt in enumerate(ds.events()):
     #print peaks
 
 sys.exit('Test is completed')
+
+#------------------------------

@@ -227,6 +227,7 @@ struct BkgdAvgRms {
  *  #include "ndarray/ndarray.h"     // need it for I/O arrays
  *  
  *  typedef ImgAlgos::AlgImgProc::conmap_t conmap_t;
+ *  typedef ImgAlgos::AlgImgProc::pixel_status_t pixel_status_t;
  *  @endcode
  *
  *
@@ -287,6 +288,9 @@ struct BkgdAvgRms {
  *
  *   // call after peakFinderV2 ONLY!
  *   ndarray<conmap_t, 2>& conmap = aip -> mapOfConnectedPixels();
+ *
+ *   // call after peakFinderV2, V4r2 ONLY!
+ *   ndarray<pixel_status_t, 2>& pixel_status = aip -> mapOfPixelStatus();
  *
  *   // call after peakFinderV3 ONLY!
  *   ndarray<pixel_maximums_t, 2>& locmaxmap = aip -> mapOfLocalMaximums();
@@ -360,7 +364,7 @@ public:
                             const float& npix_max=1e6, 
                             const float& amax_thr=0, 
                             const float& atot_thr=0,
-                            const float& son_min =0);
+                            const float& son_min=0);
 
   /// Returns reference to Window object
   const Window& window(){ return m_win; }
@@ -379,6 +383,9 @@ public:
 
   /// Returns map of connected pixels after peakFinderV2(.)
   ndarray<conmap_t, 2>& mapOfConnectedPixels() { return m_conmap; }
+
+  /// Returns map of pixel status after peakFinderV2, V4r2
+  ndarray<pixel_status_t, 2>& mapOfPixelStatus() { return m_pixel_status; }
 
   /// Returns map of local maximums after peakFinderV3(.)
   ndarray<pixel_minimums_t, 2>& mapOfLocalMinimums() { return m_local_minimums; }
@@ -425,6 +432,17 @@ private:
   float    m_peak_son_min;  // peak selection parameter
   bool     m_do_preselect;  // flag for applying peak pre-selection before S/N calculation
 
+
+  // parameters for _isDroplet
+  int      m_reg_rmin; // region limit
+  int      m_reg_rmax; // region limit
+  int      m_reg_cmin; // region limit
+  int      m_reg_cmax; // region limit
+  double   m_reg_a0;   // intensity in the initial point for droplet
+
+  std::vector<TwoIndexes> v_ind_droplet; // vector of pixel indexes for droplet
+  unsigned m_droplet_max_size; // size of droplet vector
+
   //Peak     m_peak;
 
   ndarray<pixel_status_t, 2>   m_pixel_status;
@@ -453,6 +471,19 @@ private:
 
   /// Recursive method which checks m_pixel_status[r][c] and numerates connected regions in m_conmap[r][c]
   void _findConnectedPixels(const int& r, const int& c);
+
+  /// Recursive method finding connected pixels in constrained region and filling vector of indexes.
+  void _findConnectedPixelsInRegion(const int& r, const int& c);
+
+  /// Adds droplet (vector of connected pixels v_ind_droplet) to the map m_conmap
+  void _addDropletToMap();
+
+  /// Clears status of used pixels in m_pixel_status[r][c] if central pixel is not maximal
+  void _clearStatusOfUnusedPixels();
+
+  /// Recursive method finding connected pixels in constrained region and filling vector of indexes.
+  //template <typename T>
+  //bool _findConnectedPixelsInRegionT(const ndarray<const T,2>& data, const int& r, const int& c);
 
   /// Makes m_conmap - map of connected pixels with enumerated regions from m_pixel_status and counts m_numreg
   void _makeMapOfConnectedPixels();
@@ -493,17 +524,18 @@ private:
    * 
    * @param[in]  data - ndarray with calibrated intensities
    * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
-   * @param[in]  thr  - threshold on data values
+   * @param[in]  thr  - threshold on data value
    */
 
 template <typename T>
 void
-_makeMapOfPixelStatus( const ndarray<const T,2>&      data
+_makeMapOfPixelStatus( const ndarray<const T,2>& data
                      , const ndarray<const mask_t,2>& mask
                      , const T& thr
                      )
 {
-  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfPixelStatus, seg=" << m_seg << " thr=" << thr << "\n    in window: " << m_win);
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfPixelStatus, seg=" << m_seg
+                           << " thr=" << thr << "\n    in window: " << m_win);
   //if(m_pbits & 512) m_win.print();
 
   //if(m_pixel_status.size()==0) 
@@ -513,6 +545,51 @@ _makeMapOfPixelStatus( const ndarray<const T,2>&      data
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
       m_pixel_status[r][c] = (mask[r][c] && (data[r][c]>thr)) ? 255 : 0;
+}
+
+//--------------------
+  /**
+   * @brief Makes 2-threshold map of pixel status m_pixel_status by setting
+   *         0 - masked pixel
+   *        +1 - intensity above thr_high
+   *        +2 - intensity above thr_low
+   *        +4 - intensity below thresholds
+   *        ------------------ 
+   *        m_pixel_status array is used later to set:
+   *        +8  - used pixel in recursion
+   *        +16 - used pixel on map
+   *        +32 - local maximum
+   * 
+   * @param[in] data - ndarray with calibrated intensities
+   * @param[in] mask - ndarray with mask of bad/good (0/1) pixels
+   * @param[in] thr_low   - low threshold on data value
+   * @param[in] thr_high  - high threshold on data value
+   */
+
+template <typename T>
+void
+_makeMapOfPixelStatusV2( const ndarray<const T,2>& data
+                       , const ndarray<const mask_t,2>& mask
+                       , const T& thr_low
+                       , const T& thr_high
+                       )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfPixelStatusV2, seg=" << m_seg
+                           << " thr_high=" << thr_high << " thr_low=" << thr_low 
+                           << "\n    in window: " << m_win);
+  //if(m_pbits & 512) m_win.print();
+
+  //if(m_pixel_status.size()==0) 
+  if(m_pixel_status.empty()) 
+     m_pixel_status = make_ndarray<pixel_status_t>(data.shape()[0], data.shape()[1]);
+
+  for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
+    for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
+      if(! mask[r][c])             m_pixel_status[r][c] = 0; // pixel is masked
+      else if(data[r][c]<thr_low)  m_pixel_status[r][c] = 4; // a<thr_low
+      else if(data[r][c]<thr_high) m_pixel_status[r][c] = 2; // a>=thr_low, but a<thr_high
+      else                         m_pixel_status[r][c] = 3; // a>=thr_high,low: set 1st and 2nd bits
+    }
 }
 
 //--------------------
@@ -537,23 +614,11 @@ _procConnectedPixels(const ndarray<const T,2>& data)
   pw0.peak_cmin = m_win.colmax;
   pw0.peak_rmin = m_win.rowmax;
 
-  // Next line does not work when vector is large.
-  //if(v_peaks_work.capacity() < m_numreg+1) v_peaks_work.reserve(m_numreg+1); // use numeration from 1
   v_peaks_work.clear();
 
   //std::fill_n(&v_peaks_work[0], int(m_numreg+1), pw0);
   for(unsigned reg = 0; reg < min(m_numreg+1, m_npksmax); reg++)
     v_peaks_work.push_back(pw0);
-
-  //std::cout << "\nXXXIII:Point 3";
-  //std::cout << "  m_numreg: " << m_numreg;
-  //std::cout << "  v_peaks_work.size(): " << v_peaks_work.size();
-  //std::cout << "  v_peaks_work.capacity(): " << v_peaks_work.capacity();
-  //std::cout << '\n';
-  //std::cout << "  m_win: " << m_win;
-  //std::cout << "\n  m_pixel_status.size(): " << m_pixel_status.size();
-  //std::cout << "  m_conmap.size(): " << m_conmap.size();
-  //std::cout << '\n';
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
@@ -610,7 +675,7 @@ public:
 
 template <typename T>
 void
-_makeMapOfLocalMinimums( const ndarray<const T,2>&      data
+_makeMapOfLocalMinimums( const ndarray<const T,2>& data
                        , const ndarray<const mask_t,2>& mask
                        , const size_t& rank
                        )
@@ -711,7 +776,7 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>&      data
 
 template <typename T>
 void
-_makeMapOfLocalMaximums( const ndarray<const T,2>&      data
+_makeMapOfLocalMaximums( const ndarray<const T,2>& data
                        , const ndarray<const mask_t,2>& mask
                        , const size_t& rank
                        )
@@ -849,7 +914,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>&      data
 
 template <typename T>
 void
-_makeMapOfLocalMinimumsV0( const ndarray<const T,2>&      data
+_makeMapOfLocalMinimumsV0( const ndarray<const T,2>& data
                          , const ndarray<const mask_t,2>& mask
                          , const size_t& rank
                          )
@@ -926,7 +991,7 @@ _makeMapOfLocalMinimumsV0( const ndarray<const T,2>&      data
 
 template <typename T>
 void
-_makeMapOfLocalMaximumsV0( const ndarray<const T,2>&      data
+_makeMapOfLocalMaximumsV0( const ndarray<const T,2>& data
                          , const ndarray<const mask_t,2>& mask
                          , const size_t& rank
                          )
@@ -1104,7 +1169,7 @@ private:
 
 template <typename T>
 void
-_procLocalMaximum( const ndarray<const T,2>&      data
+_procLocalMaximum( const ndarray<const T,2>& data
                  , const ndarray<const mask_t,2>& mask
                  , const size_t& rank
                  , const unsigned& r0
@@ -1365,7 +1430,7 @@ _procLocalMaximumV3( const ndarray<const T,2>& data
    */
 template <typename T>
 void 
-_makePeaksFromMapOfLocalMaximums( const ndarray<const T,2>&      data
+_makePeaksFromMapOfLocalMaximums( const ndarray<const T,2>& data
                                 , const ndarray<const mask_t,2>& mask
                                 , const size_t& rank
                                 )
@@ -1391,7 +1456,7 @@ _makePeaksFromMapOfLocalMaximums( const ndarray<const T,2>&      data
    */
 template <typename T>
 void 
-_makePeaksFromMapOfLocalMaximumsV2( const ndarray<const T,2>&      data
+_makePeaksFromMapOfLocalMaximumsV2( const ndarray<const T,2>& data
                                   , const ndarray<const mask_t,2>& mask
                                   , const size_t& rank
                                   )
@@ -1417,7 +1482,7 @@ _makePeaksFromMapOfLocalMaximumsV2( const ndarray<const T,2>&      data
    */
 template <typename T>
 void 
-_makePeaksFromMapOfLocalMaximumsV3( const ndarray<const T,2>&      data
+_makePeaksFromMapOfLocalMaximumsV3( const ndarray<const T,2>& data
                                   , const ndarray<const mask_t,2>& mask
                                   , const size_t& rank
                                   )
@@ -1487,8 +1552,8 @@ void _procSeedPeaks( const ndarray<const T,2>& data
 template <typename T>
 void _addBkgdAvgRmsToPeaks( const ndarray<const T,2>& data
                           , const ndarray<const mask_t,2>& mask
-	                  , const float r0 = 7.0
-	                  , const float dr = 2.0
+	                  , const float r0=7.0
+	                  , const float dr=2.0
                           )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _addBkgdAvgRmsToPeaks, seg=" << m_seg);
@@ -1521,8 +1586,8 @@ void _addBkgdAvgRmsToPeaks( const ndarray<const T,2>& data
 template <typename T>
 void _addSoNToPeaks( const ndarray<const T,2>& data
                    , const ndarray<const mask_t,2>& mask
-	           , const float r0 = 7.0
-	           , const float dr = 2.0
+	           , const float r0=7.0
+	           , const float dr=2.0
                    )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _addSoNToPeaks, seg=" << m_seg);
@@ -1551,8 +1616,8 @@ void _addSoNToPeaks( const ndarray<const T,2>& data
 template <typename T>
 void _addSoNToPeaksV2( const ndarray<const T,2>& data
                      , const ndarray<const mask_t,2>& mask
-	             , const float r0 = 7.0
-	             , const float dr = 2.0
+	             , const float r0=7.0
+	             , const float dr=2.0
                      )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _addSoNToPeaks, seg=" << m_seg);
@@ -1590,7 +1655,7 @@ void _addSoNToPeaksV2( const ndarray<const T,2>& data
 
 template <typename T>
 void
-_procDroplet( const ndarray<const T,2>&      data
+_procDroplet( const ndarray<const T,2>& data
             , const ndarray<const mask_t,2>& mask
             , const T& thr_low
             , const unsigned& rad
@@ -1657,7 +1722,7 @@ _procDroplet( const ndarray<const T,2>&      data
 
 //--------------------
   /**
-   * @brief _makeVectorOfDroplets - a part of peakFinderV1 algorithm - loops over pixels and makes peak candidates in v_peaks
+   * @brief _makeVectorOfDroplets - a part of peakFinderV1, V4 algorithm - loops over pixels and makes peak candidates in v_peaks
    * 
    * @param[in]  data - ndarray with calibrated intensities
    * @param[in]  mask - ndarray with mask of bad/good (0/1) pixels
@@ -1667,7 +1732,7 @@ _procDroplet( const ndarray<const T,2>&      data
    */
 template <typename T>
 void 
-_makeVectorOfDroplets( const ndarray<const T,2>&      data
+_makeVectorOfDroplets( const ndarray<const T,2>& data
                      , const ndarray<const mask_t,2>& mask
                      , const T& thr_low
                      , const T& thr_high
@@ -1683,6 +1748,117 @@ _makeVectorOfDroplets( const ndarray<const T,2>&      data
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
       if(mask[r][c] && (data[r][c]>thr_high)) 
         _procDroplet<T>(data,mask,thr_low,rad,r,c);	
+}
+
+//--------------------
+  /**
+   * @brief isDroplet - apply flood filling algorithms to find a group of connected pixels
+   * around r0,c0 in constrained by rad region. 
+   *   - uses m_pixel_status for 2-thresholds
+   *   - check that r0,c0 is absolute maximum, returns false if not found
+   *   - apply flood filling and make vector of connected pixels in rad constrained by region. 
+   *   - returns true for absolute maximum.
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  rad - radius of the region where central pixel has a maximal value
+   * @param[in]  r0 - droplet central pixel row-coordinate 
+   * @param[in]  c0 - droplet central pixel column-coordinate   
+   */
+
+template <typename T>
+bool
+_isDroplet(const ndarray<const T,2>& data
+         , const unsigned& rad
+         , const int& r0
+         , const int& c0
+         )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _isDroplet, seg=" << m_seg 
+                           << " rad=" << rad  << " r0=" << r0 << " c0=" << c0);
+
+  m_reg_rmin = std::max((int)m_win.rowmin, int(r0-rad));
+  m_reg_rmax = std::min((int)m_win.rowmax, int(r0+rad+1));
+  m_reg_cmin = std::max((int)m_win.colmin, int(c0-rad));
+  m_reg_cmax = std::min((int)m_win.colmax, int(c0+rad+1));
+
+  /*
+    cout << "XXX m_reg_rmin=" << m_reg_rmin
+         << "\n    m_reg_rmax=" << m_reg_rmax
+         << "\n    m_reg_cmin=" << m_reg_cmin
+         << "\n    m_reg_cmax=" << m_reg_cmax
+         << '\n';
+  */
+
+  v_ind_droplet.clear();
+  //cout << "XXX v_ind_droplet.capacity=" << v_ind_droplet.capacity() << '\n';
+  //m_reg_a0 = data[r0][c0];
+  //return _findConnectedPixelsInRegionT<T>(data, r0, c0);
+
+  // Non-templated recursion method with further loop for termination.
+  _findConnectedPixelsInRegion(r0, c0);
+
+  bool is_grpmax = _isGroupMaximum<T>(data, r0, c0);
+  if(! is_grpmax) _clearStatusOfUnusedPixels();
+  return is_grpmax;
+}
+//--------------------
+  /**
+   * @brief _isGroupMaximum - check if the data in r0,c0 is a group maximum.
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   * @param[in]  r0 - droplet central pixel row-coordinate 
+   * @param[in]  c0 - droplet central pixel column-coordinate   
+   */
+template <typename T>
+bool
+_isGroupMaximum( const ndarray<const T,2>& data
+               , const int& r0
+               , const int& c0) {
+  double a0 = data[r0][c0];
+  for(vector<TwoIndexes>::const_iterator ij  = v_ind_droplet.begin();
+                                         ij != v_ind_droplet.end(); ij++)
+    if(data[ij->i][ij->j] > a0) return false; // is not local maximum
+
+  return true; // is local maximum
+}
+
+//--------------------
+  /**
+   * @brief _makeMapOfConnectedPixelsForDroplets - a part of peakFinderV4r2 algorithm, 
+   *        replaces _makeVectorOfDroplets
+   * Changes: 
+   *   1. droplet includes connected pixels ONLY!
+   *   2. makes map of connected pixels for droplets (in stead of vector of peaks
+   *   3. S/N is evaluated in the droplet processing
+   * 
+   * @param[in] data - ndarray with calibrated intensities
+   * @param[in] rad - radius in pixels of squared region to find droplet relative to central pixel
+   */
+template <typename T>
+void 
+_makeMapOfConnectedPixelsForDroplets(const ndarray<const T,2>& data, const unsigned& rad=5)
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfConnectedPixelsForDroplets, seg=" << m_seg);
+
+  //if(m_conmap.size()==0) 
+  if(m_conmap.empty())
+     m_conmap = make_ndarray<conmap_t>(m_pixel_status.shape()[0], m_pixel_status.shape()[1]);
+  std::fill_n(m_conmap.data(), int(m_pixel_status.size()), conmap_t(0));
+
+  m_droplet_max_size = (2*rad+1)*(2*rad+1);
+  if(v_ind_droplet.capacity() != m_droplet_max_size) v_ind_droplet.reserve(m_droplet_max_size);
+
+  m_numreg=0;
+  for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
+    for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
+      if(  m_pixel_status[r][c] & 1 
+      && !(m_pixel_status[r][c] & 16)) 
+        // mask=1 and a > thr_high and pixel is not used
+        if(_isDroplet<T>(data, rad, (int)r, (int)c)) {
+          ++m_numreg;
+          _addDropletToMap();
+          m_pixel_status[r][c] |= 32; // mark pixel as local maximum
+	}
 }
 
 //--------------------
@@ -1703,7 +1879,7 @@ public:
 
 template <typename T>
 unsigned
-numberOfPixAboveThr( const ndarray<const T,2>&      data
+numberOfPixAboveThr( const ndarray<const T,2>& data
                    , const ndarray<const mask_t,2>& mask
                    , const T& thr
                    )
@@ -1732,7 +1908,7 @@ numberOfPixAboveThr( const ndarray<const T,2>&      data
 
 template <typename T>
 double
-intensityOfPixAboveThr( const ndarray<const T,2>&      data
+intensityOfPixAboveThr( const ndarray<const T,2>& data
                       , const ndarray<const mask_t,2>& mask
                       , const T& thr
                       )
@@ -1764,12 +1940,12 @@ intensityOfPixAboveThr( const ndarray<const T,2>&      data
 
 template <typename T>
 std::vector<Peak>&
-peakFinderV1( const ndarray<const T,2>&      data
+peakFinderV1( const ndarray<const T,2>& data
             , const ndarray<const mask_t,2>& mask
             , const T& thr_low
             , const T& thr_high
             , const unsigned& rad=5
-            , const float&    dr=2.0
+            , const float& dr=2.0
             )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV1, seg=" << m_seg);
@@ -1798,13 +1974,13 @@ peakFinderV1( const ndarray<const T,2>&      data
 
 template <typename T>
 std::vector<Peak>&
-peakFinderV4( const ndarray<const T,2>&      data
+peakFinderV4( const ndarray<const T,2>& data
             , const ndarray<const mask_t,2>& mask
             , const T& thr_low
             , const T& thr_high
             , const unsigned& rank = 5
-            , const float&    r0   = 7.0
-            , const float&    dr   = 2.0
+            , const float& r0 = 7.0
+            , const float& dr = 2.0
             )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV4, seg=" << m_seg);
@@ -1827,13 +2003,13 @@ peakFinderV4( const ndarray<const T,2>&      data
 
 template <typename T>
 std::vector<Peak>&
-peakFinderV4r1( const ndarray<const T,2>&      data
+peakFinderV4r1( const ndarray<const T,2>& data
               , const ndarray<const mask_t,2>& mask
               , const T& thr_low
               , const T& thr_high
               , const unsigned& rank = 5
-              , const float&    r0   = 7.0
-              , const float&    dr   = 2.0
+              , const float& r0 = 7.0
+              , const float& dr = 2.0
               )
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV4r1, seg=" << m_seg);
@@ -1844,6 +2020,46 @@ peakFinderV4r1( const ndarray<const T,2>&      data
   _makeVectorOfDroplets<T>(data, mask, thr_low, thr_high, rank);
   _addSoNToPeaksV2<T>(data, mask, r0, dr);
   _makeVectorOfSelectedPeaks();
+  return v_peaks_sel; 
+}
+
+//--------------------
+  /**
+   * @brief peakFinderV4r2 - "Droplet-finder" - further improvement of V4r1.
+   * Changes: 
+   *   eveluate S/N earlier - for each seed peak at processing of the droplet,
+   *   peak accounts for connected pixels above thr_low only, using flood filling.
+   * Details:
+   *   - makes map of pixel status m_pixel_status for 2 tresholds and mask
+   *   - process droplets in single plase, accounting for S/N and connected pixels only
+   *   - makes final vector of selected peaks
+   *   
+   */
+
+template <typename T>
+std::vector<Peak>&
+peakFinderV4r2( const ndarray<const T,2>& data
+              , const ndarray<const mask_t,2>& mask
+              , const T& thr_low
+              , const T& thr_high
+              , const unsigned& rank = 5
+              , const float& r0 = 7.0
+              , const float& dr = 2.0
+              )
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV4r2, seg=" << m_seg);
+
+  m_win.validate(data.shape());
+  m_do_preselect = false; 
+
+  _makeMapOfPixelStatusV2<T>(data, mask, thr_low, thr_high);
+  _makeMapOfConnectedPixelsForDroplets<T>(data, rank);
+
+  _procConnectedPixels<T>(data);
+  _makeVectorOfPeaks();
+  _addSoNToPeaksV2<T>(data, mask, r0, dr);
+  _makeVectorOfSelectedPeaks();
+
   return v_peaks_sel; 
 }
 

@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-28
+2016-10-28 Mikhail S. Dubrovin
+- Add peak_finder_v4r2, update examples (PSAS-147)
+	
 Tag: V00-04-27
 2016-10-13 Mikhail S. Dubrovin
 - PyAlgos.py - in peak_finder_v3 add parameter nsigm=0 (as in v3r1)
