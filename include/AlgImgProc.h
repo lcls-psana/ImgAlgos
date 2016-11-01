@@ -184,17 +184,23 @@ struct SoNResult {
 struct BkgdAvgRms {
   double avg; // average intensity in the ring
   double rms; // rms in the ring
+  double npx; // number of pixels used
 
   BkgdAvgRms(const double& av=0, 
-             const double& rm=0) :
-    avg(av), rms(rm) {}
+             const double& rm=0,
+             const unsigned& np=0) :
+    avg(av), rms(rm), npx(np) {}
 
   BkgdAvgRms& operator=(const BkgdAvgRms& rhs) {
     avg = rhs.avg;
     rms = rhs.rms;
+    npx = rhs.npx;
     return *this;
   }
 };
+
+std::ostream& 
+operator<<( std::ostream& os, const BkgdAvgRms& b);
 
 /// @addtogroup ImgAlgos
 
@@ -278,10 +284,11 @@ struct BkgdAvgRms {
  *   std::vector<Peak>& peaks = aip -> peakFinderV3<T>(seg_data, seg_mask, rank, r0, dr);
  *   std::vector<Peak>& peaks = aip -> peakFinderV4<T>(seg_data, seg_mask, thr_low, thr_high, rank, r0, dr);
  *
- *   // The same peak-finders after revision-1
+ *   // The same peak-finders after revisions
  *   std::vector<Peak>& peaks = aip -> peakFinderV2r1<T>(seg_data, seg_mask, thr, r0, dr);
  *   std::vector<Peak>& peaks = aip -> peakFinderV3r1<T>(seg_data, seg_mask, rank, r0, dr);
  *   std::vector<Peak>& peaks = aip -> peakFinderV4r1<T>(seg_data, seg_mask, thr_low, thr_high, rank, r0, dr);
+ *   std::vector<Peak>& peaks = aip -> peakFinderV4r2<T>(seg_data, seg_mask, thr_low, thr_high, rank, r0, dr);
  *
  *   std::vector<Peak>& peaks = aip -> getVectorOfSelectedPeaks();
  *   std::vector<Peak>& peaks = aip -> getVectorOfPeaks();
@@ -318,7 +325,7 @@ public:
   typedef uint16_t pixel_status_t;
   typedef uint16_t pixel_maximums_t;
   typedef uint16_t pixel_minimums_t;
-  typedef float son_t;
+  typedef float    son_t;
   typedef uint16_t nphoton_t;
   typedef float    fphoton_t;
 
@@ -414,6 +421,7 @@ private:
   Window   m_win;      // work area window
 
   bool     m_init_son_is_done; // for S/N algorithm
+  bool     m_init_bkgd_is_done; // for _evaluateBkgdAvgRms algorithm
   bool     m_use_mask;
 
   conmap_t m_numreg;
@@ -441,6 +449,7 @@ private:
   double   m_reg_a0;   // intensity in the initial point for droplet
 
   std::vector<TwoIndexes> v_ind_droplet; // vector of pixel indexes for droplet
+  std::vector< std::vector<TwoIndexes> > vv_peak_pixinds; // vector of peak vector of pixel indexes
   unsigned m_droplet_max_size; // size of droplet vector
 
   //Peak     m_peak;
@@ -482,8 +491,8 @@ private:
   void _clearStatusOfUnusedPixels();
 
   /// Recursive method finding connected pixels in constrained region and filling vector of indexes.
-  //template <typename T>
-  //bool _findConnectedPixelsInRegionT(const ndarray<const T,2>& data, const int& r, const int& c);
+  template <typename T>
+  bool _findConnectedPixelsInRegionT(const ndarray<const T,2>& data, const int& r, const int& c);
 
   /// Makes m_conmap - map of connected pixels with enumerated regions from m_pixel_status and counts m_numreg
   void _makeMapOfConnectedPixels();
@@ -539,8 +548,9 @@ _makeMapOfPixelStatus( const ndarray<const T,2>& data
   //if(m_pbits & 512) m_win.print();
 
   //if(m_pixel_status.size()==0) 
-  if(m_pixel_status.empty()) 
+  if(m_pixel_status.empty()){
      m_pixel_status = make_ndarray<pixel_status_t>(data.shape()[0], data.shape()[1]);
+  }
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
@@ -581,7 +591,7 @@ _makeMapOfPixelStatusV2( const ndarray<const T,2>& data
 
   //if(m_pixel_status.size()==0) 
   if(m_pixel_status.empty()) 
-     m_pixel_status = make_ndarray<pixel_status_t>(data.shape()[0], data.shape()[1]);
+    m_pixel_status = make_ndarray<pixel_status_t>(data.shape()[0], data.shape()[1]);
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
@@ -614,6 +624,7 @@ _procConnectedPixels(const ndarray<const T,2>& data)
   pw0.peak_cmin = m_win.colmax;
   pw0.peak_rmin = m_win.rowmax;
 
+  if(v_peaks_work.capacity() != m_npksmax) v_peaks_work.reserve(m_npksmax);
   v_peaks_work.clear();
 
   //std::fill_n(&v_peaks_work[0], int(m_numreg+1), pw0);
@@ -1752,6 +1763,108 @@ _makeVectorOfDroplets( const ndarray<const T,2>& data
 
 //--------------------
   /**
+   * @brief _procDropletV2 - process a single droplet candidate
+   * 
+   * @param[in] data - ndarray with calibrated intensities
+   * @param[in] vinds - vector of connected pixel indexes
+   */
+
+template <typename T>
+void
+_procDropletV2( const ndarray<const T,2>& data,
+                const std::vector<TwoIndexes>& vinds
+              )
+{
+  const int& r0 = vinds[0].i;
+  const int& c0 = vinds[0].j;
+
+  if(m_pbits & 512) MsgLog(_name(), info, "in _procDropletV2, seg=" << m_seg << " r0=" << r0 << " c0=" << c0);
+
+  BkgdAvgRms bkbd = _evaluateBkgdAvgRmsV2<T>(r0, c0, data);
+
+  double   a0 = data[r0][c0];
+  unsigned npix = 0;
+  double   samp = 0;
+  double   sac1 = 0;
+  double   sac2 = 0;
+  double   sar1 = 0;
+  double   sar2 = 0;
+  int      rmin = data.shape()[0];
+  int      cmin = data.shape()[1];
+  int      rmax = 0;
+  int      cmax = 0;
+
+  for(vector<TwoIndexes>::const_iterator ij  = vinds.begin();
+                                         ij != vinds.end(); ij++) {
+      int r = ij->i;
+      int c = ij->j;
+      double a = data[r][c];
+
+      if(r<rmin) rmin=r;
+      if(r>rmax) rmax=r;
+      if(c<cmin) cmin=c;
+      if(c>cmax) cmax=c;
+
+      npix += 1;
+      samp += a;
+      sar1 += a*r;
+      sac1 += a*c;
+      sar2 += a*r*r;
+      sac2 += a*c*c;
+  }
+
+  if(npix<1) return;
+
+  Peak peak;
+
+  peak.seg       = m_seg;
+  peak.row       = r0;
+  peak.col       = c0;
+  peak.npix      = npix;
+  peak.amp_max   = a0 - bkbd.avg;
+  peak.amp_tot   = samp - bkbd.avg * npix;
+  peak.row_cgrav = sar1/samp;
+  peak.col_cgrav = sac1/samp;
+  peak.row_sigma = (npix>1) ? std::sqrt(sar2/samp - peak.row_cgrav * peak.row_cgrav) : 0;
+  peak.col_sigma = (npix>1) ? std::sqrt(sac2/samp - peak.col_cgrav * peak.col_cgrav) : 0;
+  peak.row_min   = rmin;
+  peak.row_max   = rmax;
+  peak.col_min   = cmin;
+  peak.col_max   = cmax;  
+  peak.bkgd      = bkbd.avg;
+  peak.noise     = bkbd.rms;
+  //peak.bkgnpx   = bkbd.npx;
+  double noise_tot = bkbd.rms * std::sqrt(npix);
+  peak.son       = (noise_tot>0) ? peak.amp_tot / noise_tot : 0;
+
+  v_peaks.push_back(peak);
+}
+
+//--------------------
+  /**
+   * @brief _makeVectorOfPeaksV2 - a part of peakFinderV4r2 algorithm 
+   * loops over vector of peaks pixels and fill v_peaks
+   * 
+   * @param[in]  data - ndarray with calibrated intensities
+   */
+template <typename T>
+void 
+_makeVectorOfPeaksV2(const ndarray<const T,2>& data)
+{
+  if(m_pbits & 512) MsgLog(_name(), info, "in _makeVectorOfPeaksV2, seg=" << m_seg);
+
+  if(v_peaks.capacity() != m_npksmax) v_peaks.reserve(m_npksmax);
+     v_peaks.clear();
+
+  std::vector< std::vector<TwoIndexes> >::const_iterator it;
+  for(it=vv_peak_pixinds.begin(); it!=vv_peak_pixinds.end(); ++it) { 
+    //std::vector<TwoIndexes>& vinds = (*it);    
+    _procDropletV2<T>(data, *it);
+  }
+}
+
+//--------------------
+  /**
    * @brief isDroplet - apply flood filling algorithms to find a group of connected pixels
    * around r0,c0 in constrained by rad region. 
    *   - uses m_pixel_status for 2-thresholds
@@ -1773,34 +1886,35 @@ _isDroplet(const ndarray<const T,2>& data
          , const int& c0
          )
 {
-  if(m_pbits & 512) MsgLog(_name(), info, "in _isDroplet, seg=" << m_seg 
-                           << " rad=" << rad  << " r0=" << r0 << " c0=" << c0);
-
   m_reg_rmin = std::max((int)m_win.rowmin, int(r0-rad));
   m_reg_rmax = std::min((int)m_win.rowmax, int(r0+rad+1));
   m_reg_cmin = std::max((int)m_win.colmin, int(c0-rad));
   m_reg_cmax = std::min((int)m_win.colmax, int(c0+rad+1));
 
-  /*
-    cout << "XXX m_reg_rmin=" << m_reg_rmin
-         << "\n    m_reg_rmax=" << m_reg_rmax
-         << "\n    m_reg_cmin=" << m_reg_cmin
-         << "\n    m_reg_cmax=" << m_reg_cmax
-         << '\n';
-  */
+  if(m_pbits & 512)
+      MsgLog(_name(), info, "in _isDroplet, seg=" << m_seg 
+             << " rad=" << rad  << " r0=" << r0 << " c0=" << c0
+             << "\n    m_reg_rmin=" << m_reg_rmin
+             << "\n    m_reg_rmax=" << m_reg_rmax
+             << "\n    m_reg_cmin=" << m_reg_cmin
+	     << "\n    m_reg_cmax=" << m_reg_cmax);
 
   v_ind_droplet.clear();
-  //cout << "XXX v_ind_droplet.capacity=" << v_ind_droplet.capacity() << '\n';
-  //m_reg_a0 = data[r0][c0];
-  //return _findConnectedPixelsInRegionT<T>(data, r0, c0);
 
-  // Non-templated recursion method with further loop for termination.
+  // TEMPLATED CODE:
+  m_reg_a0 = data[r0][c0];
+  bool is_droplet = _findConnectedPixelsInRegionT<T>(data, r0, c0);
+
+  // NON-TEMPLATED CODE:
+  /*
   _findConnectedPixelsInRegion(r0, c0);
+  bool is_droplet = _isGroupMaximum<T>(data, r0, c0);
+  */
 
-  bool is_grpmax = _isGroupMaximum<T>(data, r0, c0);
-  if(! is_grpmax) _clearStatusOfUnusedPixels();
-  return is_grpmax;
+  if(! is_droplet) _clearStatusOfUnusedPixels();
+  return is_droplet;
 }
+
 //--------------------
   /**
    * @brief _isGroupMaximum - check if the data in r0,c0 is a group maximum.
@@ -1832,11 +1946,11 @@ _isGroupMaximum( const ndarray<const T,2>& data
    *   3. S/N is evaluated in the droplet processing
    * 
    * @param[in] data - ndarray with calibrated intensities
-   * @param[in] rad - radius in pixels of squared region to find droplet relative to central pixel
+   * @param[in] rank - radius in pixels of squared region to find droplet relative to central pixel
    */
 template <typename T>
 void 
-_makeMapOfConnectedPixelsForDroplets(const ndarray<const T,2>& data, const unsigned& rad=5)
+_makeMapOfConnectedPixelsForDroplets(const ndarray<const T,2>& data, const unsigned& rank=5)
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _makeMapOfConnectedPixelsForDroplets, seg=" << m_seg);
 
@@ -1845,19 +1959,23 @@ _makeMapOfConnectedPixelsForDroplets(const ndarray<const T,2>& data, const unsig
      m_conmap = make_ndarray<conmap_t>(m_pixel_status.shape()[0], m_pixel_status.shape()[1]);
   std::fill_n(m_conmap.data(), int(m_pixel_status.size()), conmap_t(0));
 
-  m_droplet_max_size = (2*rad+1)*(2*rad+1);
+  m_droplet_max_size = (2*rank+1)*(2*rank+1);
   if(v_ind_droplet.capacity() != m_droplet_max_size) v_ind_droplet.reserve(m_droplet_max_size);
+
+  if(vv_peak_pixinds.capacity() != m_npksmax) vv_peak_pixinds.reserve(m_npksmax);
+     vv_peak_pixinds.clear();
 
   m_numreg=0;
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
       if(  m_pixel_status[r][c] & 1 
       && !(m_pixel_status[r][c] & 16)) 
-        // mask=1 and a > thr_high and pixel is not used
-        if(_isDroplet<T>(data, rad, (int)r, (int)c)) {
-          ++m_numreg;
-          _addDropletToMap();
-          m_pixel_status[r][c] |= 32; // mark pixel as local maximum
+      // mask=1 and a>thr_high and pixel is not used
+        if(_isDroplet<T>(data, rank, (int)r, (int)c)) {
+            ++m_numreg;
+            _addDropletToMap();
+            vv_peak_pixinds.push_back(v_ind_droplet);
+            m_pixel_status[r][c] |= 32; // mark pixel as local maximum
 	}
 }
 
@@ -2026,7 +2144,7 @@ peakFinderV4r1( const ndarray<const T,2>& data
 //--------------------
   /**
    * @brief peakFinderV4r2 - "Droplet-finder" - further improvement of V4r1.
-   * Changes: 
+   * Changes on 2016-10-31 Happy Helloween!: 
    *   eveluate S/N earlier - for each seed peak at processing of the droplet,
    *   peak accounts for connected pixels above thr_low only, using flood filling.
    * Details:
@@ -2047,17 +2165,23 @@ peakFinderV4r2( const ndarray<const T,2>& data
               , const float& dr = 2.0
               )
 {
+  m_r0 = r0;
+  m_dr = dr;
+
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV4r2, seg=" << m_seg);
 
   m_win.validate(data.shape());
-  m_do_preselect = false; 
 
   _makeMapOfPixelStatusV2<T>(data, mask, thr_low, thr_high);
   _makeMapOfConnectedPixelsForDroplets<T>(data, rank);
 
-  _procConnectedPixels<T>(data);
-  _makeVectorOfPeaks();
-  _addSoNToPeaksV2<T>(data, mask, r0, dr);
+  _makeVectorOfPeaksV2<T>(data);
+
+  //_procConnectedPixels<T>(data);
+  //m_do_preselect = false; 
+  //_makeVectorOfPeaks();
+  //_addSoNToPeaksV2<T>(data, mask, r0, dr);
+
   _makeVectorOfSelectedPeaks();
 
   return v_peaks_sel; 
@@ -2295,12 +2419,12 @@ _evaluateBkgdAvgRms( const unsigned& row
 {
   //if(m_pbits & 512) MsgLog(_name(), info, "in _evaluateBkgdAvgRms, seg=" << m_seg << " row=" << row << ", col=" << col);
 
-  // S/N algorithm initialization
-  if(! m_init_son_is_done) {
+  // background evaluation algorithm initialization
+  if(! m_init_bkgd_is_done) {
     _evaluateRingIndexes(m_r0, m_dr);
     m_win.validate(data.shape());
     m_use_mask = (mask.empty()) ? false : true;
-    m_init_son_is_done = true;
+    m_init_bkgd_is_done = true;
   }
 
   if(m_use_mask && (!mask[row][col])) return m_bkgdavgrms_def;
@@ -2332,7 +2456,75 @@ _evaluateBkgdAvgRms( const unsigned& row
   if(sum0) {
     res.avg = sum1/sum0;                              // Averaged background level
     res.rms = std::sqrt(sum2/sum0 - res.avg*res.avg); // RMS of the background around peak
-    //cout << "Background avg=" << res.avg << "  rms=" << res.rms << '\n';
+    res.npx = sum0;
+    //cout << res << '\n';
+  }
+
+  return res;
+}
+
+//--------------------
+  /**
+   * @brief Evaluate background average and rms in the ring around pixel using data and mask
+   * V2 - uses m_pixel_status after V4r2 in stead of mask
+   * 
+   * Background average and rms are evaluated for any pixel specified by the (row,col).  
+   * Uses m_pixel_status after V4r2 in stead of mask. Good pixels with intensity below thresholds are used.
+   * This algorithm uses pixels in the ring m_r0, m_dr.
+   * 
+   * @param[in]  row  - pixel row
+   * @param[in]  col  - pixel column
+   * @param[in]  data - ndarray with calibrated intensities
+   */
+
+template <typename T>
+BkgdAvgRms
+_evaluateBkgdAvgRmsV2( const int& row
+                     , const int& col
+                     , const ndarray<const T,2>& data
+                     )
+{
+  //if(m_pbits & 512) MsgLog(_name(), info, "in _evaluateBkgdAvgRms, seg=" << m_seg << " row=" << row << ", col=" << col);
+
+  // background evaluation algorithm initialization
+  if(! m_init_bkgd_is_done) {
+    _evaluateRingIndexes(m_r0, m_dr);
+    //printVectorOfRingIndexes();
+    //printMatrixOfRingIndexes();
+    m_win.validate(data.shape());
+    m_init_bkgd_is_done = true;
+  }
+
+  // for masked pixel
+  //if(!m_pixel_status[row][col]) return m_bkgdavgrms_def;
+
+  double   amp  = 0;
+  unsigned sum0 = 0;
+  double   sum1 = 0;
+  double   sum2 = 0;
+
+  for(vector<TwoIndexes>::const_iterator ij  = v_indexes.begin();
+                                         ij != v_indexes.end(); ij++) {
+    int ir = row + (ij->i);
+    int ic = col + (ij->j);
+
+    if(ic < (int)m_win.colmin || !(ic < (int)m_win.colmax)) continue;
+    if(ir < (int)m_win.rowmin || !(ir < (int)m_win.rowmax)) continue;
+    if(!(m_pixel_status[ir][ic] & 4)) continue; // uses pixels below both thresholds ONLY!
+
+    amp = (double)data[ir][ic];
+    sum0 ++;
+    sum1 += amp;
+    sum2 += amp*amp;
+  }
+
+  BkgdAvgRms res; // m_bkgdavgrms_def;
+
+  if(sum0) {
+    res.avg = sum1/sum0;                              // Averaged background level
+    res.rms = std::sqrt(sum2/sum0 - res.avg*res.avg); // RMS of the background around peak
+    res.npx = sum0;
+    //cout << "ZZZ: " << res << '\n';
   }
 
   return res;

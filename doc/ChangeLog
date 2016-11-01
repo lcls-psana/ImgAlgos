@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-29
+2016-10-31 Mikhail S. Dubrovin
+- AlgImgProc::peak_finder_v4r2 - make optimal 2-nd part of algorithm - group of connected pixels processing (PSAS-147)
+	
 Tag: V00-04-28
 2016-10-28 Mikhail S. Dubrovin
 - Add peak_finder_v4r2, update examples (PSAS-147)

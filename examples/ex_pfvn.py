@@ -39,11 +39,11 @@ def test_pf() :
     ##-----------------------------
 
     SKIP        = 0
-    EVTMAX      = 5 + SKIP
+    EVTMAX      = 10 + SKIP
 
     DO_PLOT = True
 
-    shape=(600, 500)
+    shape=(1000, 1000)
 
     # Pixel image indexes
     #arr3d = np.array((1,shape[0],shape[1]))
@@ -54,12 +54,12 @@ def test_pf() :
     #iY  = np.array(det.indexes_y(evt), dtype=np.int64) #- yoffset
 
     ##-----------------------------
-    fig3, axim3, axcb3 = gg.fig_axes() if DO_PLOT else (None, None, None)
-    fig2, axim2, axcb2 = gg.fig_axes() if DO_PLOT else (None, None, None)
-    fig,  axim,  axcb  = gg.fig_axes() if DO_PLOT else (None, None, None)
+    fig3, axim3, axcb3 = gg.fig_axes(figsize=(11,10)) if DO_PLOT else (None, None, None)
+    fig2, axim2, axcb2 = gg.fig_axes(figsize=(11,10)) if DO_PLOT else (None, None, None)
+    fig,  axim,  axcb  = gg.fig_axes(figsize=(11,10)) if DO_PLOT else (None, None, None)
     ##-----------------------------
 
-    alg = PyAlgos(windows=None, mask=None, pbits=2)
+    alg = PyAlgos(windows=None, mask=None, pbits=0)
     alg.set_peak_selection_pars(npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=0, son_min=6)
     #alg.set_peak_selection_pars(npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=500, son_min=6) # for v2r1
     alg.print_attributes()
@@ -68,6 +68,8 @@ def test_pf() :
 
         if ev<SKIP : continue
         #if ev>=EVTMAX : break
+
+        print 50*'_', '\nEvent %04d' % ev
 
         img, peaks_sim = image_with_random_peaks(shape)
         peaks_gen = [(0, r, c, a, a*s, 9*s*s) for r,c,a,s in peaks_sim]
@@ -84,9 +86,11 @@ def test_pf() :
 
         map2 = reshape_to_2d(alg.maps_of_pixel_status())
         map3 = reshape_to_2d(alg.maps_of_connected_pixels())
+        #map2 = np.zeros((10,10))
+        #map3 = np.zeros((10,10))
         #maps = alg.maps_of_local_minimums()
-        print_arr(map2, 'map_of_pixel_status')
-        print_arr(map3, 'map_of_connected_pixels')
+        #print_arr(map2, 'map_of_pixel_status')
+        #print_arr(map3, 'map_of_connected_pixels')
         #maps.shape = shape 
 
 
@@ -117,13 +121,14 @@ def test_pf() :
             #img = det.image(evt, maps_of_conpix_equ)[xoffset:xoffset+xsize,yoffset:yoffset+ysize]
 
             imsh2 = axim2.imshow(map2, interpolation='nearest', aspect='auto', origin='upper') 
+            imsh2.set_clim(0, 30)
             colb = fig2.colorbar(imsh2, cax=axcb2) # , orientation='horizontal')
             fig2.canvas.set_window_title('Pixel status')    
 
             imsh3 = axim3.imshow(map3, interpolation='nearest', aspect='auto', origin='upper') 
             colb = fig3.colorbar(imsh3, cax=axcb3) # , orientation='horizontal')
             fig3.canvas.set_window_title('Connected pixel groups')    
-            gg.move_fig(fig3, x0=200, y0=0)
+            gg.move_fig(fig3, x0=200, y0=30)
 
             ave, rms = img.mean(), img.std()
             amin, amax = ave-1*rms, ave+8*rms
@@ -137,7 +142,7 @@ def test_pf() :
 
             fig.canvas.set_window_title('Event: %d' % ev)    
             fig.canvas.draw() # re-draw figure content
-            gg.move_fig(fig, x0=400, y0=0)
+            gg.move_fig(fig, x0=400, y0=30)
 
 
     gg.show()

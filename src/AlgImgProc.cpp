@@ -40,6 +40,7 @@ AlgImgProc::AlgImgProc ( const size_t&   seg
   , m_npksmax(npksmax)
   , m_seg(seg)
   , m_init_son_is_done(false)
+  , m_init_bkgd_is_done(false)
   , m_r0(7.0)
   , m_dr(2.0)
   , m_sonres_def()
@@ -142,6 +143,32 @@ AlgImgProc::_findConnectedPixels(const int& r, const int& c)
 }
 
 //--------------------
+// Templated recursive method with data for fast termination
+// Returns true / false for pixel is ok / m_reg_a0 is not a local maximum
+template <typename T>
+bool
+AlgImgProc::_findConnectedPixelsInRegionT(const ndarray<const T,2>& data, const int& r, const int& c)
+{
+  //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixelsInRegionT, seg=" << m_seg);
+
+  pixel_status_t pstat = m_pixel_status[r][c];
+  if(! pstat) return true;    // pstat=0 - masked
+  if(pstat & 28) return true; // pstat=4/8/16 : a<thr_low/used in recursion/used in map
+
+  if(data[r][c] > m_reg_a0) return false; // initial point is not a local maximum - TERMINATE
+
+  m_pixel_status[r][c] |= 8; // mark this pixel as used in this recursion to get rid of cycling
+  v_ind_droplet.push_back(TwoIndexes(r,c));
+
+  if(  r+1 < m_reg_rmax)  if(! _findConnectedPixelsInRegionT<T>(data, r+1, c)) return false;
+  if(  c+1 < m_reg_cmax)  if(! _findConnectedPixelsInRegionT<T>(data, r, c+1)) return false;
+  if(!(r-1 < m_reg_rmin)) if(! _findConnectedPixelsInRegionT<T>(data, r-1, c)) return false;
+  if(!(c-1 < m_reg_cmin)) if(! _findConnectedPixelsInRegionT<T>(data, r, c-1)) return false;  
+
+  return true;
+}
+
+//--------------------
 // NON-Templated recursive method doing full flood filling in the region.
 void 
 AlgImgProc::_findConnectedPixelsInRegion(const int& r, const int& c)
@@ -151,10 +178,9 @@ AlgImgProc::_findConnectedPixelsInRegion(const int& r, const int& c)
   pixel_status_t pstat = m_pixel_status[r][c];
   if(! pstat) return;    // pstat=0 - masked
   if(pstat & 28) return; // pstat=4/8/16 : a<thr_low/used in recursion/used in map
+  //if(m_conmap[r][c]) return; // pixel belongs to any other group - it is also marked as used
 
   //cout  << "ZZZ:  v_ind_droplet.push_back r:" << r << " c:" << c << '\n';
-
-  //if(m_conmap[r][c]) return; // pixel belongs to any other group - it is also marked as used
 
   m_pixel_status[r][c] |= 8; // mark this pixel as used in this recursion 
   v_ind_droplet.push_back(TwoIndexes(r,c));
@@ -172,8 +198,8 @@ AlgImgProc::_addDropletToMap()
   if(m_pbits & 512) MsgLog(_name(), info, "in _addDropletToMap, seg=" << m_seg << " numreg=" << m_numreg);
   for(vector<TwoIndexes>::const_iterator ij  = v_ind_droplet.begin();
                                          ij != v_ind_droplet.end(); ij++) {
-      m_conmap[ij->i][ij->j] = m_numreg;
-      m_pixel_status[ij->i][ij->j] |= 16; // mark pixel as used on map (set bit)
+    m_conmap[ij->i][ij->j] = m_numreg;
+    m_pixel_status[ij->i][ij->j] |= 16; // mark pixel as used on map (set bit)  
   }
 }
 
@@ -186,32 +212,6 @@ AlgImgProc::_clearStatusOfUnusedPixels() {
     m_pixel_status[ij->i][ij->j] &=~8; // mark pixel as un-used (clear bit)
   }
 }
-
-//--------------------
-// Templated recursive method with data for fast termination
-/*
-template <typename T>
-bool
-AlgImgProc::_findConnectedPixelsInRegionT(const ndarray<const T,2>& data, const int& r, const int& c)
-{
-  //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixelsInRegionT, seg=" << m_seg);
-
-  pixel_status_t pstat = m_pixel_status[r][c];
-
-  if(! pstat || pstat & 12) return true; // pstat=0/8/4 : masked/used/a<thr_low - DO NOT USE THIS PIXEL
-
-  if(data[r][c] > m_reg_a0) return false; // initial point is not a local maximum - TERMINATE
-
-  v_ind_droplet.push_back(TwoIndexes(r,c));
-
-  if(  r+1 < m_reg_rmax)  if(! _findConnectedPixelsInRegionT<T>(data, r+1, c)) return false;
-  if(  c+1 < m_reg_cmax)  if(! _findConnectedPixelsInRegionT<T>(data, r, c+1)) return false;
-  if(!(r-1 < m_reg_rmin)) if(! _findConnectedPixelsInRegionT<T>(data, r-1, c)) return false;
-  if(!(c-1 < m_reg_cmin)) if(! _findConnectedPixelsInRegionT<T>(data, r, c-1)) return false;  
-
-  return true;
-}
-*/
 
 //--------------------
 
@@ -644,6 +644,17 @@ AlgImgProc::_printStatisticsOfLocalExtremes()
   }
 
 //--------------------
+  std::ostream& 
+  operator<<(std::ostream& os, const BkgdAvgRms& b) 
+  {
+    os << fixed
+       << " Bkgd avg:" << std::setw( 7) << std::setprecision(1) << b.avg
+       << " RMS:"      << std::setw( 7) << std::setprecision(1) << b.rms
+       << " Npix:"     << std::setw( 4) << std::setprecision(0) << b.npx;
+    return os;
+  }
+
+//--------------------
 //--------------------
 //-- NON-CLASS METHODS
 //--------------------
@@ -659,17 +670,13 @@ mapOfLocalMaximumsRank1Cross(const ndarray<const AlgImgProc::fphoton_t,2> fphoto
 
 //--------------------
 
-/*
-template void AlgImgProc::_findConnectedPixelsInRegionT<float>;
-template void AlgImgProc::_findConnectedPixelsInRegionT<double>;
-template void AlgImgProc::_findConnectedPixelsInRegionT<int>;
-template void AlgImgProc::_findConnectedPixelsInRegionT<int16_t>;
-template void AlgImgProc::_findConnectedPixelsInRegionT<uint16_t>;
-*/
+template bool AlgImgProc::_findConnectedPixelsInRegionT<float>(const ndarray<const float,2>&, const int&, const int&);
+template bool AlgImgProc::_findConnectedPixelsInRegionT<double>(const ndarray<const double,2>&, const int&, const int&);
+template bool AlgImgProc::_findConnectedPixelsInRegionT<int>(const ndarray<const int,2>&, const int&, const int&);
+template bool AlgImgProc::_findConnectedPixelsInRegionT<int16_t>(const ndarray<const int16_t,2>&, const int&, const int&);
+template bool AlgImgProc::_findConnectedPixelsInRegionT<uint16_t>(const ndarray<const uint16_t,2>&, const int&, const int&);
 
 //--------------------
-
-
 //--------------------
 } // namespace ImgAlgos
 //--------------------
