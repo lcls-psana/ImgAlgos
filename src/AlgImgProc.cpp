@@ -147,9 +147,9 @@ AlgImgProc::_findConnectedPixels(const int& r, const int& c)
 // Returns true / false for pixel is ok / m_reg_a0 is not a local maximum
 template <typename T>
 bool
-AlgImgProc::_findConnectedPixelsInRegionT(const ndarray<const T,2>& data, const int& r, const int& c)
+AlgImgProc::_findConnectedPixelsInRegionV1(const ndarray<const T,2>& data, const int& r, const int& c)
 {
-  //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixelsInRegionT, seg=" << m_seg);
+  //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixelsInRegionV1, seg=" << m_seg);
 
   pixel_status_t pstat = m_pixel_status[r][c];
   if(! pstat) return true;    // pstat=0 - masked
@@ -158,14 +158,46 @@ AlgImgProc::_findConnectedPixelsInRegionT(const ndarray<const T,2>& data, const 
   if(data[r][c] > m_reg_a0) return false; // initial point is not a local maximum - TERMINATE
 
   m_pixel_status[r][c] |= 8; // mark this pixel as used in this recursion to get rid of cycling
-  v_ind_droplet.push_back(TwoIndexes(r,c));
+  v_ind_pixgrp.push_back(TwoIndexes(r,c));
 
-  if(  r+1 < m_reg_rmax)  if(! _findConnectedPixelsInRegionT<T>(data, r+1, c)) return false;
-  if(  c+1 < m_reg_cmax)  if(! _findConnectedPixelsInRegionT<T>(data, r, c+1)) return false;
-  if(!(r-1 < m_reg_rmin)) if(! _findConnectedPixelsInRegionT<T>(data, r-1, c)) return false;
-  if(!(c-1 < m_reg_cmin)) if(! _findConnectedPixelsInRegionT<T>(data, r, c-1)) return false;  
+  if(  r+1 < m_reg_rmax)  if(! _findConnectedPixelsInRegionV1<T>(data, r+1, c)) return false;
+  if(  c+1 < m_reg_cmax)  if(! _findConnectedPixelsInRegionV1<T>(data, r, c+1)) return false;
+  if(!(r-1 < m_reg_rmin)) if(! _findConnectedPixelsInRegionV1<T>(data, r-1, c)) return false;
+  if(!(c-1 < m_reg_cmin)) if(! _findConnectedPixelsInRegionV1<T>(data, r, c-1)) return false;  
 
   return true;
+}
+
+//--------------------
+// Templated recursive method with data for fast termination
+// Returns true / false for pixel is ok / m_reg_a0 is not a local maximum
+// V2 - find a group connected pixels for already found local maximum
+//     - so do not need to terminate recursion like in V1 
+
+template <typename T>
+void
+AlgImgProc::_findConnectedPixelsInRegionV2(const ndarray<const T,2>& data,
+                                           const ndarray<const mask_t,2>& mask, 
+                                           const int& r, const int& c)
+{
+  //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixelsInRegionV2, r=" << r << " c=" << c);
+  //     << " data=" << data[r][c] << " m_reg_thr=" << m_reg_thr <<);
+
+  if(! mask[r][c]) return;   // - masked
+  if(m_conmap[r][c]) return; // - pixel is already used
+  if(data[r][c] < m_reg_thr) return; // discard pixel below threshold if m_reg_thr != 0 
+
+  //if(m_pixel_status[r][c] & 8) return; // pstat=4/8/16 : a<thr_low/used in recursion/used in map
+  //m_pixel_status[r][c] |= 8; // mark this pixel as used in this recursion to get rid of cycling  
+
+  m_conmap[r][c] = m_numreg; // mark pixel on map
+
+  v_ind_pixgrp.push_back(TwoIndexes(r,c));
+
+  if(  r+1 < m_reg_rmax)  _findConnectedPixelsInRegionV2<T>(data, mask, r+1, c);
+  if(  c+1 < m_reg_cmax)  _findConnectedPixelsInRegionV2<T>(data, mask, r, c+1);
+  if(!(r-1 < m_reg_rmin)) _findConnectedPixelsInRegionV2<T>(data, mask, r-1, c);
+  if(!(c-1 < m_reg_cmin)) _findConnectedPixelsInRegionV2<T>(data, mask, r, c-1);  
 }
 
 //--------------------
@@ -180,10 +212,10 @@ AlgImgProc::_findConnectedPixelsInRegion(const int& r, const int& c)
   if(pstat & 28) return; // pstat=4/8/16 : a<thr_low/used in recursion/used in map
   //if(m_conmap[r][c]) return; // pixel belongs to any other group - it is also marked as used
 
-  //cout  << "ZZZ:  v_ind_droplet.push_back r:" << r << " c:" << c << '\n';
+  //cout  << "ZZZ:  v_ind_pixgrp.push_back r:" << r << " c:" << c << '\n';
 
   m_pixel_status[r][c] |= 8; // mark this pixel as used in this recursion 
-  v_ind_droplet.push_back(TwoIndexes(r,c));
+  v_ind_pixgrp.push_back(TwoIndexes(r,c));
 
   if(  r+1 < m_reg_rmax)  _findConnectedPixelsInRegion(r+1, c);
   if(  c+1 < m_reg_cmax)  _findConnectedPixelsInRegion(r, c+1);
@@ -193,11 +225,11 @@ AlgImgProc::_findConnectedPixelsInRegion(const int& r, const int& c)
 //--------------------
 
 void 
-AlgImgProc::_addDropletToMap()
+AlgImgProc::_addPixGroupToMap()
 {
-  if(m_pbits & 512) MsgLog(_name(), info, "in _addDropletToMap, seg=" << m_seg << " numreg=" << m_numreg);
-  for(vector<TwoIndexes>::const_iterator ij  = v_ind_droplet.begin();
-                                         ij != v_ind_droplet.end(); ij++) {
+  if(m_pbits & 512) MsgLog(_name(), info, "in _addPixGroupToMap, seg=" << m_seg << " numreg=" << m_numreg);
+  for(vector<TwoIndexes>::const_iterator ij  = v_ind_pixgrp.begin();
+                                         ij != v_ind_pixgrp.end(); ij++) {
     m_conmap[ij->i][ij->j] = m_numreg;
     m_pixel_status[ij->i][ij->j] |= 16; // mark pixel as used on map (set bit)  
   }
@@ -207,8 +239,8 @@ AlgImgProc::_addDropletToMap()
 
 void 
 AlgImgProc::_clearStatusOfUnusedPixels() {
-  for(vector<TwoIndexes>::const_iterator ij  = v_ind_droplet.begin();
-                                         ij != v_ind_droplet.end(); ij++) {
+  for(vector<TwoIndexes>::const_iterator ij  = v_ind_pixgrp.begin();
+                                         ij != v_ind_pixgrp.end(); ij++) {
     m_pixel_status[ij->i][ij->j] &=~8; // mark pixel as un-used (clear bit)
   }
 }
@@ -310,7 +342,8 @@ AlgImgProc::_makeVectorOfPeaks()
 void
 AlgImgProc::_makeVectorOfSelectedPeaks()
 {
-  v_peaks_sel.clear();
+  if(v_peaks_sel.capacity() != m_npksmax) v_peaks_sel.reserve(m_npksmax);
+     v_peaks_sel.clear();
 
   //std::vector<Peak>::iterator it;
   for(std::vector<Peak>::iterator it=v_peaks.begin(); it!=v_peaks.end(); ++it) { 
@@ -330,6 +363,7 @@ AlgImgProc::_evaluateDiagIndexes(const size_t& rank)
   if(m_pbits & 512) MsgLog(_name(), info, "in _evaluateDiagIndexes, seg=" << m_seg << " rank=" << rank);
 
   m_rank = rank;
+  if(v_inddiag.capacity() != m_pixgrp_max_size) v_inddiag.reserve(m_pixgrp_max_size);
   v_inddiag.clear();
 
   int indmax =  m_rank;
@@ -362,6 +396,7 @@ AlgImgProc::_evaluateRingIndexes(const float& r0, const float& dr)
   m_r0 = r0;
   m_dr = dr;
 
+  if(v_indexes.capacity() != m_pixgrp_max_size) v_indexes.reserve(m_pixgrp_max_size);
   v_indexes.clear();
 
   int indmax = (int)std::ceil(m_r0 + m_dr);
@@ -540,7 +575,7 @@ AlgImgProc::printVectorOfRingIndexes()
   if(v_indexes.empty()) _evaluateRingIndexes(m_r0, m_dr);
 
   std::stringstream ss; 
-  ss << "printVectorOfRingIndexes():\n Vector size: " << v_indexes.size() << '\n';
+  ss << "In printVectorOfRingIndexes:\n Vector size: " << v_indexes.size() << '\n';
   int n_pairs_in_line=0;
   for( vector<TwoIndexes>::const_iterator ij  = v_indexes.begin();
                                           ij != v_indexes.end(); ij++ ) {
@@ -559,7 +594,7 @@ AlgImgProc::printMatrixOfDiagIndexes()
   int indmin = -m_rank;
 
   std::stringstream ss; 
-  ss << "printMatrixOfDiagIndexes(), seg=" << m_seg << "  rank=" << m_rank << '\n';
+  ss << "In printMatrixOfDiagIndexes, seg=" << m_seg << "  rank=" << m_rank << '\n';
 
   for (int i = indmin; i <= indmax; ++ i) {
     for (int j = indmin; j <= indmax; ++ j) {
@@ -583,7 +618,7 @@ AlgImgProc::printVectorOfDiagIndexes()
   if(v_inddiag.empty()) _evaluateDiagIndexes(m_rank);
 
   std::stringstream ss; 
-  ss << "printVectorOfDiagIndexes():\n Vector size: " << v_inddiag.size() << '\n';
+  ss << "In printVectorOfDiagIndexes:\n Vector size: " << v_inddiag.size() << '\n';
   int n_pairs_in_line=0;
   for( vector<TwoIndexes>::const_iterator ij  = v_inddiag.begin();
                                           ij != v_inddiag.end(); ij++ ) {
@@ -600,7 +635,7 @@ void
 AlgImgProc::_printStatisticsOfLocalExtremes()
 {
   std::stringstream ss; 
-  ss << "_printStatisticsOfLocalExtremes(): seg=" << m_seg << "  rank=" << m_rank << '\n';
+  ss << "In _printStatisticsOfLocalExtremes: seg=" << m_seg << "  rank=" << m_rank << '\n';
   ss << "1=c 2=r 4=rect" << std::right << '\n';
   unsigned hismax[8] = {}; // all zeros
   unsigned hismin[8] = {}; // all zeros
@@ -670,11 +705,19 @@ mapOfLocalMaximumsRank1Cross(const ndarray<const AlgImgProc::fphoton_t,2> fphoto
 
 //--------------------
 
-template bool AlgImgProc::_findConnectedPixelsInRegionT<float>(const ndarray<const float,2>&, const int&, const int&);
-template bool AlgImgProc::_findConnectedPixelsInRegionT<double>(const ndarray<const double,2>&, const int&, const int&);
-template bool AlgImgProc::_findConnectedPixelsInRegionT<int>(const ndarray<const int,2>&, const int&, const int&);
-template bool AlgImgProc::_findConnectedPixelsInRegionT<int16_t>(const ndarray<const int16_t,2>&, const int&, const int&);
-template bool AlgImgProc::_findConnectedPixelsInRegionT<uint16_t>(const ndarray<const uint16_t,2>&, const int&, const int&);
+template bool AlgImgProc::_findConnectedPixelsInRegionV1<float>(const ndarray<const float,2>&, const int&, const int&);
+template bool AlgImgProc::_findConnectedPixelsInRegionV1<double>(const ndarray<const double,2>&, const int&, const int&);
+template bool AlgImgProc::_findConnectedPixelsInRegionV1<int>(const ndarray<const int,2>&, const int&, const int&);
+template bool AlgImgProc::_findConnectedPixelsInRegionV1<int16_t>(const ndarray<const int16_t,2>&, const int&, const int&);
+template bool AlgImgProc::_findConnectedPixelsInRegionV1<uint16_t>(const ndarray<const uint16_t,2>&, const int&, const int&);
+
+//--------------------
+
+template void AlgImgProc::_findConnectedPixelsInRegionV2<float>(const ndarray<const float,2>&, const ndarray<const mask_t,2>&, const int&, const int&);
+template void AlgImgProc::_findConnectedPixelsInRegionV2<double>(const ndarray<const double,2>&, const ndarray<const mask_t,2>&, const int&, const int&);
+template void AlgImgProc::_findConnectedPixelsInRegionV2<int>(const ndarray<const int,2>&, const ndarray<const mask_t,2>&, const int&, const int&);
+template void AlgImgProc::_findConnectedPixelsInRegionV2<int16_t>(const ndarray<const int16_t,2>&, const ndarray<const mask_t,2>&, const int&, const int&);
+template void AlgImgProc::_findConnectedPixelsInRegionV2<uint16_t>(const ndarray<const uint16_t,2>&, const ndarray<const mask_t,2>&, const int&, const int&);
 
 //--------------------
 //--------------------

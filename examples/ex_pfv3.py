@@ -2,7 +2,6 @@
 
 #------------------------------
 
-import sys
 import numpy as np
 from time import time
 
@@ -173,8 +172,9 @@ def test_01() :
         #print_arr_attr(nda, 'nda')
 
         t0_sec = time()
-        peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=6, dr=2)
         #peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=5.0, dr=0.05)
+        #peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=6, dr=2)
+        peaks = alg.peak_finder_v3r2(nda, rank=rank, r0=6, dr=2)
         print '  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec)
 
         maps = alg.maps_of_local_maximums()
@@ -223,11 +223,14 @@ def usage() : return 'Use command: python %s <test-number>, where <test-number> 
 #------------------------------
 
 def main() :
-    if len(sys.argv) !=  2  : test_01(); print '\n%s\n%s\n' %  (80*'_', usage())
-    elif sys.argv[1] == '1' : test_01()
-    elif sys.argv[1] == '2' : test_02()
-    elif sys.argv[1] =='11' : test_11()
-    else                    : print '\n%s\nTest id parameter is not recognized.\n%s' % (80*'_', usage())
+    import sys; global sys
+    tname = sys.argv[1] if len(sys.argv) > 1 else '1'
+    print 50*'_', '\nTest %s:' % tname
+    if   tname ==  '1' : test_01()
+    elif tname ==  '2' : test_02()
+    elif tname == '11' : test_11()
+    else : print 'Not-recognized test name: %s\n%s' % (tname, usage())
+    sys.exit('End of test %s' % tname)
 
 #------------------------------
 

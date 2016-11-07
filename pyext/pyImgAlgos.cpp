@@ -120,6 +120,18 @@ ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_i3) (ndarray<const int,     3>, 
 ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_s3) (ndarray<const int16_t, 3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<int16_t, 3>;
 ndarray<const float, 2> (AlgArrProc::*p_pfv03r1_u3) (ndarray<const uint16_t,3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r1<uint16_t,3>;
 
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_f2) (ndarray<const float,   2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<float,   2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_d2) (ndarray<const double,  2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<double,  2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_i2) (ndarray<const int,     2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<int,     2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_s2) (ndarray<const int16_t, 2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<int16_t, 2>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_u2) (ndarray<const uint16_t,2>, ndarray<const mask_t,2>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<uint16_t,2>;
+					       													                      			       	   
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_f3) (ndarray<const float,   3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<float,   3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_d3) (ndarray<const double,  3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<double,  3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_i3) (ndarray<const int,     3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<int,     3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_s3) (ndarray<const int16_t, 3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<int16_t, 3>;
+ndarray<const float, 2> (AlgArrProc::*p_pfv03r2_u3) (ndarray<const uint16_t,3>, ndarray<const mask_t,3>, const size_t&, const float&, const float&, const float&) = &AlgArrProc::peakFinderV3r2<uint16_t,3>;
+
 ndarray<const pixel_minimums_t, 3> (AlgArrProc::*p_get_pfv03_min) () = &AlgArrProc::mapsOfLocalMinimums;
 ndarray<const pixel_maximums_t, 3> (AlgArrProc::*p_get_pfv03_max) () = &AlgArrProc::mapsOfLocalMaximums;
 
@@ -318,6 +330,18 @@ BOOST_PYTHON_MODULE(imgalgos_ext)
     .def("peak_finder_v3r1_i3", p_pfv03r1_i3)
     .def("peak_finder_v3r1_s3", p_pfv03r1_s3)
     .def("peak_finder_v3r1_u3", p_pfv03r1_u3)
+
+    .def("peak_finder_v3r2_f2", p_pfv03r2_f2)
+    .def("peak_finder_v3r2_d2", p_pfv03r2_d2)
+    .def("peak_finder_v3r2_i2", p_pfv03r2_i2)
+    .def("peak_finder_v3r2_s2", p_pfv03r2_s2)
+    .def("peak_finder_v3r2_u2", p_pfv03r2_u2)
+    	   		  	       	 
+    .def("peak_finder_v3r2_f3", p_pfv03r2_f3)
+    .def("peak_finder_v3r2_d3", p_pfv03r2_d3)
+    .def("peak_finder_v3r2_i3", p_pfv03r2_i3)
+    .def("peak_finder_v3r2_s3", p_pfv03r2_s3)
+    .def("peak_finder_v3r2_u3", p_pfv03r2_u3)
 
     .def("maps_of_local_minimums", p_get_pfv03_min)
     .def("maps_of_local_maximums", p_get_pfv03_max)

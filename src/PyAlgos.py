@@ -624,6 +624,37 @@ class PyAlgos :
 
 ##-----------------------------
 
+    def peak_finder_v3r2(self, arr, rank=5, r0=7.0, dr=2.0, nsigm=0) :
+
+        if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v3r2() input arr:')
+
+        ndim, dtype = len(arr.shape), arr.dtype
+        self.check_mask(ndim)
+        nda, msk = arr, self.mask
+        
+        if ndim == 2 :
+            if dtype == np.float32: return self.aap.peak_finder_v3r2_f2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.float64: return self.aap.peak_finder_v3r2_d2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.int    : return self.aap.peak_finder_v3r2_i2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.int16  : return self.aap.peak_finder_v3r2_s2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.uint16 : return self.aap.peak_finder_v3r2_u2(nda, msk, rank, r0, dr, nsigm)
+
+        if ndim>3 :
+            nda = reshape_nda_to_3d(arr)
+        
+        if dtype == np.float32: return self.aap.peak_finder_v3r2_f3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.float64: return self.aap.peak_finder_v3r2_d3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.int    : return self.aap.peak_finder_v3r2_i3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.int16  : return self.aap.peak_finder_v3r2_s3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.uint16 : return self.aap.peak_finder_v3r2_u3(nda, msk, rank, r0, dr, nsigm)
+
+        if self.pbits :
+            print 'WARNING: PyAlgos.peak_finder_v3r2(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+
+        return None
+
+##-----------------------------
+
     def maps_of_local_minimums(self) :
 
         if self.pbits & 128 : print 'in PyAlgos.maps_of_local_minimums()'

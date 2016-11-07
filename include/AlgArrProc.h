@@ -130,8 +130,9 @@ namespace ImgAlgos {
  *  // The same peak-finders after revision
  *  ndarray<const float, 3> peaks = alg->peakFinderV2r1<T>(data, mask, thr, r0, dr);
  *  ndarray<const float, 3> peaks = alg->peakFinderV3r1<T>(data, mask, rank, r0, dr, nsigm);
+ *  ndarray<const float, 3> peaks = alg->peakFinderV3r2<T>(data, mask, rank, r0, dr, nsigm); // New revision
  *  ndarray<const float, 3> peaks = alg->peakFinderV4r1<T>(data, mask, thr_low, thr_high, rank, r0, dr);
- *  ndarray<const float, 3> peaks = alg->peakFinderV4r2<T>(data, mask, thr_low, thr_high, rank, r0, dr);
+ *  ndarray<const float, 3> peaks = alg->peakFinderV4r2<T>(data, mask, thr_low, thr_high, rank, r0, dr); // New revision
  *  
  *  // Call after peakFinderV2(...) ONLY!
  *  ndarray<conmap_t, 3> maps = alg->mapsOfConnectedPixels();
@@ -655,6 +656,41 @@ public:
 	const ndarray<const mask_t,2> seg_mask(&m_mask[ind], m_sshape);
 
         std::vector<Peak>& peaks = (*it) -> peakFinderV3r1<T>(seg_data, seg_mask, rank, r0, dr, nsigm);
+	npeaks += peaks.size();
+    }
+
+    if(m_pbits & 256) MsgLog(_name(), info, "total number of peaks=" << npeaks);    
+
+    return _ndarrayOfPeakPars(npeaks);
+  }
+
+//--------------------
+//--------------------
+  /// peakFinderV3r2 - "Ranker" - the same as V3r1, but uses connected pixels only, order of algorithms has changed.
+
+  template <typename T, unsigned NDim>
+  ndarray<const float, 2>
+  peakFinderV3r2( const ndarray<const T, NDim> data
+                , const ndarray<const mask_t, NDim> mask
+                , const size_t& rank = 5
+	        , const float& r0=7
+                , const float& dr=2
+	        , const float& nsigm=0 // 0-turns off threshold algorithm, 1.64-leaves 5% of noise, etc.; 
+                )
+  {
+    if(m_pbits & 256) MsgLog(_name(), info, "in peakFinderV3r2");
+
+    if(! _initAlgImgProc<T,NDim>(data, mask)) { ndarray<const float, 2> empty; return empty; }
+
+    unsigned npeaks = 0;
+
+    for (std::vector<AlgImgProc*>::iterator it = v_algip.begin(); it != v_algip.end(); ++it) {
+
+        size_t ind = (*it)->segind() * m_stride;              
+	const ndarray<const T,2>      seg_data(&data.data()[ind], m_sshape);
+	const ndarray<const mask_t,2> seg_mask(&m_mask[ind], m_sshape);
+
+        std::vector<Peak>& peaks = (*it) -> peakFinderV3r2<T>(seg_data, seg_mask, rank, r0, dr, nsigm);
 	npeaks += peaks.size();
     }
 
