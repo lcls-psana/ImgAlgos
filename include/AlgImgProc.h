@@ -1580,7 +1580,7 @@ _makeMapOfConnectedPixelsForLocalMaximums( const ndarray<const T,2>& data
 
         BkgdAvgRms bkgd = _evaluateBkgdAvgRmsV3<T>(data, mask, r, c);
         // cout << "YYY m_numreg=" << m_numreg << " r=" <<  r << " c=" <<  c << " bkgd:" << bkgd << '\n';
-        m_reg_thr = nsigm * bkgd.rms;
+        m_reg_thr = bkgd.avg + nsigm * bkgd.rms;
 
         _findConnectedPixelsForLocalMaximum<T>(data, mask, rank, r, c); 
         if(v_ind_pixgrp.empty()) {--m_numreg; continue;}
@@ -2881,10 +2881,11 @@ _evaluateBkgdAvgRmsV3( const ndarray<const T,2>& data
   BkgdAvgRms bkgd; // object with 0 values
 
   if(sum0) {
-    bkgd.avg = sum1/sum0;                    // Averaged background level
-    double w = sum2/sum0 - bkgd.avg*bkgd.avg;
-    bkgd.rms = (w>0) ? std::sqrt(w) : 0;     // RMS of the background around peak
-    bkgd.npx = sum0;
+    sum1 /= sum0;
+    sum2 = sum2/sum0 - sum1*sum1;
+    bkgd.avg = sum1;                           // Averaged background level
+    bkgd.rms = (sum2>0) ? std::sqrt(sum2) : 0; // RMS of the background around peak
+    bkgd.npx = sum0;                           // Number of accounted pixels
     //cout << "ZZZ _evaluateBkgdAvgRmsV3:" << bkgd << '\n';
   }
   return bkgd;

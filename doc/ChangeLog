@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-31
+2016-11-08 Mikhail S. Dubrovin, Happy election day!
+- peak_finder_v3r2 - add background offset to the m_reg_thr = bkgd.avg + nsigm * bkgd.rms
+	
 Tag: V00-04-30
 2016-11-06 Mikhail S. Dubrovin
 - Add new revision peak_finder_v3r2 - uses connected pixels in rank region; enforce protection in v4r2 (PSAS-147)
