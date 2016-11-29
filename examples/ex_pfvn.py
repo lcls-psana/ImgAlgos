@@ -119,10 +119,12 @@ def test_pf(tname) :
         #peaks = alg.peak_finder_v3r1(img, rank=5, r0=7, dr=2, nsigm=0) # 1.64 (5%)
         #peaks = alg.peak_finder_v4r1(img, thr_low=20, thr_high=50, rank=5, r0=7, dr=2)
 
+        #peaks = alg.peak_finder_v1(img, thr_low=20, thr_high=40, radius=1, dr=0) if PF == V1 else\
         peaks = alg.peak_finder_v1(img, thr_low=20, thr_high=40, radius=6, dr=2) if PF == V1 else\
                 alg.peak_finder_v2r1(img, thr=30, r0=7, dr=2)                    if PF == V2 else\
                 alg.peak_finder_v3r2(img, rank=5, r0=7, dr=2, nsigm=3)           if PF == V3 else\
                 alg.peak_finder_v4r2(img, thr_low=20, thr_high=40, rank=6, r0=7, dr=2)
+                #alg.peak_finder_v4r2(img, thr_low=20, thr_high=40, rank=6, r0=3.3, dr=0)
 
         print '  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec)
 

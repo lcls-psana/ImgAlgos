@@ -600,7 +600,7 @@ _makeMapOfPixelStatusV2( const ndarray<const T,2>& data
   if(m_pixel_status.empty()) {
     m_pixel_status = make_ndarray<pixel_status_t>(data.shape()[0], data.shape()[1]);
 
-    // they do not used in this algo, but in case if someone request them
+    // they are not used in this algo, but in case if someone request them...
     _init_local_extreams_arrays<T>(data);
   }
 
@@ -2185,7 +2185,7 @@ _makeMapOfConnectedPixelsForDroplets(const ndarray<const T,2>& data, const unsig
      m_conmap = make_ndarray<conmap_t>(data.shape()[0], data.shape()[1]);
   std::fill_n(m_conmap.data(), int(data.size()), conmap_t(0));
 
-  m_pixgrp_max_size = (2*rank+1)*(2*rank+1);
+  //m_pixgrp_max_size = (2*rank+1)*(2*rank+1); //already defined in calling method
   if(v_ind_pixgrp.capacity() != m_pixgrp_max_size) v_ind_pixgrp.reserve(m_pixgrp_max_size);
 
   if(vv_peak_pixinds.capacity() != m_npksmax) vv_peak_pixinds.reserve(m_npksmax);
@@ -2196,9 +2196,15 @@ _makeMapOfConnectedPixelsForDroplets(const ndarray<const T,2>& data, const unsig
 
   m_numreg=0;
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
-    for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
+    for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
+
+      if(m_numreg > m_npksmax-2) {
+	if(m_pbits) MsgLog(_name(), warning, "seg=" << m_seg << " Number of peaks exceeds reserved maximum " << m_npksmax);
+        return; // protection
+      }
+
       if(  m_pixel_status[r][c] & 1 
-      && !(m_pixel_status[r][c] & 16)) 
+      && !(m_pixel_status[r][c] & 16))
       // mask=1 and a>thr_high and pixel is not used
         if(_isDroplet<T>(data, rank, (int)r, (int)c)) {
             ++m_numreg;
@@ -2207,6 +2213,7 @@ _makeMapOfConnectedPixelsForDroplets(const ndarray<const T,2>& data, const unsig
             vv_peak_pixinds.push_back(v_ind_pixgrp);
             m_pixel_status[r][c] |= 32; // mark pixel as local maximum
 	}
+    }
 }
 
 //--------------------
@@ -2770,8 +2777,11 @@ _evaluateBkgdAvgRmsV2( const int& row
 
   // background evaluation algorithm initialization
   if(! m_init_bkgd_is_done) {
+
+    cout << "XXX: m_r0=" << m_r0 << "    m_r0=" << m_dr << '\n';
+
     _evaluateRingIndexes(m_r0, m_dr);
-    //printVectorOfRingIndexes();
+    printVectorOfRingIndexes();
     //printMatrixOfRingIndexes();
     m_win.validate(data.shape());
     //m_win.print();

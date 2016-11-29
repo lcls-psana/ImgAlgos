@@ -77,10 +77,11 @@ Usage::
     #      for example rank=2 means 5x5 pixel region around central pixel.
     #      nsigm - optional threshold (number of noise rms) for pixel selection 
     peaks = alg.peak_finder_v3(nda, rank=2, r0=7.0, dr=2.0, nsigm=0)
+    peaks = alg.peak_finder_v3r2(nda, rank=2, r0=7.0, dr=2.0, nsigm=0) # test version for connected pixels
 
     # v4 - aka Droplet Finder - the same as v1, but uses rank and r0 parameters in stead of common radius.
     peaks = alg.peak_finder_v4(nda, thr_low=10, thr_high=150, rank=4, r0=7.0, dr=2.0)
-    peaks = alg.peak_finder_v4r2(nda, thr_low=10, thr_high=150, rank=5, r0=7.0, dr=2.0) # test version
+    peaks = alg.peak_finder_v4r2(nda, thr_low=10, thr_high=150, rank=5, r0=7.0, dr=2.0) # test version for connected pixels
 
 
     # OPTIONAL METHODS
