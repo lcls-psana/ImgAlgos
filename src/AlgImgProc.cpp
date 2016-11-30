@@ -363,11 +363,11 @@ AlgImgProc::_evaluateDiagIndexes(const size_t& rank)
   if(m_pbits & 512) MsgLog(_name(), info, "in _evaluateDiagIndexes, seg=" << m_seg << " rank=" << rank);
 
   m_rank = rank;
-  if(v_inddiag.capacity() != m_pixgrp_max_size) v_inddiag.reserve(m_pixgrp_max_size);
-  v_inddiag.clear();
-
   int indmax =  m_rank;
   int indmin = -m_rank;
+  unsigned npixmax = (2*rank+1)*(2*rank+1);
+  if(v_inddiag.capacity() < npixmax) v_inddiag.reserve(npixmax);
+  v_inddiag.clear();
 
   for (int i = indmin; i <= indmax; ++ i) {
     for (int j = indmin; j <= indmax; ++ j) {
@@ -396,11 +396,11 @@ AlgImgProc::_evaluateRingIndexes(const float& r0, const float& dr)
   m_r0 = r0;
   m_dr = dr;
 
-  if(v_indexes.capacity() != m_pixgrp_max_size) v_indexes.reserve(m_pixgrp_max_size);
-  v_indexes.clear();
-
   int indmax = (int)std::ceil(m_r0 + m_dr);
   int indmin = -indmax;
+  unsigned npixmax = (2*indmax+1)*(2*indmax+1);
+  if(v_indexes.capacity() < npixmax) v_indexes.reserve(npixmax);
+  v_indexes.clear();
 
   for (int i = indmin; i <= indmax; ++ i) {
     for (int j = indmin; j <= indmax; ++ j) {

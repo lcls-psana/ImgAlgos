@@ -1574,6 +1574,12 @@ _makeMapOfConnectedPixelsForLocalMaximums( const ndarray<const T,2>& data
   m_numreg=0;
   for(int r = (int)m_win.rowmin; r<(int)m_win.rowmax; r++)
     for(int c = (int)m_win.colmin; c<(int)m_win.colmax; c++) {
+
+        if(m_numreg > m_npksmax-2) {
+	  if(m_pbits) MsgLog(_name(), warning, "seg=" << m_seg << " Number of peaks exceeds reserved maximum " << m_npksmax);
+          return; // protection
+        }
+
         if(! (m_local_maximums[r][c] & 4)) continue;
 
         ++m_numreg;
@@ -1787,10 +1793,24 @@ _procDroplet( const ndarray<const T,2>& data
   peak.npix      = npix;
   peak.amp_max   = a0;
   peak.amp_tot   = samp;
-  peak.row_cgrav = sar1/samp;
-  peak.col_cgrav = sac1/samp;
-  peak.row_sigma = (npix>1) ? std::sqrt( sar2/samp - peak.row_cgrav * peak.row_cgrav ) : 0;
-  peak.col_sigma = (npix>1) ? std::sqrt( sac2/samp - peak.col_cgrav * peak.col_cgrav ) : 0;
+
+  if(samp>0) {
+    sar1 /= samp;
+    sac1 /= samp;
+    sar2 = sar2/samp - sar1*sar1;
+    sac2 = sac2/samp - sac1*sac1;
+    peak.row_cgrav = sar1;
+    peak.col_cgrav = sac1;
+    peak.row_sigma = (npix>1 && sar2>0) ? std::sqrt(sar2) : 0;
+    peak.col_sigma = (npix>1 && sac2>0) ? std::sqrt(sac2) : 0;
+  }
+  else {
+    peak.row_cgrav = r0;
+    peak.col_cgrav = c0;
+    peak.row_sigma = 0;
+    peak.col_sigma = 0;
+  }
+
   peak.row_min   = rmin;
   peak.row_max   = rmax;
   peak.col_min   = cmin;
@@ -2675,8 +2695,9 @@ _evaluateSoNForPixel( const unsigned& row
 
   if(sum0) {
     res.avg = sum1/sum0;                              // Averaged background level
-    res.rms = std::sqrt(sum2/sum0 - res.avg*res.avg); // RMS of the background around peak
-    res.sig = data[row][col]      - res.avg;          // Signal above the background
+    double w = sum2/sum0 - res.avg*res.avg;
+    res.rms = (w>0) ? std::sqrt(w) : 0;               // RMS of the background around peak
+    res.sig = data[row][col] - res.avg;               // Signal above the background
     if (res.rms>0) res.son = res.sig/res.rms;         // S/N ratio
   }
 
@@ -2744,7 +2765,8 @@ _evaluateBkgdAvgRms( const unsigned& row
 
   if(sum0) {
     res.avg = sum1/sum0;                              // Averaged background level
-    res.rms = std::sqrt(sum2/sum0 - res.avg*res.avg); // RMS of the background around peak
+    double w = sum2/sum0 - res.avg*res.avg;
+    res.rms = (w>0) ? std::sqrt(w) : 0;               // RMS of the background around peak
     res.npx = sum0;
     //cout << res << '\n';
   }
