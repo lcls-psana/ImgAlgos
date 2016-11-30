@@ -2799,9 +2799,6 @@ _evaluateBkgdAvgRmsV2( const int& row
 
   // background evaluation algorithm initialization
   if(! m_init_bkgd_is_done) {
-
-    cout << "XXX: m_r0=" << m_r0 << "    m_r0=" << m_dr << '\n';
-
     _evaluateRingIndexes(m_r0, m_dr);
     printVectorOfRingIndexes();
     //printMatrixOfRingIndexes();

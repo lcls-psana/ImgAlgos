@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-33
+2016-11-33 Mikhail S. Dubrovin
+- AlgImgProc.h - remove debugging message
+	
 Tag: V00-04-32
 2016-11-29 Mikhail S. Dubrovin
 - AlgImgProc::_makeMapOfConnectedPixelsForDroplets (peakFinderV4r2, V3r2) - add protection for m_numreg > m_npksmax-2
