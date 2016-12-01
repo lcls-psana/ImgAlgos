@@ -2800,7 +2800,7 @@ _evaluateBkgdAvgRmsV2( const int& row
   // background evaluation algorithm initialization
   if(! m_init_bkgd_is_done) {
     _evaluateRingIndexes(m_r0, m_dr);
-    printVectorOfRingIndexes();
+    //printVectorOfRingIndexes();
     //printMatrixOfRingIndexes();
     m_win.validate(data.shape());
     //m_win.print();
