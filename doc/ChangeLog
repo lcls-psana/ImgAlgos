@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-35
+2016-12-09 Jacob Scott and Christopher O'Grady
+- in CommonMode.h, changed findCommonMode to call applyCModeUnbond when it fails
+
 Tag: V00-04-34
 2016-12-01 Mikhail S. Dubrovin
 - AlgImgProc.h - remove leftover debugging messages
