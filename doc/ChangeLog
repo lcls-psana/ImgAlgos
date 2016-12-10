@@ -11,6 +11,11 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-37
+2016-12-09 Jacob Scott and Christopher O'Grady
+- fix bug in in CommonMode.h where pars[5] was being checked, but it
+  should have been pars[3]
+
 Tag: V00-04-36
 2016-12-09 Jacob Scott and Christopher O'Grady
 - in CommonMode.h, made not calling applyCModeUnbond when findCommonMode fails the default with the option to have it applied
