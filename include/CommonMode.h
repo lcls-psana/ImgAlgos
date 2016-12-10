@@ -606,7 +606,7 @@ findCommonMode(const double* pars,
     // ignore channels that re too noisy
     //if (pixStatus and (pixStatus[p] & 1)) continue;
     if (pixStatus and pixStatus[p]) continue; // Discard  pixels with any status > 0
-    
+
     // pixel value with pedestal subtracted, rounded to integer
     double dval = sdata[p]; // - peddata[p];
     int val = dval < 0 ? int(dval - 0.5) : int(dval + 0.5);
@@ -641,11 +641,15 @@ findCommonMode(const double* pars,
     }
   }
 
-  // did we find anything resembling, if not use unbounded cm
+  // did we find anything resembling
   if (peakPos < 0) {
     MsgLog("findCommonMode", debug, "peakPos = " << peakPos);
-    double mean = applyCModeUnbond(pars, sdata, ssize, stride);
-    return mean;
+    if (pars[5] > 0.1) {
+      // if not use unbounded cm
+      double mean = applyCModeUnbond(pars, sdata, ssize, stride);
+      return mean;
+    }
+    else return float(UnknownCM);
   }
 
   // find half maximum channel on left side
@@ -679,10 +683,13 @@ findCommonMode(const double* pars,
 
   MsgLog("findCommonMode", debug, "mean = " << mean << " sigma = " << sigma);
 
-  // try using unbounded common mode if this one fails
   if (abs(mean) > pars[0] or sigma > pars[1]) {
-    mean = applyCModeUnbond(pars, sdata, ssize, stride);
-    return mean;
+    if (pars[5] > 0.1) {
+      // try using unbounded common mode if this one fails
+      mean = applyCModeUnbond(pars, sdata, ssize, stride);
+      return mean;
+    }
+    else return float(UnknownCM);
   }
   //--------------------
   // subtract CM 
