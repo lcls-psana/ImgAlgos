@@ -269,16 +269,13 @@ public:
 
   template <typename T, unsigned NDim>
   bool
-  _initAlgImgProc(const ndarray<const T, NDim>& data, const ndarray<const mask_t, NDim>& mask)
+  _initMask(const ndarray<const T, NDim>& data, const ndarray<const mask_t, NDim>& mask)
   {
-    if(m_pbits & 256) MsgLog(_name(), info, "in _initAlgImgProc: mask.size = " << mask.size()
+    if(m_pbits & 256) MsgLog(_name(), info, "in _initMask: mask.size = " << mask.size()
                                             << " data.size() = " << data.size());
-
-    if(m_is_inited) return true;
 
     if(data.empty()) return false;
 
-    //if(mask.empty()) {
     if(mask.size()) {
         m_mask = mask.data();
 	if(m_pbits & 256) MsgLog(_name(), info, "Mask is used for pixel processing.");
@@ -303,6 +300,22 @@ public:
 
     m_sshape[0] = m_nrows;
     m_sshape[1] = m_ncols;
+
+    return true;
+  }
+
+//--------------------
+
+  template <typename T, unsigned NDim>
+  bool
+  _initAlgImgProc(const ndarray<const T, NDim>& data, const ndarray<const mask_t, NDim>& mask)
+  {
+    if(m_pbits & 256) MsgLog(_name(), info, "in _initAlgImgProc: mask.size = " << mask.size()
+                                            << " data.size() = " << data.size());
+
+    if(not _initMask(data, mask)) return false;
+
+    if(m_is_inited) return true;
 
     m_is_inited = true;
 

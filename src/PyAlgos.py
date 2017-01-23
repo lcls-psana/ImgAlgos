@@ -148,7 +148,7 @@ def reshape_nda_to_2d(arr) :
     """Reshape np.array to 2-d
     """
     sh = arr.shape
-    if len(sh)<3 : return arr
+    if arr.ndim<3 : return arr
     arr.shape = (arr.size/sh[-1], sh[-1])
     return arr
 
@@ -158,7 +158,7 @@ def reshape_nda_to_3d(arr) :
     """Reshape np.array to 3-d
     """
     sh = arr.shape
-    if len(sh)<4 : return arr
+    if arr.ndim<4 : return arr
     arr.shape = (arr.size/sh[-1]/sh[-2], sh[-2], sh[-1])
     return arr
 
@@ -296,7 +296,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.number_of_pix_above_thr input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -327,7 +327,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.intensity_of_pix_above_thr() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -358,7 +358,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v1() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -389,7 +389,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v4() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -420,7 +420,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v4r1() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -451,7 +451,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v4r2() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -487,7 +487,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v2() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -518,7 +518,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v2r1() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -567,7 +567,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v3() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -598,7 +598,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v3r1() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -629,7 +629,7 @@ class PyAlgos :
 
         if self.pbits & 128 : print_arr_attr(arr, cmt='PyAlgos.peak_finder_v3r2() input arr:')
 
-        ndim, dtype = len(arr.shape), arr.dtype
+        ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
         
@@ -695,7 +695,7 @@ def photons_2d(data, mask=None) :
         if msk.dtype != np.uint8  : raise ValueError('Mask dtype=%s, but expected np.uint8' % str(msk.dtype))
         if msk.shape != nda.shape : raise ValueError('msk.shape=%s is different from array shape=%s' % (str(msk.shape), str(nda.shape)))
         
-    ndim, dtype = len(nda.shape), nda.dtype
+    ndim, dtype = nda.ndim, nda.dtype
 
     if ndim != 2 : raise ValueError('photons_2d: number of dimensions is %d, expected 2-d' % ndim)
 
@@ -718,7 +718,7 @@ def photons_2d(data, mask=None) :
 def photons(data, mask) :
     """returns 2-d or 3-d array with number of merged photons per pixel
     """
-    ndim = len(data.shape)
+    ndim = data.ndim
     if ndim == 2 : return photons_2d(data, mask)
 
     nda = data if ndim == 3 else reshape_nda_to_3d(data)

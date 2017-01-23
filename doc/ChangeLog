@@ -11,6 +11,11 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-38
+2016-01-23 Mikhail S. Dubrovin
+- PyAlgos.py replace len(arr.shape) -> arr.ndim
+- AlgArrProc.h - use _initMask for each call
+
 Tag: V00-04-37
 2016-12-09 Jacob Scott and Christopher O'Grady
 - fix bug in in CommonMode.h where pars[5] was being checked, but it
