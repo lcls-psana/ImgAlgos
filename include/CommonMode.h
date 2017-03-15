@@ -464,16 +464,22 @@ template <typename T>
 
 //--------------------
 
-template <typename T>
-T median(std::vector<T> v)
-{
-    int size = v.size();
-    //int mid = (float(size)/2);
-    int mid = size/2;
-    sort(v.begin(), v.end());
-    // cout << "size=" << size; for (int i=mid-5; i<mid+5; i++) cout << ' ' << v[i]; cout << '\n';
-    return (size % 2 == 0) ? (v[mid] + v[mid-1]) / 2 : v[mid];
-}
+  template <typename T>
+  T median(std::vector<T>& v)
+  {
+      size_t middle = v.size() / 2;
+      std::nth_element(v.begin(), v.begin() + middle, v.end());
+
+      T median = v[middle];
+
+      // even number of elements
+      if(!(v.size() & 1)) {
+          typename std::vector<T>::iterator max_it;
+          max_it = std::max_element(v.begin(), v.begin() + middle);
+          median = 0.5*(*max_it + median);
+      }
+      return median;
+  }
 
 //--------------------
 //--------------------
