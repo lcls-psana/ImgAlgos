@@ -246,8 +246,8 @@ template <typename T>
 
      for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
        for (size_t c=colmin; c<colmin+ncols; c+=scols) {
-         T v = data[r][c];
-         T s = (check_status) ? status[r][c] : 0;
+         T v = data(r, c);
+         T s = (check_status) ? status(r, c) : 0;
          if (s==0 && v<threshold) {
            sumv += v;
            sum1 ++;
@@ -265,7 +265,7 @@ template <typename T>
        if (fabs(mean)<=maxcorr) {
          for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
            for (size_t c=colmin; c<colmin+ncols; c+=scols) {
-   	     data[r][c] -= mean;
+             data(r, c) -= mean;
            }
          }
        }
@@ -325,9 +325,9 @@ template <typename T>
             for (size_t c=colmin; c<colmin+ncols; c+=scols) {
             
               // ignore pixels that are too noisy; discard pixels with any status > 0
-              if (check_status && status[r][c]) continue;
+              if (check_status && status(r, c)) continue;
             
-              bin = int(data[r][c]) - low;            
+              bin = int(data(r, c)) - low;
               if      (bin < 1)     hist[0]++;
               else if (bin < nbins) hist[bin]++;
               else                  hist[nbins-1]++;
@@ -371,7 +371,7 @@ template <typename T>
       // Apply common mode correction to data
       for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
         for (size_t c=colmin; c<colmin+ncols; c+=scols) {
-          data[r][c] -= cm;
+          data(r, c) -= cm;
         }
       }
 
@@ -419,9 +419,9 @@ template <typename T>
         for (size_t c=colmin; c<colmin+ncols; c+=scols) {
         
           // ignore pixels that are too noisy; discard pixels with any status > 0
-          if (check_status && status[r][c]) continue;
+          if (check_status && status(r, c)) continue;
         
-          bin = floor(data[r][c]) - low;            
+          bin = floor(data(r, c)) - low;
           if      (bin < 1)     hist[0]++;
           else if (bin < nbins) hist[bin]++;
           else                  hist[nbins-1]++;
@@ -455,7 +455,7 @@ template <typename T>
       // Apply common mode correction to data
       for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
         for (size_t c=colmin; c<colmin+ncols; c+=scols) {
-          data[r][c] -= cm;
+          data(r, c) -= cm;
         }
       }
 
@@ -507,14 +507,14 @@ template <typename T>
 
       bool check_status = (status.data()) ? true : false;
 
-      std::vector<T> vec(nrows*ncols);
-      vec.clear();
+      std::vector<T> vec;
+      vec.reserve(nrows*ncols);
 
       // fill vector
       for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
         for (size_t c=colmin; c<colmin+ncols; c+=scols) {
-          if (check_status && status[r][c]) continue;
-	  d = data[r][c]; 
+          if (check_status && status(r, c)) continue;
+          d = data(r, c);
 	  if(d >  half_range) continue;
 	  if(d < -half_range) continue;	  
           vec.push_back(d);
@@ -533,7 +533,7 @@ template <typename T>
       // Apply common mode correction to data
       for (size_t r=rowmin; r<rowmin+nrows; r+=srows) { 
         for (size_t c=colmin; c<colmin+ncols; c+=scols) {
-          data[r][c] -= cm;
+          data(r, c) -= cm;
         }
       }
   }
@@ -808,8 +808,8 @@ findCommonMode(const double* pars,
     // Fill in transposed array
     for(size_t r=0; r<nrows; r++)
       for(size_t c=0; c<ncols; c++) {
-	m_wtrd[c][r] = m_wasd[r][c];
-	m_ctrd[c][r] = data[r][c];
+        m_wtrd(c, r) = m_wasd(r, c);
+        m_ctrd(c, r) = data(r, c);
       }
 
     // loop over 1-d row parts in 2-d m_wtrd array
@@ -845,7 +845,7 @@ findCommonMode(const double* pars,
     // copy transposed corrected array to data
     for(size_t r=0; r<nrows; r++)
       for(size_t c=0; c<ncols; c++)
-	data[r][c] = (T)m_ctrd[c][r];
+        data(r, c) = (T)m_ctrd(c, r);
   }
 
 //--------------------
