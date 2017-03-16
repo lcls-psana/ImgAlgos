@@ -315,7 +315,7 @@ CSPadArrPeakFinder::procStatArrays()
           for (int ir = 0; ir != NumRows; ++ ir) {
 
             npix_total ++;
-	    unsigned stat = m_stat[iq][is][ic][ir];
+            unsigned stat = m_stat[iq][is][ic][ir];
 	    
 	    if(m_count_mask_accum > 0) { 
 	      
@@ -1096,18 +1096,18 @@ CSPadArrPeakFinder::savePeaksInEventAsNDArr(Event& evt)
   for(vector<Peak>::const_iterator itv  = v_peaks.begin();
                                    itv != v_peaks.end(); itv++) {
     i++;
-    peaks_nda[i][0] = float(itv->quad);
-    peaks_nda[i][1] = float(itv->sect);
-    peaks_nda[i][2] = float(itv->col);
-    peaks_nda[i][3] = float(itv->row);
-    peaks_nda[i][4] = float(itv->sigma_col);
-    peaks_nda[i][5] = float(itv->sigma_row); 
-    peaks_nda[i][6] = float(itv->ampmax);
-    peaks_nda[i][7] = float(itv->amptot);
-    peaks_nda[i][8] = float(itv->bkgdtot); 
-    peaks_nda[i][9] = float(itv->noise); 
-    peaks_nda[i][10]= float(itv->SoN);
-    peaks_nda[i][11]= float(itv->npix);
+    peaks_nda(i, 0) = float(itv->quad);
+    peaks_nda(i, 1) = float(itv->sect);
+    peaks_nda(i, 2) = float(itv->col);
+    peaks_nda(i, 3) = float(itv->row);
+    peaks_nda(i, 4) = float(itv->sigma_col);
+    peaks_nda(i, 5) = float(itv->sigma_row);
+    peaks_nda(i, 6) = float(itv->ampmax);
+    peaks_nda(i, 7) = float(itv->amptot);
+    peaks_nda(i, 8) = float(itv->bkgdtot);
+    peaks_nda(i, 9) = float(itv->noise);
+    peaks_nda(i, 10) = float(itv->SoN);
+    peaks_nda(i, 11)= float(itv->npix);
   }
 
   save2DArrayInEvent<float>(evt, source(), m_key_peaks_nda, peaks_nda);
