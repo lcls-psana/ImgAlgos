@@ -561,7 +561,7 @@ _makeMapOfPixelStatus( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
-      m_pixel_status[r][c] = (mask[r][c] && (data[r][c]>thr)) ? 255 : 0;
+      m_pixel_status(r, c) = (mask(r, c) && (data(r, c)>thr)) ? 255 : 0;
 }
 
 //--------------------
@@ -606,10 +606,10 @@ _makeMapOfPixelStatusV2( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      if(! mask[r][c])             m_pixel_status[r][c] = 0; // pixel is masked
-      else if(data[r][c]<thr_low)  m_pixel_status[r][c] = 4; // a<thr_low
-      else if(data[r][c]<thr_high) m_pixel_status[r][c] = 2; // a>=thr_low, but a<thr_high
-      else                         m_pixel_status[r][c] = 3; // a>=thr_high,low: set 1st and 2nd bits
+      if(! mask(r, c))             m_pixel_status(r, c) = 0; // pixel is masked
+      else if(data(r, c)<thr_low)  m_pixel_status(r, c) = 4; // a<thr_low
+      else if(data(r, c)<thr_high) m_pixel_status(r, c) = 2; // a>=thr_low, but a<thr_high
+      else                         m_pixel_status(r, c) = 3; // a>=thr_high,low: set 1st and 2nd bits
     }
 }
 
@@ -644,7 +644,7 @@ _procConnectedPixels(const ndarray<const T,2>& data)
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      conmap_t ireg = m_conmap[r][c];
+      conmap_t ireg = m_conmap(r, c);
 
       if(ireg<1) continue;
 
@@ -657,7 +657,7 @@ _procConnectedPixels(const ndarray<const T,2>& data)
 
       //std::cout << " reg=" << ireg;
 
-      double amp = (double)data[r][c];
+      double amp = (double)data(r, c);
 
       PeakWork& pw = v_peaks_work[ireg];
       pw.peak_npix ++;   
@@ -718,25 +718,25 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>& data
   // check rank minimum in columns and set the 1st bit (1)
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
-      if(!mask[r][c]) continue;
-      m_local_minimums[r][c] = 1;
+      if(!mask(r, c)) continue;
+      m_local_minimums(r, c) = 1;
 
       // positive side of c 
       unsigned dmax = min((int)cmax-1, int(c)+irank);
       for(unsigned cd=c+1; cd<=dmax; cd++) {
-	if(mask[r][cd] && (data[r][cd] < data[r][c])) { 
-          m_local_minimums[r][c] &=~1; // clear 1st bit
+        if(mask(r, cd) && (data(r, cd) < data(r, c))) {
+          m_local_minimums(r, c) &=~1; // clear 1st bit
           c=cd-1; // jump ahead 
 	  break;
 	}
       }
 
-      if(m_local_minimums[r][c] & 1) {
+      if(m_local_minimums(r, c) & 1) {
         // negative side of c 
         unsigned dmin = max((int)cmin, int(c)-irank);
         for(unsigned cd=dmin; cd<c; cd++) {
-	  if(mask[r][cd] && (data[r][cd] < data[r][c])) { 
-            m_local_minimums[r][c] &=~1; // clear 1st bit
+          if(mask(r, cd) && (data(r, cd) < data(r, c))) {
+            m_local_minimums(r, c) &=~1; // clear 1st bit
             c=cd+rank; // jump ahead 
 	    break;
 	  }
@@ -744,7 +744,7 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>& data
       }
 
       // (r,c) is a local dip, jump ahead through the tested rank range
-      if(m_local_minimums[r][c] & 1) c+=rank;
+      if(m_local_minimums(r, c) & 1) c+=rank;
     }
   }
 
@@ -754,25 +754,25 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>& data
       // if it is not a local maximum from previous algorithm
       //if(!m_local_minimums[r][c]) continue;
 
-      if(!mask[r][c]) continue;
-      m_local_minimums[r][c] |= 2; // set 2nd bit
+      if(!mask(r, c)) continue;
+      m_local_minimums(r, c) |= 2; // set 2nd bit
 
       // positive side of r 
       unsigned dmax = min((int)rmax-1, int(r)+irank);
       for(unsigned rd=r+1; rd<=dmax; rd++) {
-	if(mask[rd][c] && (data[rd][c] < data[r][c])) { 
-          m_local_minimums[r][c] &=~2; // clear 2nd bit
+        if(mask(rd, c) && (data(rd, c) < data(r, c))) {
+          m_local_minimums(r, c) &=~2; // clear 2nd bit
           r=rd-1; // jump ahead 
 	  break;
 	}
       }
 
-      if(m_local_minimums[r][c] & 2) {
+      if(m_local_minimums(r, c) & 2) {
         // negative side of r
         unsigned dmin = max((int)rmin, int(r)-irank);
         for(unsigned rd=dmin; rd<r; rd++) {
-	  if(mask[rd][c] && (data[rd][c] < data[r][c])) { 
-            m_local_minimums[r][c] &=~2; // clear 2nd bit
+          if(mask[rd][c] && (data[rd][c] < data(r, c))) {
+            m_local_minimums(r, c) &=~2; // clear 2nd bit
             r=rd+rank; // jump ahead 
 	    break;
 	  }
@@ -780,7 +780,7 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>& data
       }
 
       // (r,c) is a local dip, jump ahead through the tested rank range
-      if(m_local_minimums[r][c] & 2) r+=rank;
+      if(m_local_minimums(r, c) & 2) r+=rank;
     }
   }
 }
@@ -822,25 +822,25 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
   // check rank maximum in columns and set the 1st bit (1)
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
-      if(!mask[r][c]) continue;
-      m_local_maximums[r][c] = 1;
+      if(!mask(r, c)) continue;
+      m_local_maximums(r, c) = 1;
 
       // positive side of c 
       unsigned dmax = min((int)cmax-1, int(c)+irank);
       for(unsigned cd=c+1; cd<=dmax; cd++) {
-	if(mask[r][cd] && (data[r][cd] > data[r][c])) { 
-          m_local_maximums[r][c] &=~1; // clear 1st bit
+        if(mask(r, cd) && (data(r, cd) > data(r, c))) {
+          m_local_maximums(r, c) &=~1; // clear 1st bit
           c=cd-1; // jump ahead 
 	  break;
 	}
       }
 
-      if(m_local_maximums[r][c] & 1) {
+      if(m_local_maximums(r, c) & 1) {
         // negative side of c 
         unsigned dmin = max((int)cmin, int(c)-irank);
         for(unsigned cd=dmin; cd<c; cd++) {
-	  if(mask[r][cd] && (data[r][cd] > data[r][c])) { 
-            m_local_maximums[r][c] &=~1; // clear 1st bit
+          if(mask(r, cd) && (data(r, cd) > data(r, c))) {
+            m_local_maximums(r, c) &=~1; // clear 1st bit
             c=cd+rank; // jump ahead 
 	    break;
 	  }
@@ -848,7 +848,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
       }
 
       // (r,c) is a local dip, jump ahead through the tested rank range
-      if(m_local_maximums[r][c] & 1) c+=rank;
+      if(m_local_maximums(r, c) & 1) c+=rank;
     }
   }
 
@@ -858,25 +858,25 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
       // if it is not a local maximum from previous algorithm
       //if(!m_local_maximums[r][c]) continue;
 
-      if(!mask[r][c]) continue;
-      m_local_maximums[r][c] |= 2; // set 2nd bit
+      if(!mask(r, c)) continue;
+      m_local_maximums(r, c) |= 2; // set 2nd bit
 
       // positive side of r 
       unsigned dmax = min((int)rmax-1, int(r)+irank);
       for(unsigned rd=r+1; rd<=dmax; rd++) {
-	if(mask[rd][c] && (data[rd][c] > data[r][c])) { 
-          m_local_maximums[r][c] &=~2; // clear 2nd bit
+        if(mask(rd, c) && (data(rd, c) > data(r, c))) {
+          m_local_maximums(r, c) &=~2; // clear 2nd bit
           r=rd-1; // jump ahead 
 	  break;
 	}
       }
 
-      if(m_local_maximums[r][c] & 2) {
+      if(m_local_maximums(r, c) & 2) {
         // negative side of r
         unsigned dmin = max((int)rmin, int(r)-irank);
         for(unsigned rd=dmin; rd<r; rd++) {
-	  if(mask[rd][c] && (data[rd][c] > data[r][c])) { 
-            m_local_maximums[r][c] &=~2; // clear 2nd bit
+          if(mask(rd, c) && (data(rd, c) > data(r, c))) {
+            m_local_maximums(r, c) &=~2; // clear 2nd bit
             r=rd+rank; // jump ahead 
 	    break;
 	  }
@@ -884,7 +884,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
       }
 
       // (r,c) is a local dip, jump ahead through the tested rank range
-      if(m_local_maximums[r][c] & 2) r+=rank;
+      if(m_local_maximums(r, c) & 2) r+=rank;
     }
   }
 
@@ -893,8 +893,8 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
     for(unsigned c = cmin; c<cmax; c++) {
       // if it is not a local maximum from two previous algorithm
 
-      if(m_local_maximums[r][c] != 3) continue;
-      m_local_maximums[r][c] |= 4; // set 3rd bit
+      if(m_local_maximums(r, c) != 3) continue;
+      m_local_maximums(r, c) |= 4; // set 3rd bit
 
       for(vector<TwoIndexes>::const_iterator ij  = v_inddiag.begin();
                                              ij != v_inddiag.end(); ij++) {
@@ -906,14 +906,14 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
         if(!(ir<(int)rmax)) continue;
         if(!(ic<(int)cmax)) continue;
 
-	if(mask[ir][ic] && (data[ir][ic] > data[r][c])) {
-          m_local_maximums[r][c] &=~4; // clear 3rd bit
+        if(mask(ir, ic) && (data(ir, ic) > data(r, c))) {
+          m_local_maximums(r, c) &=~4; // clear 3rd bit
 	  break;
 	}
       }
 
       // (r,c) is a local peak, jump ahead through the tested rank range
-      if(m_local_maximums[r][c] & 4) c+=rank;
+      if(m_local_maximums(r, c) & 4) c+=rank;
     }
   }
 
@@ -957,21 +957,21 @@ _makeMapOfLocalMinimumsV0( const ndarray<const T,2>& data
   // check rank minimum in columns and set the 1st bit (1)
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
-      if(!mask[r][c]) continue;
-      m_local_minimums[r][c] = 1;
+      if(!mask(r, c)) continue;
+      m_local_minimums(r, c) = 1;
       int cp=c; 
       int cm=c;
       for(unsigned d=0; d<rank; ++d) {
         cp++; cm--;
-	if((mask[r][cp] && (data[r][cp] < data[r][c])) 
-	|| (mask[r][cm] && (data[r][cm] < data[r][c]))) {
-          m_local_minimums[r][c] &=~1; // clear 1st bit
+        if((mask(r, cp) && (data(r, cp) < data(r, c)))
+        || (mask(r, cm) && (data(r, cm) < data(r, c)))) {
+          m_local_minimums(r, c) &=~1; // clear 1st bit
           c=--cp; // jump ahead 
 	  break;
 	}
       }
       // (r,c) is a local dip, jump ahead through the tested rank range
-      if(m_local_minimums[r][c] & 1) c+=rank;
+      if(m_local_minimums(r, c) & 1) c+=rank;
     }
   }
 
@@ -980,21 +980,21 @@ _makeMapOfLocalMinimumsV0( const ndarray<const T,2>& data
     for(unsigned r = rmin; r<rmax; r++) {
       // if it is not a local maximum from previous algorithm
       //if(!m_local_minimums[r][c]) continue;
-      if(!mask[r][c]) continue;
-      m_local_minimums[r][c] |= 2; // set 2nd bit
+      if(!mask(r, c)) continue;
+      m_local_minimums(r, c) |= 2; // set 2nd bit
       int rp=r; 
       int rm=r;
       for(unsigned d=0; d<rank; ++d) { 
         rp++; rm--;
-	if((mask[rp][c] && (data[rp][c] < data[r][c]))
-	|| (mask[rm][c] && (data[rm][c] < data[r][c]))) {
-          m_local_minimums[r][c] &=~2; // clear 2nd bit
+        if((mask(rp, c) && (data(rp, c) < data(r, c)))
+        || (mask(rm, c) && (data(rm, c) < data(r, c)))) {
+          m_local_minimums(r, c) &=~2; // clear 2nd bit
           r=--rp; // jump ahead 
 	  break;
 	}
       }
       // if (r,c) is a local peak, jump ahead through the tested rank range
-      if(m_local_minimums[r][c] & 2) r+=rank;
+      if(m_local_minimums(r, c) & 2) r+=rank;
     }
   }
 }
@@ -1036,21 +1036,21 @@ _makeMapOfLocalMaximumsV0( const ndarray<const T,2>& data
   // check rank maximum in columns and set the 1st bit (1)
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
-      if(!mask[r][c]) continue;
-      m_local_maximums[r][c] = 1;
+      if(!mask(r, c)) continue;
+      m_local_maximums(r, c) = 1;
       int cp=c; 
       int cm=c;
       for(unsigned d=0; d<rank; ++d) {
         cp++; cm--;
-	if((mask[r][cp] && (data[r][cp] > data[r][c])) 
-	|| (mask[r][cm] && (data[r][cm] > data[r][c]))) {
-          m_local_maximums[r][c] &=~1; // clear 1st bit
+        if((mask(r, cp) && (data[r][cp] > data(r, c)))
+        || (mask(r, cm) && (data[r][cm] > data(r, c)))) {
+          m_local_maximums(r, c) &=~1; // clear 1st bit
           c=--cp; // jump ahead 
 	  break;
 	}
       }
       // (r,c) is a local peak, jump ahead through the tested rank range
-      if(m_local_maximums[r][c] & 1) c+=rank;
+      if(m_local_maximums(r, c) & 1) c+=rank;
     }
   }
 
@@ -1059,21 +1059,21 @@ _makeMapOfLocalMaximumsV0( const ndarray<const T,2>& data
     for(unsigned r = rmin; r<rmax; r++) {
       // if it is not a local maximum from previous algorithm
       //if(!m_local_maximums[r][c]) continue;
-      if(!mask[r][c]) continue;
-      m_local_maximums[r][c] |= 2; // set 2nd bit
+      if(!mask(r, c)) continue;
+      m_local_maximums(r, c) |= 2; // set 2nd bit
       int rp=r; 
       int rm=r;
       for(unsigned d=0; d<rank; ++d) { 
         rp++; rm--;
-	if((mask[rp][c] && (data[rp][c] > data[r][c]))
-	|| (mask[rm][c] && (data[rm][c] > data[r][c]))) {
-          m_local_maximums[r][c] &=~2; // clear 2nd bit
+        if((mask(rp, c) && (data(rp, c) > data(r, c)))
+        || (mask(rm, c) && (data(rm, c) > data(r, c)))) {
+          m_local_maximums(r, c) &=~2; // clear 2nd bit
           r=--rp; // jump ahead 
 	  break;
 	}
       }
       // if (r,c) is a local peak, jump ahead through the tested rank range
-      if(m_local_maximums[r][c] & 2) r+=rank;
+      if(m_local_maximums(r, c) & 2) r+=rank;
     }
   }
 
@@ -1081,21 +1081,21 @@ _makeMapOfLocalMaximumsV0( const ndarray<const T,2>& data
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
       // if it is not a local maximum from two previous algorithm
-      if(m_local_maximums[r][c] != 3) continue;
-      m_local_maximums[r][c] |= 4; // set 3rd bit
+      if(m_local_maximums(r, c) != 3) continue;
+      m_local_maximums(r, c) |= 4; // set 3rd bit
 
       for(vector<TwoIndexes>::const_iterator ij  = v_inddiag.begin();
                                              ij != v_inddiag.end(); ij++) {
         int ir = r + (ij->i);
         int ic = c + (ij->j);
 
-	if(mask[ir][ic] && (data[ir][ic] > data[r][c])) {
-          m_local_maximums[r][c] &=~4; // clear 3rd bit
+        if(mask[ir][ic] && (data[ir][ic] > data(r, c))) {
+          m_local_maximums(r, c) &=~4; // clear 3rd bit
 	  break;
 	}
       }
       // (r,c) is a local peak, jump ahead through the tested rank range
-      if(m_local_maximums[r][c] & 4) c+=rank;
+      if(m_local_maximums(r, c) & 4) c+=rank;
     }
   }
 }
@@ -1132,17 +1132,17 @@ _makeMapOfLocalMaximumsRank1Cross(const ndarray<const T,2>& data)
 
     // first pixel in the row
     unsigned c = cmin;
-    if(data[r][c] > data[r][c+1]) {
-      m_local_maximums[r][c] |= 1;  // set 1st bit
+    if(data(r, c) > data[r][c+1]) {
+      m_local_maximums(r, c) |= 1;  // set 1st bit
       c+=2;
     }
     else c+=1;
 
     // all internal pixels in the row
     for(; c<cmax-1; c++) {
-      if(data[r][c+1] > data[r][c]) continue;         // go to the next pixel
-      if(data[r][c-1] > data[r][c]) {c+=1; continue;} // jump ahead 
-      m_local_maximums[r][c] |= 1;  // set 1st bit
+      if(data(r, c+1) > data(r, c)) continue;         // go to the next pixel
+      if(data(r, c-1) > data(r, c)) {c+=1; continue;} // jump ahead
+      m_local_maximums(r, c) |= 1;  // set 1st bit
       c+=1; // jump ahead 
     }
 
@@ -1155,17 +1155,17 @@ _makeMapOfLocalMaximumsRank1Cross(const ndarray<const T,2>& data)
 
     // first pixel in the column
     unsigned r = rmin;
-    if(data[r][c] > data[r+1][c]) {
-      m_local_maximums[r][c] |= 2; // set 2nd bit
+    if(data(r, c) > data(r+1, c)) {
+      m_local_maximums(r, c) |= 2; // set 2nd bit
       r+=2;
     }
     else r+=1;
 
     // all internal pixels in the column
     for(; r<rmax-1; r++) {
-      if(data[r+1][c] > data[r][c]) continue;         // go to the next pixel
-      if(data[r-1][c] > data[r][c]) {r+=1; continue;} // jump ahead 
-      m_local_maximums[r][c] |= 2; // set 2nd bit
+      if(data(r+1, c) > data(r, c)) continue;         // go to the next pixel
+      if(data(r-1, c) > data(r, c)) {r+=1; continue;} // jump ahead
+      m_local_maximums(r, c) |= 2; // set 2nd bit
       r+=1; // jump ahead 
     }
 
@@ -1216,8 +1216,8 @@ _procLocalMaximum( const ndarray<const T,2>& data
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
 
-      if(!mask[r][c]) continue;
-      double a = data[r][c];
+      if(!mask(r, c)) continue;
+      double a = data(r, c);
       if(!(a>0)) continue;
       npix += 1;
       samp += a;
@@ -1288,8 +1288,8 @@ _procLocalMaximumV2( const ndarray<const T,2>& data
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
 
-      if(!mask[r][c]) continue;
-      double a = data[r][c];
+      if(!mask(r, c)) continue;
+      double a = data(r, c);
       samp += a;
       npix += 1;
       if(!(a>0)) continue;
@@ -1385,8 +1385,8 @@ _procLocalMaximumV3( const ndarray<const T,2>& data
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
 
-      if(!mask[r][c]) continue;
-      double a = data[r][c] - peak.bkgd;
+      if(!mask(r, c)) continue;
+      double a = data(r, c) - peak.bkgd;
       npix += 1;
       samp += a;
       if(!(a>thr)) continue;
@@ -1464,7 +1464,7 @@ _makePeaksFromMapOfLocalMaximums( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
-      if(m_local_maximums[r][c] & 4)
+      if(m_local_maximums(r, c) & 4)
         _procLocalMaximum<T>(data,mask,rank,r,c);	
 }
 
@@ -1490,7 +1490,7 @@ _makePeaksFromMapOfLocalMaximumsV2( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
-      if(m_local_maximums[r][c] & 4)
+      if(m_local_maximums(r, c) & 4)
         _procLocalMaximumV2<T>(data,mask,rank,r,c);	
 }
 
@@ -1516,7 +1516,7 @@ _makePeaksFromMapOfLocalMaximumsV3( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
-      if(m_local_maximums[r][c] & 4) {
+      if(m_local_maximums(r, c) & 4) {
 
         Peak peak;        
         peak.seg       = m_seg;
@@ -1580,7 +1580,7 @@ _makeMapOfConnectedPixelsForLocalMaximums( const ndarray<const T,2>& data
           return; // protection
         }
 
-        if(! (m_local_maximums[r][c] & 4)) continue;
+        if(! (m_local_maximums(r, c) & 4)) continue;
 
         ++m_numreg;
 
@@ -1768,11 +1768,11 @@ _procDroplet( const ndarray<const T,2>& data
 
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
-      double a = data[r][c];
+      double a = data(r, c);
 
       if(a>a0) return;  // This is not a local maximum inside rad...
 
-      if(mask[r][c] && a>thr_low) {
+      if(mask(r, c) && a>thr_low) {
 	npix += 1;
 	samp += a;
 	sar1 += a*r;
@@ -1848,7 +1848,7 @@ _makeVectorOfDroplets( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++)
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++)
-      if(mask[r][c] && (data[r][c]>thr_high)) 
+      if(mask(r, c) && (data(r, c)>thr_high))
         _procDroplet<T>(data,mask,thr_low,rad,r,c);	
 }
 
@@ -1893,7 +1893,7 @@ _procPixGroup( const ndarray<const T,2>& data,
                                          ij != vinds.end(); ij++) {
       int r = ij->i;
       int c = ij->j;
-      double a = data[r][c];
+      double a = data(r, c);
 
       if(r<rmin) rmin=r;
       if(r>rmax) rmax=r;
@@ -1989,7 +1989,7 @@ _procDropletV2( const ndarray<const T,2>& data,
                                          ij != vinds.end(); ij++) {
       int r = ij->i;
       int c = ij->j;
-      double a = data[r][c];
+      double a = data(r, c);
 
       if(r<rmin) rmin=r;
       if(r>rmax) rmax=r;
@@ -2223,15 +2223,15 @@ _makeMapOfConnectedPixelsForDroplets(const ndarray<const T,2>& data, const unsig
         return; // protection
       }
 
-      if(  m_pixel_status[r][c] & 1 
-      && !(m_pixel_status[r][c] & 16))
+      if(  m_pixel_status(r, c) & 1
+      && !(m_pixel_status(r, c) & 16))
       // mask=1 and a>thr_high and pixel is not used
         if(_isDroplet<T>(data, rank, (int)r, (int)c)) {
             ++m_numreg;
             _addPixGroupToMap(); // fills m_conmap and m_pixel_status[r][c] |= 16;
             _procDropletV2<T>(data, v_ind_pixgrp); // proc bkgd, connected group and fills v_peaks
             vv_peak_pixinds.push_back(v_ind_pixgrp);
-            m_pixel_status[r][c] |= 32; // mark pixel as local maximum
+            m_pixel_status(r, c) |= 32; // mark pixel as local maximum
 	}
     }
 }
@@ -2282,7 +2282,7 @@ numberOfPixAboveThr( const ndarray<const T,2>& data
   unsigned npix = 0;
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      if(mask[r][c] && (data[r][c]>thr)) npix++;
+      if(mask(r, c) && (data(r, c)>thr)) npix++;
     }
   }
   return npix;
@@ -2311,7 +2311,7 @@ intensityOfPixAboveThr( const ndarray<const T,2>& data
   double amptot = 0;
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      if(mask[r][c] && (data[r][c]>thr)) amptot += (double)data[r][c];
+      if(mask(r, c) && (data(r, c)>thr)) amptot += (double)data(r, c);
     }
   }
   return amptot;
@@ -2944,7 +2944,7 @@ void getSoNResult( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      result[r][c] = _evaluateSoNForPixel<T>(r, c, data, mask);
+      result(r, c) = _evaluateSoNForPixel<T>(r, c, data, mask);
     }
   }
 }
@@ -2972,7 +2972,7 @@ void getSoN( const ndarray<const T,2>& data
 
   for(unsigned r = m_win.rowmin; r<m_win.rowmax; r++) {
     for(unsigned c = m_win.colmin; c<m_win.colmax; c++) {
-      son[r][c] = _evaluateSoNForPixel<T>(r, c, data, mask).son;
+      son(r, c) = _evaluateSoNForPixel<T>(r, c, data, mask).son;
     }
   }
 }
@@ -3011,12 +3011,12 @@ _splitDataForUintAndFloat( const ndarray<const T,2>&      data
   // 
   for(unsigned r = rmin; r<rmax; r++) {
     for(unsigned c = cmin; c<cmax; c++) {
-      if(m_use_mask && (! mask[r][c])) continue; // leave 0-s
+      if(m_use_mask && (! mask(r, c))) continue; // leave 0-s
 
-      T v = data[r][c];
+      T v = data(r, c);
       if (v>0) {
-        m_nphoton[r][c] = (nphoton_t)floor(v);
-        m_fphoton[r][c] = (fphoton_t)(v - m_nphoton[r][c]);
+        m_nphoton(r, c) = (nphoton_t)floor(v);
+        m_fphoton(r, c) = (fphoton_t)(v - m_nphoton(r, c));
       }
     }
   }
