@@ -174,6 +174,10 @@ public:
 	  for (unsigned ind = 0; ind<32*ssize; ind+=ssize) {
             if(m_status) status = &m_status[ind];
 	    cmod_corr = findCommonMode<T>(pars, &data[ind], status, ssize); 
+            if (cmod_corr == float(UnknownCM) && (pars[3] > 0.1)) {
+              // try using unbounded common mode if standard one fails
+              cmod_corr = applyCModeUnbond(pars, &data[ind], ssize);
+            }
 	  }
           return;
       }
@@ -185,6 +189,10 @@ public:
 	  for (unsigned seg = 0; seg<2; ++seg) {
             if(m_status) status = &m_status[seg];
 	    cmod_corr = findCommonMode<T>(pars, &data[seg], status, ssize, stride); 
+            if (cmod_corr == float(UnknownCM) && (pars[3] > 0.1)) {
+              // try using unbounded common mode if standard one fails
+              cmod_corr = applyCModeUnbond(pars, &data[seg], ssize, stride);
+            }
 	  }
           return;
       }

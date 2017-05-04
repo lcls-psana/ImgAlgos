@@ -650,12 +650,7 @@ findCommonMode(const double* pars,
   // did we find anything resembling
   if (peakPos < 0) {
     MsgLog("findCommonMode", debug, "peakPos = " << peakPos);
-    if (pars[3] > 0.1) {
-      // if not use unbounded cm
-      double mean = applyCModeUnbond(pars, sdata, ssize, stride);
-      return mean;
-    }
-    else return float(UnknownCM);
+    return float(UnknownCM);
   }
 
   // find half maximum channel on left side
@@ -690,12 +685,7 @@ findCommonMode(const double* pars,
   MsgLog("findCommonMode", debug, "mean = " << mean << " sigma = " << sigma);
 
   if (abs(mean) > pars[0] or sigma > pars[1]) {
-    if (pars[3] > 0.1) {
-      // try using unbounded common mode if this one fails
-      mean = applyCModeUnbond(pars, sdata, ssize, stride);
-      return mean;
-    }
-    else return float(UnknownCM);
+    return float(UnknownCM);
   }
   //--------------------
   // subtract CM 
