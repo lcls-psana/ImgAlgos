@@ -112,7 +112,7 @@ AlgImgProc::_makeMapOfConnectedPixels()
   for(int r = (int)m_win.rowmin; r<(int)m_win.rowmax; r++) {
     for(int c = (int)m_win.colmin; c<(int)m_win.colmax; c++) {
 
-      if(!(m_pixel_status[r][c] & 1)) continue;
+      if(!(m_pixel_status(r,c) & 1)) continue;
       ++ m_numreg;
       //if(m_numreg == m_npksmax) break;
       _findConnectedPixels(r, c);
@@ -129,10 +129,10 @@ AlgImgProc::_findConnectedPixels(const int& r, const int& c)
 {
   //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixels, seg=" << m_seg);
 
-  if(! (m_pixel_status[r][c] & 1)) return;
+  if(! (m_pixel_status(r,c) & 1)) return;
 
-  m_pixel_status[r][c] ^= 1; // set the 1st bit to zero.
-  m_conmap[r][c] = m_numreg;
+  m_pixel_status(r,c) ^= 1; // set the 1st bit to zero.
+  m_conmap(r,c) = m_numreg;
 
   // cout  << "ZZZ:  r:" << r << " c:" << c << '\n';
 
@@ -151,13 +151,13 @@ AlgImgProc::_findConnectedPixelsInRegionV1(const ndarray<const T,2>& data, const
 {
   //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixelsInRegionV1, seg=" << m_seg);
 
-  pixel_status_t pstat = m_pixel_status[r][c];
+  pixel_status_t pstat = m_pixel_status(r,c);
   if(! pstat) return true;    // pstat=0 - masked
   if(pstat & 28) return true; // pstat=4/8/16 : a<thr_low/used in recursion/used in map
 
-  if(data[r][c] > m_reg_a0) return false; // initial point is not a local maximum - TERMINATE
+  if(data(r,c) > m_reg_a0) return false; // initial point is not a local maximum - TERMINATE
 
-  m_pixel_status[r][c] |= 8; // mark this pixel as used in this recursion to get rid of cycling
+  m_pixel_status(r,c) |= 8; // mark this pixel as used in this recursion to get rid of cycling
   v_ind_pixgrp.push_back(TwoIndexes(r,c));
 
   if(  r+1 < m_reg_rmax)  if(! _findConnectedPixelsInRegionV1<T>(data, r+1, c)) return false;
@@ -181,16 +181,16 @@ AlgImgProc::_findConnectedPixelsInRegionV2(const ndarray<const T,2>& data,
                                            const int& r, const int& c)
 {
   //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixelsInRegionV2, r=" << r << " c=" << c);
-  //     << " data=" << data[r][c] << " m_reg_thr=" << m_reg_thr <<);
+  //     << " data=" << data(r,c) << " m_reg_thr=" << m_reg_thr <<);
 
-  if(! mask[r][c]) return;   // - masked
-  if(m_conmap[r][c]) return; // - pixel is already used
-  if(data[r][c] < m_reg_thr) return; // discard pixel below threshold if m_reg_thr != 0 
+  if(! mask(r,c)) return;   // - masked
+  if(m_conmap(r,c)) return; // - pixel is already used
+  if(data(r,c) < m_reg_thr) return; // discard pixel below threshold if m_reg_thr != 0 
 
-  //if(m_pixel_status[r][c] & 8) return; // pstat=4/8/16 : a<thr_low/used in recursion/used in map
-  //m_pixel_status[r][c] |= 8; // mark this pixel as used in this recursion to get rid of cycling  
+  //if(m_pixel_status(r,c) & 8) return; // pstat=4/8/16 : a<thr_low/used in recursion/used in map
+  //m_pixel_status(r,c) |= 8; // mark this pixel as used in this recursion to get rid of cycling  
 
-  m_conmap[r][c] = m_numreg; // mark pixel on map
+  m_conmap(r,c) = m_numreg; // mark pixel on map
 
   v_ind_pixgrp.push_back(TwoIndexes(r,c));
 
@@ -207,14 +207,14 @@ AlgImgProc::_findConnectedPixelsInRegion(const int& r, const int& c)
 {
   //if(m_pbits & 512) MsgLog(_name(), info, "in _findConnectedPixelsInRegion, seg=" << m_seg);
 
-  pixel_status_t pstat = m_pixel_status[r][c];
+  pixel_status_t pstat = m_pixel_status(r,c);
   if(! pstat) return;    // pstat=0 - masked
   if(pstat & 28) return; // pstat=4/8/16 : a<thr_low/used in recursion/used in map
-  //if(m_conmap[r][c]) return; // pixel belongs to any other group - it is also marked as used
+  //if(m_conmap(r,c)) return; // pixel belongs to any other group - it is also marked as used
 
   //cout  << "ZZZ:  v_ind_pixgrp.push_back r:" << r << " c:" << c << '\n';
 
-  m_pixel_status[r][c] |= 8; // mark this pixel as used in this recursion 
+  m_pixel_status(r,c) |= 8; // mark this pixel as used in this recursion 
   v_ind_pixgrp.push_back(TwoIndexes(r,c));
 
   if(  r+1 < m_reg_rmax)  _findConnectedPixelsInRegion(r+1, c);
@@ -230,8 +230,8 @@ AlgImgProc::_addPixGroupToMap()
   if(m_pbits & 512) MsgLog(_name(), info, "in _addPixGroupToMap, seg=" << m_seg << " numreg=" << m_numreg);
   for(vector<TwoIndexes>::const_iterator ij  = v_ind_pixgrp.begin();
                                          ij != v_ind_pixgrp.end(); ij++) {
-    m_conmap[ij->i][ij->j] = m_numreg;
-    m_pixel_status[ij->i][ij->j] |= 16; // mark pixel as used on map (set bit)  
+    m_conmap(ij->i, ij->j) = m_numreg;
+    m_pixel_status(ij->i, ij->j) |= 16; // mark pixel as used on map (set bit)  
   }
 }
 
@@ -241,7 +241,7 @@ void
 AlgImgProc::_clearStatusOfUnusedPixels() {
   for(vector<TwoIndexes>::const_iterator ij  = v_ind_pixgrp.begin();
                                          ij != v_ind_pixgrp.end(); ij++) {
-    m_pixel_status[ij->i][ij->j] &=~8; // mark pixel as un-used (clear bit)
+    m_pixel_status(ij->i, ij->j) &=~8; // mark pixel as un-used (clear bit)
   }
 }
 
@@ -473,7 +473,7 @@ AlgImgProc::_mergeConnectedPixelCouples(const fphoton_t& thr_on_max, const fphot
   if(DO_TEST) {
     if(m_mphoton.empty()) 
        m_mphoton = make_ndarray<nphoton_t>(shape[0], shape[1]);
-    std::fill_n(&m_mphoton[0][0], int(m_nphoton.size()), nphoton_t(0));
+    std::fill_n(&m_mphoton(0,0), int(m_nphoton.size()), nphoton_t(0));
   }
 
   if(m_conmap.empty()) 
@@ -499,9 +499,9 @@ AlgImgProc::_mergeConnectedPixelCouples(const fphoton_t& thr_on_max, const fphot
   for(unsigned r = m_win.rowmin+1; r<m_win.rowmax-1; r++) {
     for(unsigned c = m_win.colmin+1; c<m_win.colmax-1; c++) {
 
-      if(m_local_maximums[r][c] != 3)  continue; // check local maximums only
+      if(m_local_maximums(r,c) != 3)  continue; // check local maximums only
 
-      if(m_fphoton[r][c] < thr_on_max) continue; // apply threshold on max
+      if(m_fphoton(r,c) < thr_on_max) continue; // apply threshold on max
 
       fphoton_t vmax = 0.0;
       TwoIndexes ijmax(0,0);
@@ -512,27 +512,27 @@ AlgImgProc::_mergeConnectedPixelCouples(const fphoton_t& thr_on_max, const fphot
          int ir = r + (ij->i);
          int ic = c + (ij->j);
 
-         if(m_conmap[ir][ic]) continue; // pixel is already used for other pair
+         if(m_conmap(ir,ic)) continue; // pixel is already used for other pair
 
-         if(m_fphoton[ir][ic] < vmax) continue; // not a maximal neighbor
+         if(m_fphoton(ir,ic) < vmax) continue; // not a maximal neighbor
 
-	 vmax = m_fphoton[ir][ic];
+	 vmax = m_fphoton(ir,ic);
          ijmax = *ij;
       }
 
-      fphoton_t  vtot = m_fphoton[r][c];
-      if(vmax>0) vtot += m_fphoton[r + ijmax.i][c + ijmax.j];
+      fphoton_t  vtot = m_fphoton(r,c);
+      if(vmax>0) vtot += m_fphoton(r + ijmax.i, c + ijmax.j);
 
       if(vtot < thr_on_tot) continue; // if pair intensity is below total threshold
 
       m_numreg ++;
-      m_conmap[r][c] = m_numreg;
-      m_conmap[r + ijmax.i][c + ijmax.j] = m_numreg;
+      m_conmap(r,c) = m_numreg;
+      m_conmap(r + ijmax.i, c + ijmax.j) = m_numreg;
       	
       // DO MERGE FOR A COUPLE OF SELECTED PIXELS      
-      m_nphoton[r][c] ++; // increment number of photons
+      m_nphoton(r,c) ++; // increment number of photons
 
-      if(DO_TEST) m_mphoton[r][c] = 1; // vtot*100;
+      if(DO_TEST) m_mphoton(r,c) = 1; // vtot*100;
 
     } // column loop
   } // row loop
@@ -555,8 +555,8 @@ AlgImgProc::printMatrixOfRingIndexes()
   for (int i = indmin; i <= indmax; ++ i) {
     for (int j = indmin; j <= indmax; ++ j) {
 
-      float r = std::sqrt( float(i*i + j*j) );
-      int status = ( r < m_r0 || r > m_r0 + m_dr ) ? 0 : 1;
+      float r = std::sqrt(float(i*i + j*j));
+      int status = (r < m_r0 || r > m_r0 + m_dr) ? 0 : 1;
       if (status) counter++;
       if (i==0 && j==0) ss << " +";
       else              ss << " " << status;

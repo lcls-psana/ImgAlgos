@@ -116,7 +116,7 @@ Usage::
     cdata = subtract_bkgd(data, bkgd, mask=None, winds=None, pbits=0)
 
     # Merges photons split among pixels and returns n-d array with integer number of photons per pixel.
-    nphotons_nda = photons(fphotons_nda, mask)
+    nphotons_nda = photons(fphotons_nda, mask, thr_fraction)
 
 @see classes
 \n  :py:class:`Detector.AreaDetector` - acess to detector data
@@ -684,11 +684,12 @@ def subtract_bkgd(data, bkgd, mask=None, winds=None, pbits=0) :
 
 ##-----------------------------
 
-def photons_2d(data, mask=None) :
+def photons_2d(data, mask=None, thr_fraction=0.9) :
     """returns 2-d array with number of merged photons per pixel
     """
     nda = data
     msk = mask
+    thr = thr_fraction
     if mask is None :
         msk = np.ones(nda.shape, dtype=np.uint8)
     else :
@@ -699,11 +700,11 @@ def photons_2d(data, mask=None) :
 
     if ndim != 2 : raise ValueError('photons_2d: number of dimensions is %d, expected 2-d' % ndim)
 
-    if dtype == np.float32: return ImgAlgos.map_photon_numbers_v1_f2(nda, msk)
-    if dtype == np.float64: return ImgAlgos.map_photon_numbers_v1_d2(nda, msk)
-    if dtype == np.int    : return ImgAlgos.map_photon_numbers_v1_i2(nda, msk)
-    if dtype == np.int16  : return ImgAlgos.map_photon_numbers_v1_s2(nda, msk)
-    if dtype == np.uint16 : return ImgAlgos.map_photon_numbers_v1_u2(nda, msk)
+    if dtype == np.float32: return ImgAlgos.map_photon_numbers_v1_f2(nda, msk, thr)
+    if dtype == np.float64: return ImgAlgos.map_photon_numbers_v1_d2(nda, msk, thr)
+    #if dtype == np.int    : return ImgAlgos.map_photon_numbers_v1_i2(nda, msk, thr)
+    #if dtype == np.int16  : return ImgAlgos.map_photon_numbers_v1_s2(nda, msk, thr)
+    #if dtype == np.uint16 : return ImgAlgos.map_photon_numbers_v1_u2(nda, msk, thr)
 
     print 'WARNING: PyAlgos.photons_2d method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
     return None
@@ -715,11 +716,11 @@ def photons_2d(data, mask=None) :
 ##-----------------------------
 ##-----------------------------
 
-def photons(data, mask) :
+def photons(data, mask, thr_fraction=0.9) :
     """returns 2-d or 3-d array with number of merged photons per pixel
     """
     ndim = data.ndim
-    if ndim == 2 : return photons_2d(data, mask)
+    if ndim == 2 : return photons_2d(data, mask, thr_fraction)
 
     nda = data if ndim == 3 else reshape_nda_to_3d(data)
 
@@ -730,7 +731,7 @@ def photons(data, mask) :
     # if mask.dtype != np.uint8 :
     msk = msk.astype(np.uint8, copy=False)
 
-    return np.array([photons_2d(nda[s,:,:], msk[s,:,:]) for s in range(nda.shape[0])], dtype=np.uint16)
+    return np.array([photons_2d(nda[s,:,:], msk[s,:,:], thr_fraction) for s in range(nda.shape[0])], dtype=np.uint16)
 
 ##-----------------------------
 ##---------- TEST -------------

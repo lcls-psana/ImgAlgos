@@ -86,7 +86,7 @@ AlgArrProc::setWindows(ndarray<const wind_t,2> nda_winds)
   v_winds.clear();
 
   for( unsigned i=0; i < nda_winds.shape()[0]; ++i) {
-    const wind_t* p = &nda_winds[i][0];
+    const wind_t* p = &nda_winds(i,0);
     Window win((size_t)p[0], (size_t)p[1], (size_t)p[2], (size_t)p[3], (size_t)p[4]);
     v_winds.push_back(win);
   }
@@ -175,7 +175,7 @@ AlgArrProc::_ndarrayOfPeakPars(const unsigned& npeaks)
 
       for (std::vector<Peak>::iterator ip = peaks.begin(); ip != peaks.end(); ++ip) {
 	const Peak& peak = (*ip);
-	float* p_nda = &nda[pkcounter++][0];
+	float* p_nda = &nda(pkcounter++,0);
         p_nda[ 0] = peak.seg;
         p_nda[ 1] = peak.row;
         p_nda[ 2] = peak.col;
@@ -217,7 +217,7 @@ AlgArrProc::mapsOfPixelStatus()
 
     for(unsigned r = win.rowmin; r<win.rowmax; r++) 
       for(unsigned c = win.colmin; c<win.colmax; c++)
-        maps[win.segind][r][c] = map[r][c];
+        maps(win.segind,r,c) = map(r,c);
   }
   return maps;
 }
@@ -239,7 +239,7 @@ AlgArrProc::mapsOfConnectedPixels()
 
     for(unsigned r = win.rowmin; r<win.rowmax; r++) 
       for(unsigned c = win.colmin; c<win.colmax; c++)
-        maps[win.segind][r][c] = conmap[r][c];
+        maps(win.segind,r,c) = conmap(r,c);
   }
   return maps;
 }
@@ -261,7 +261,7 @@ AlgArrProc::mapsOfLocalMinimums()
 
     for(unsigned r = win.rowmin; r<win.rowmax; r++) 
       for(unsigned c = win.colmin; c<win.colmax; c++)
-        maps[win.segind][r][c] = locminmap[r][c];
+        maps(win.segind,r,c) = locminmap(r,c);
   }
   return maps;
 }
@@ -283,7 +283,7 @@ AlgArrProc::mapsOfLocalMaximums()
 
     for(unsigned r = win.rowmin; r<win.rowmax; r++) 
       for(unsigned c = win.colmin; c<win.colmax; c++)
-        maps[win.segind][r][c] = locmaxmap[r][c];
+        maps(win.segind,r,c) = locmaxmap(r,c);
   }
   return maps;
 }

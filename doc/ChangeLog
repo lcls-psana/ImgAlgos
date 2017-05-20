@@ -11,6 +11,19 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-04-41
+2017-05-19 Mikhail S. Dubrovin
+- add thr_fraction parameter to method photons, fix ndarray indexing in AlgArrProc and AlgImgProc.
+	modified:   include/AlgArrProc.h
+	modified:   include/AlgImgProc.h
+	modified:   pyext/pyImgAlgos.cpp
+	modified:   src/AlgArrProc.cpp
+	modified:   src/AlgImgProc.cpp
+	modified:   src/PyAlgos.py
+
+Tag: V00-04-40
+???
+
 Tag: V00-04-39
 2017-03-30 Clemens Weninger
 - Use new fast ndarray access operator

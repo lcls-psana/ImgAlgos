@@ -740,7 +740,7 @@ mapsOfPhotonNumbersV1( const ndarray<const T, 3> data
 
     for(unsigned r = win.rowmin; r<win.rowmax; r++) 
       for(unsigned c = win.colmin; c<win.colmax; c++)
-        maps[win.segind][r][c] = map[r][c];
+        maps(win.segind,r,c) = map(r,c);
   }
   return maps;
 }

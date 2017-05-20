@@ -707,7 +707,7 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>& data
 
   if(m_local_minimums.empty()) 
      m_local_minimums = make_ndarray<pixel_minimums_t>(data.shape()[0], data.shape()[1]);
-  std::fill_n(&m_local_minimums[0][0], int(data.size()), pixel_minimums_t(0));
+  std::fill_n(&m_local_minimums(0,0), int(data.size()), pixel_minimums_t(0));
 
   unsigned rmin = (int)m_win.rowmin;
   unsigned rmax = (int)m_win.rowmax;				  
@@ -771,7 +771,7 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>& data
         // negative side of r
         unsigned dmin = max((int)rmin, int(r)-irank);
         for(unsigned rd=dmin; rd<r; rd++) {
-          if(mask[rd][c] && (data[rd][c] < data(r, c))) {
+          if(mask(rd,c) && (data(rd,c) < data(r, c))) {
             m_local_minimums(r, c) &=~2; // clear 2nd bit
             r=rd+rank; // jump ahead 
 	    break;
@@ -811,7 +811,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
 
   if(m_local_maximums.empty()) 
      m_local_maximums = make_ndarray<pixel_maximums_t>(data.shape()[0], data.shape()[1]);
-  std::fill_n(&m_local_maximums[0][0], int(data.size()), pixel_maximums_t(0));
+  std::fill_n(&m_local_maximums(0,0), int(data.size()), pixel_maximums_t(0));
 
   unsigned rmin = (int)m_win.rowmin;
   unsigned rmax = (int)m_win.rowmax;				  
@@ -946,7 +946,7 @@ _makeMapOfLocalMinimumsV0( const ndarray<const T,2>& data
 
   if(m_local_minimums.empty()) 
      m_local_minimums = make_ndarray<pixel_minimums_t>(data.shape()[0], data.shape()[1]);
-  std::fill_n(&m_local_minimums[0][0], int(data.size()), pixel_minimums_t(0));
+  std::fill_n(&m_local_minimums(0,0), int(data.size()), pixel_minimums_t(0));
 
   unsigned rmin = max((int)m_win.rowmin, int(0+rank));
   unsigned rmax = min((int)m_win.rowmax, int(data.shape()[0]-rank));
@@ -1026,7 +1026,7 @@ _makeMapOfLocalMaximumsV0( const ndarray<const T,2>& data
 
   if(m_local_maximums.empty()) 
      m_local_maximums = make_ndarray<pixel_maximums_t>(data.shape()[0], data.shape()[1]);
-  std::fill_n(&m_local_maximums[0][0], int(data.size()), pixel_maximums_t(0));
+  std::fill_n(&m_local_maximums(0,0), int(data.size()), pixel_maximums_t(0));
 
   unsigned rmin = max((int)m_win.rowmin, int(0+rank));
   unsigned rmax = min((int)m_win.rowmax, int(data.shape()[0]-rank));
@@ -1042,8 +1042,8 @@ _makeMapOfLocalMaximumsV0( const ndarray<const T,2>& data
       int cm=c;
       for(unsigned d=0; d<rank; ++d) {
         cp++; cm--;
-        if((mask(r, cp) && (data[r][cp] > data(r, c)))
-        || (mask(r, cm) && (data[r][cm] > data(r, c)))) {
+        if((mask(r, cp) && (data(r,cp) > data(r, c)))
+	|| (mask(r, cm) && (data(r,cm) > data(r, c)))) {
           m_local_maximums(r, c) &=~1; // clear 1st bit
           c=--cp; // jump ahead 
 	  break;
@@ -1089,7 +1089,7 @@ _makeMapOfLocalMaximumsV0( const ndarray<const T,2>& data
         int ir = r + (ij->i);
         int ic = c + (ij->j);
 
-        if(mask[ir][ic] && (data[ir][ic] > data(r, c))) {
+        if(mask(ir,ic) && (data(ir,ic) > data(r, c))) {
           m_local_maximums(r, c) &=~4; // clear 3rd bit
 	  break;
 	}
@@ -1120,7 +1120,7 @@ _makeMapOfLocalMaximumsRank1Cross(const ndarray<const T,2>& data)
 
   if(m_local_maximums.empty()) 
      m_local_maximums = make_ndarray<pixel_maximums_t>(data.shape()[0], data.shape()[1]);
-  std::fill_n(&m_local_maximums[0][0], int(data.size()), pixel_maximums_t(0));
+  std::fill_n(&m_local_maximums(0,0), int(data.size()), pixel_maximums_t(0));
 
   unsigned rmin = (int)m_win.rowmin;
   unsigned rmax = (int)m_win.rowmax;				  
@@ -1132,7 +1132,7 @@ _makeMapOfLocalMaximumsRank1Cross(const ndarray<const T,2>& data)
 
     // first pixel in the row
     unsigned c = cmin;
-    if(data(r, c) > data[r][c+1]) {
+    if(data(r, c) > data(r,c+1)) {
       m_local_maximums(r, c) |= 1;  // set 1st bit
       c+=2;
     }
@@ -1147,7 +1147,7 @@ _makeMapOfLocalMaximumsRank1Cross(const ndarray<const T,2>& data)
     }
 
     // last pixel in the row
-    if(data[r][cmax-1] > data[r][cmax-2]) m_local_maximums[r][cmax-1] |= 1;  // set 1st bit
+    if(data(r,cmax-1) > data(r,cmax-2)) m_local_maximums(r,cmax-1) |= 1;  // set 1st bit
   } // rows loop
 
   // check local maximum in rows and set the 2nd bit (2)
@@ -1170,7 +1170,7 @@ _makeMapOfLocalMaximumsRank1Cross(const ndarray<const T,2>& data)
     }
 
     // last pixel in the column
-    if(data[rmax-1][c] > data[rmax-2][c]) m_local_maximums[rmax-1][c] |= 2;  // set 2nd bit
+    if(data(rmax-1,c) > data(rmax-2,c)) m_local_maximums(rmax-1,c) |= 2;  // set 2nd bit
   } // columns loop
 }
 
@@ -1200,7 +1200,7 @@ _procLocalMaximum( const ndarray<const T,2>& data
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _procLocalMaximum, seg=" << m_seg << " r0=" << r0 << " c0=" << c0 << " rank=" << rank);
 
-  double   a0 = data[r0][c0];
+  double   a0 = data(r0,c0);
   unsigned npix = 0;
   double   samp = 0;
   double   sac1 = 0;
@@ -1270,7 +1270,7 @@ _procLocalMaximumV2( const ndarray<const T,2>& data
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _procLocalMaximumV2, seg=" << m_seg << " r0=" << r0 << " c0=" << c0 << " rank=" << rank);
 
-  double   a0 = data[r0][c0];
+  double   a0 = data(r0,c0);
   unsigned npix = 0;
   unsigned npos = 0;
   double   samp = 0;
@@ -1364,7 +1364,7 @@ _procLocalMaximumV3( const ndarray<const T,2>& data
   if(m_pbits & 512) MsgLog(_name(), info, "in _procLocalMaximumV3, seg=" << m_seg 
                            << " r0=" << r0 << " c0=" << c0 << " rank=" << rank);
    
-  double   a0  = data[r0][c0] - peak.bkgd;
+  double   a0  = data(r0,c0) - peak.bkgd;
   double   thr = (nsigm) ? peak.noise * nsigm : 0;
   double   noise_tot = 0;
 
@@ -1753,7 +1753,7 @@ _procDroplet( const ndarray<const T,2>& data
 {
   if(m_pbits & 512) MsgLog(_name(), info, "in _procDroplet, seg=" << m_seg << " r0=" << r0 << " c0=" << c0);
 
-  double a0 = data[r0][c0];
+  double a0 = data(r0,c0);
   unsigned npix = 0;
   double   samp = 0;
   double   sac1 = 0;
@@ -1877,7 +1877,7 @@ _procPixGroup( const ndarray<const T,2>& data,
 
   //BkgdAvgRms bkgd = _evaluateBkgdAvgRmsV2<T>(r0, c0, data);
 
-  double   a0 = data[r0][c0];
+  double   a0 = data(r0,c0);
   unsigned npix = 0;
   double   samp = 0;
   double   sac1 = 0;
@@ -1973,7 +1973,7 @@ _procDropletV2( const ndarray<const T,2>& data,
 
   BkgdAvgRms bkgd = _evaluateBkgdAvgRmsV2<T>(r0, c0, data);
 
-  double   a0 = data[r0][c0];
+  double   a0 = data(r0,c0);
   unsigned npix = 0;
   double   samp = 0;
   double   sac1 = 0;
@@ -2107,7 +2107,7 @@ _isDroplet(const ndarray<const T,2>& data
   v_ind_pixgrp.clear();
 
   // TEMPLATED CODE:
-  m_reg_a0 = data[r0][c0];
+  m_reg_a0 = data(r0,c0);
   bool is_droplet = _findConnectedPixelsInRegionV1<T>(data, r0, c0);
 
   // NON-TEMPLATED CODE:
@@ -2174,10 +2174,10 @@ bool
 _isGroupMaximum( const ndarray<const T,2>& data
                , const int& r0
                , const int& c0) {
-  double a0 = data[r0][c0];
+  double a0 = data(r0,c0);
   for(vector<TwoIndexes>::const_iterator ij  = v_ind_pixgrp.begin();
                                          ij != v_ind_pixgrp.end(); ij++)
-    if(data[ij->i][ij->j] > a0) return false; // is not local maximum
+    if(data(ij->i,ij->j) > a0) return false; // is not local maximum
 
   return true; // is local maximum
 }
@@ -2244,12 +2244,12 @@ _init_local_extreams_arrays(const ndarray<const T,2>& data)
 {
   if(m_local_maximums.empty()) {
      m_local_maximums = make_ndarray<pixel_maximums_t>(data.shape()[0], data.shape()[1]);
-     std::fill_n(&m_local_maximums[0][0], int(data.size()), pixel_maximums_t(0));
+     std::fill_n(&m_local_maximums(0,0), int(data.size()), pixel_maximums_t(0));
   }
 
   if(m_local_minimums.empty()) {
      m_local_minimums = make_ndarray<pixel_minimums_t>(data.shape()[0], data.shape()[1]);
-     std::fill_n(&m_local_minimums[0][0], int(data.size()), pixel_minimums_t(0));
+     std::fill_n(&m_local_minimums(0,0), int(data.size()), pixel_minimums_t(0));
   }
 }
 
@@ -2668,8 +2668,8 @@ _evaluateSoNForPixel( const unsigned& row
     m_init_son_is_done = true;
   }
 
-  if(m_use_mask && (!mask[row][col])) return m_sonres_def;
-  //if(m_use_mask && (!mask[row][col])) return SoNResult({});
+  if(m_use_mask && (!mask(row,col))) return m_sonres_def;
+  //if(m_use_mask && (!mask(row,col))) return SoNResult({});
 
   double   amp  = 0;
   unsigned sum0 = 0;
@@ -2683,9 +2683,10 @@ _evaluateSoNForPixel( const unsigned& row
 
     if(ic < (int)m_win.colmin || !(ic < (int)m_win.colmax)) continue;
     if(ir < (int)m_win.rowmin || !(ir < (int)m_win.rowmax)) continue;
-    if(m_use_mask && (! mask[ir][ic])) continue;
+    if(m_use_mask && (! mask(ir,ic))) continue;
 
-    amp = (double)data[ir][ic];
+    //amp = (double)data(ir,ic);
+    amp = (double)data(ir,ic);
     sum0 ++;
     sum1 += amp;
     sum2 += amp*amp;
@@ -2697,7 +2698,7 @@ _evaluateSoNForPixel( const unsigned& row
     res.avg = sum1/sum0;                              // Averaged background level
     double w = sum2/sum0 - res.avg*res.avg;
     res.rms = (w>0) ? std::sqrt(w) : 0;               // RMS of the background around peak
-    res.sig = data[row][col] - res.avg;               // Signal above the background
+    res.sig = data(row,col) - res.avg;               // Signal above the background
     if (res.rms>0) res.son = res.sig/res.rms;         // S/N ratio
   }
 
@@ -2737,7 +2738,7 @@ _evaluateBkgdAvgRms( const unsigned& row
     m_init_bkgd_is_done = true;
   }
 
-  if(m_use_mask && (!mask[row][col])) return m_bkgdavgrms_def;
+  if(m_use_mask && (!mask(row,col))) return m_bkgdavgrms_def;
 
   double   amp  = 0;
   unsigned sum0 = 0;
@@ -2751,11 +2752,11 @@ _evaluateBkgdAvgRms( const unsigned& row
 
     if(ic < (int)m_win.colmin || !(ic < (int)m_win.colmax)) continue;
     if(ir < (int)m_win.rowmin || !(ir < (int)m_win.rowmax)) continue;
-    if(m_use_mask && (! mask[ir][ic])) continue;
-    if(m_local_maximums[ir][ic]) continue; // discard all types of local maximums from evaluation of bkgd
-    if(m_local_minimums[ir][ic]) continue; // discard all types of local minimums from evaluation of bkgd
+    if(m_use_mask && (! mask(ir,ic))) continue;
+    if(m_local_maximums(ir,ic)) continue; // discard all types of local maximums from evaluation of bkgd
+    if(m_local_minimums(ir,ic)) continue; // discard all types of local minimums from evaluation of bkgd
 
-    amp = (double)data[ir][ic];
+    amp = (double)data(ir,ic);
     sum0 ++;
     sum1 += amp;
     sum2 += amp*amp;
@@ -2808,7 +2809,7 @@ _evaluateBkgdAvgRmsV2( const int& row
   }
 
   // for masked pixel
-  //if(!m_pixel_status[row][col]) return m_bkgdavgrms_def;
+  //if(!m_pixel_status(row,col)) return m_bkgdavgrms_def;
 
   double   amp  = 0;
   unsigned sum0 = 0;
@@ -2824,9 +2825,9 @@ _evaluateBkgdAvgRmsV2( const int& row
     if(ir < (int)m_win.rowmin || !(ir < (int)m_win.rowmax)) continue;
 
     // pixel selector:
-    if(!(m_pixel_status[ir][ic] & 4)) continue; // uses pixels below both thresholds ONLY!
+    if(!(m_pixel_status(ir,ic) & 4)) continue; // uses pixels below both thresholds ONLY!
 
-    amp = (double)data[ir][ic];
+    amp = (double)data(ir,ic);
     sum0 ++;
     sum1 += amp;
     sum2 += amp*amp;
@@ -2897,11 +2898,11 @@ _evaluateBkgdAvgRmsV3( const ndarray<const T,2>& data
     if(ir < (int)m_win.rowmin || !(ir < (int)m_win.rowmax)) continue;
 
     // pixel selector:
-    if(! mask[ir][ic]) continue;               // skip masked pixels
-    if(m_local_maximums[ir][ic] & 7) continue; // skip extremal pixels
-    if(m_local_minimums[ir][ic] & 7) continue; // skip extremal pixels (only 3 for mins implemented)
+    if(! mask(ir,ic)) continue;               // skip masked pixels
+    if(m_local_maximums(ir,ic) & 7) continue; // skip extremal pixels
+    if(m_local_minimums(ir,ic) & 7) continue; // skip extremal pixels (only 3 for mins implemented)
 
-    amp = (double)data[ir][ic];
+    amp = (double)data(ir,ic);
     sum0 ++;
     sum1 += amp;
     sum2 += amp*amp;
@@ -3000,8 +3001,8 @@ _splitDataForUintAndFloat( const ndarray<const T,2>&      data
      m_nphoton = make_ndarray<nphoton_t>(data.shape()[0], data.shape()[1]);
      m_fphoton = make_ndarray<fphoton_t>(data.shape()[0], data.shape()[1]);
 
-  std::fill_n(&m_nphoton[0][0], int(data.size()), nphoton_t(0));
-  std::fill_n(&m_fphoton[0][0], int(data.size()), fphoton_t(0));
+  std::fill_n(&m_nphoton(0,0), int(data.size()), nphoton_t(0));
+  std::fill_n(&m_fphoton(0,0), int(data.size()), fphoton_t(0));
 
   unsigned rmin = (unsigned)m_win.rowmin;
   unsigned rmax = (unsigned)m_win.rowmax;				  
@@ -3039,6 +3040,7 @@ template <typename T>
 ndarray<nphoton_t, 2>& 
 mapOfPhotonNumbersV1( const ndarray<const T,2>&      data
                     , const ndarray<const u8mask_t,2>& mask
+                    , const float& thr_fraction=0.9
                     )
 {
   m_win.validate(data.shape());
@@ -3052,7 +3054,7 @@ mapOfPhotonNumbersV1( const ndarray<const T,2>&      data
 
   _makeMapOfLocalMaximumsRank1Cross<fphoton_t>(m_fphoton);
 
-  const fphoton_t thr_on_max = 0.5; const fphoton_t thr_on_tot = 0.9; const bool DO_TEST = false;
+  const fphoton_t thr_on_max = 0.5; const fphoton_t thr_on_tot = thr_fraction; const bool DO_TEST = false;
 
   _mergeConnectedPixelCouples(thr_on_max, thr_on_tot, DO_TEST); // DO_TEST fills m_mphoton
 
@@ -3084,11 +3086,12 @@ template <typename T>
 ndarray<const AlgImgProc::nphoton_t, 2>
 mapOfPhotonNumbersV1( const ndarray<const T,2> data
 		    , const ndarray<const AlgImgProc::u8mask_t,2> mask
+                    , const float& thr_fraction=0.9
                     )
 {
   size_t      seg  = 0;
   AlgImgProc* algo = new AlgImgProc(seg);
-  return algo->mapOfPhotonNumbersV1<T>(data, mask);
+  return algo->mapOfPhotonNumbersV1<T>(data, mask, thr_fraction);
 }
 
 //--------------------

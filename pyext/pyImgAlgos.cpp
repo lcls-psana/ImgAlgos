@@ -178,8 +178,8 @@ ndarray<const float, 2> (AlgArrProc::*p_pfv04r2_u3) (ndarray<const uint16_t,3>, 
 //void (ImgAlgos::AlgArrProc::*print_1) () = &ImgAlgos::AlgArrProc::printInputPars;
 void (*p_print_1) () = &test_print_1;
 
-ndarray<const AlgImgProc::nphoton_t, 2> (*p_photnums_v01_f2) (ndarray<const float,  2>, ndarray<const AlgImgProc::u8mask_t,2>) = &mapOfPhotonNumbersV1<float>;
-ndarray<const AlgImgProc::nphoton_t, 2> (*p_photnums_v01_d2) (ndarray<const double, 2>, ndarray<const AlgImgProc::u8mask_t,2>) = &mapOfPhotonNumbersV1<double>;
+ndarray<const AlgImgProc::nphoton_t, 2> (*p_photnums_v01_f2) (ndarray<const float,  2>, ndarray<const AlgImgProc::u8mask_t,2>, const float&) = &mapOfPhotonNumbersV1<float>;
+ndarray<const AlgImgProc::nphoton_t, 2> (*p_photnums_v01_d2) (ndarray<const double, 2>, ndarray<const AlgImgProc::u8mask_t,2>, const float&) = &mapOfPhotonNumbersV1<double>;
 
 ndarray<const pixel_minimums_t, 2> (*p_loc_min_f2) (ndarray<const float,   2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMinimums<float>;
 ndarray<const pixel_minimums_t, 2> (*p_loc_min_d2) (ndarray<const double,  2>, ndarray<const AlgImgProc::mask_t,2>, const size_t&) = &mapOfLocalMinimums<double>;
