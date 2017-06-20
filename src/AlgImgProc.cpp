@@ -697,10 +697,10 @@ AlgImgProc::_printStatisticsOfLocalExtremes()
 ndarray<const AlgImgProc::pixel_maximums_t, 2>
 mapOfLocalMaximumsRank1Cross(const ndarray<const AlgImgProc::fphoton_t,2> fphoton)
 {
-  AlgImgProc* algo = new AlgImgProc(0); // , 0, 1e6, 0, 1e6, 1023);
-  algo->validate_window(fphoton.shape());
-  algo->_makeMapOfLocalMaximumsRank1Cross<AlgImgProc::fphoton_t>(fphoton);
-  return algo->mapOfLocalMaximums();
+  AlgImgProc algo(0); // , 0, 1e6, 0, 1e6, 1023);
+  algo.validate_window(fphoton.shape());
+  algo._makeMapOfLocalMaximumsRank1Cross<AlgImgProc::fphoton_t>(fphoton);
+  return algo.mapOfLocalMaximums();
 }
 
 //--------------------

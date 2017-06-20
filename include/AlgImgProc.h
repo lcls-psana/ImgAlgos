@@ -3090,8 +3090,8 @@ mapOfPhotonNumbersV1( const ndarray<const T,2> data
                     )
 {
   size_t      seg  = 0;
-  AlgImgProc* algo = new AlgImgProc(seg);
-  return algo->mapOfPhotonNumbersV1<T>(data, mask, thr_fraction);
+  AlgImgProc algo(seg);
+  return algo.mapOfPhotonNumbersV1<T>(data, mask, thr_fraction);
 }
 
 //--------------------
@@ -3112,10 +3112,10 @@ mapOfLocalMaximums( const ndarray<const T,2> data
                   , const size_t& rank
                   )
 {
-  AlgImgProc* algo = new AlgImgProc(0); // , 0, 1e6, 0, 1e6, 1023);
-  algo->validate_window(data.shape());
-  algo->_makeMapOfLocalMaximums<T>(data, mask, rank);
-  return algo->mapOfLocalMaximums();
+  AlgImgProc algo(0); // , 0, 1e6, 0, 1e6, 1023);
+  algo.validate_window(data.shape());
+  algo._makeMapOfLocalMaximums<T>(data, mask, rank);
+  return algo.mapOfLocalMaximums();
 }
 
 //--------------------
@@ -3136,10 +3136,10 @@ mapOfLocalMinimums( const ndarray<const T,2> data
                   , const size_t& rank
                   )
 {
-  AlgImgProc* algo = new AlgImgProc(0); // , 0, 1e6, 0, 1e6, 1023);
-  algo->validate_window(data.shape());
-  algo->_makeMapOfLocalMinimums<T>(data, mask, rank);
-  return algo->mapOfLocalMinimums();
+  AlgImgProc algo(0); // , 0, 1e6, 0, 1e6, 1023);
+  algo.validate_window(data.shape());
+  algo._makeMapOfLocalMinimums<T>(data, mask, rank);
+  return algo.mapOfLocalMinimums();
 }
 
 //--------------------
