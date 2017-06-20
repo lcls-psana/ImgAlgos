@@ -175,7 +175,7 @@ public:
    * @param[in] dr - deviatin in rows from smeared pixel
    * @param[in] dc - deviatin in columns from smeared pixel
    */
-  double weight(int dr, int dc) { return m_weights[abs(dr)][abs(dc)]; }
+  double weight(int dr, int dc) { return m_weights(abs(dr), abs(dc)); }
 
   /// Returns segment index in the ndarray
   const size_t& segind(){ return m_seg; }

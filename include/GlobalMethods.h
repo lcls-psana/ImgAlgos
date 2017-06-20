@@ -642,7 +642,7 @@ private:
       std::stringstream ss;
       ss << comment << std::setprecision(3); 
           for (unsigned r = row_min; r < row_max; ++ r) {
-            for (unsigned c = col_min; c < col_max; ++ c ) ss << " " << std::setw(7) << data[r][c]; 
+            for (unsigned c = col_min; c < col_max; ++ c ) ss << " " << std::setw(7) << data(r,c); 
             if(row_max > 1) ss << " ...\n";
 	  }
       return ss.str();
@@ -658,7 +658,7 @@ private:
       std::stringstream ss;
       ss << comment << std::setprecision(3); 
           for (unsigned r = row_min; r < row_max; ++ r) {
-            for (unsigned c = col_min; c < col_max; ++ c ) ss << " " << std::setw(7) << data[r][c]; 
+            for (unsigned c = col_min; c < col_max; ++ c ) ss << " " << std::setw(7) << data(r,c); 
             if(row_max > 1) ss << " ...\n";
 	  }
       return ss.str();

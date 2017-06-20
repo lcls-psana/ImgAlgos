@@ -109,7 +109,7 @@ private:
 	  }      
       
 	  const ndarray<const data_t, 2>& data_ndarr = frame1->data();
-          if( m_print_bits & 2 ) {for (int i=0; i<10; ++i) cout << " " << data_ndarr[0][i]; cout << "\n"; }      
+          if( m_print_bits & 2 ) {for (int i=0; i<10; ++i) cout << " " << data_ndarr(0,i); cout << "\n"; }      
 
 	  // Use ndarray directly from data
 	  if(m_dtype == ASDATA) {
@@ -126,7 +126,7 @@ private:
               *it_out = (TOUT)*it;
           }
 
-          if( m_print_bits & 2 ) {for (int i=0; i<10; ++i) cout << " " << out_ndarr[0][i]; cout << "\n"; }      
+          if( m_print_bits & 2 ) {for (int i=0; i<10; ++i) cout << " " << out_ndarr(0,i); cout << "\n"; }      
           save2DArrayInEvent<TOUT> (evt, m_src, m_key_out, out_ndarr);
  
           return true;

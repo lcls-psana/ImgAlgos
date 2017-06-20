@@ -260,18 +260,18 @@ private:
     for(unsigned j=m_row_min; j<m_row_max; j++)
       for(unsigned k=m_col_min; k<m_col_max; k++) {
 
-         TIN v = input[j][k];
-          if (v > threshold[j][k] &&
-              v > input[j-1][k-1] &&
-              v > input[j-1][k] &&
-              v > input[j-1][k+1] &&
-              v > input[j][k-1] &&
-              v > input[j][k+1] &&
-              v > input[j+1][k-1] &&
-              v > input[j+1][k] &&
-              v > input[j+1][k+1])
-               output[j][k]=1;
-	  else output[j][k]=0;
+	TIN v = input(j,k);
+          if (v > threshold(j,k) &&
+              v > input(j-1,k-1) &&
+              v > input(j-1,k) &&
+              v > input(j-1,k+1) &&
+              v > input(j,k-1) &&
+              v > input(j,k+1) &&
+              v > input(j+1,k-1) &&
+              v > input(j+1,k) &&
+              v > input(j+1,k+1))
+               output(j,k)=1;
+	  else output(j,k)=0;
       }
   }
 

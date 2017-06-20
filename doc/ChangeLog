@@ -11,6 +11,10 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V01-00-02
+2017-06-20 Mikhail S. Dubrovin
+- fix ndarray indexing in may files
+
 Tag: V01-00-01
 2017-06-19 Mikhail S. Dubrovin
 - moved to git

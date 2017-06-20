@@ -168,7 +168,7 @@ AcqirisCalib::procEvent(Event& evt, Env& env)
 
 	  for(unsigned c=0; c<m_nbrChannels; c++)
 	    for(unsigned s=0; s<m_nbrSamples; s++)
-	      m_wf[c][s] = m_wf_data[c][s] - m_wf_bline[c][s];
+	      m_wf(c,s) = m_wf_data(c,s) - m_wf_bline(c,s);
 
           saveNonConst2DArrayInEvent<wform_t> (evt, m_src, m_key_out, m_wf);
 	}

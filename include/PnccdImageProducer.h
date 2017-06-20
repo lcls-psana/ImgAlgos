@@ -104,7 +104,7 @@ private:
       if (frame) {
       
 	  const ndarray<const data_t, 2> data = frame->data(); // .copy(); - if no const
-          if( m_print_bits & 2 ) {for (int i=0; i<10; ++i) cout << " " << data[0][i]; std::cout << "\n";}
+          if( m_print_bits & 2 ) {for (int i=0; i<10; ++i) cout << " " << data(0,i); std::cout << "\n";}
      
           save2DArrayInEvent<data_t> (evt, m_src, m_key_out, data);
           return true;
@@ -129,7 +129,7 @@ private:
           ndarray<T,2> img_ndarr = make_ndarray<T>(ImRows+m_gap_rows, ImCols+m_gap_cols);
 
           //std::fill_n(&img_ndarr[Rows][0], int(ImCols*m_gap_rows), T(m_gap_value));
-          std::fill_n(&img_ndarr[0][0], int(img_ndarr.size()), T(m_gap_value));
+          std::fill_n(&img_ndarr(0,0), int(img_ndarr.size()), T(m_gap_value));
 
 	  // Hardwired configuration:
 	  size_t rows0    [Segs] = {0,     Rows+m_gap_rows, Rows+m_gap_rows, 0};
@@ -138,14 +138,14 @@ private:
 
 	  for (size_t s=0; s<Segs; ++s) {
 
-	    const T* it_inp = &inp_ndarr[s][Rows-1][Cols-1]; // pointer to the end of the segment data.
+	    const T* it_inp = &inp_ndarr(s, Rows-1, Cols-1); // pointer to the end of the segment data.
 
 	    for (size_t r=0; r<Rows; ++r) {
 
 	      if ( is_rotated[s] ) {
-		for ( T* it=&img_ndarr[rows0[s]+r][cols0[s]]; it!=&img_ndarr[rows0[s]+r][cols0[s]+Cols]; ++it, --it_inp) {*it = *it_inp;}
+		for ( T* it=&img_ndarr(rows0[s]+r,cols0[s]); it!=&img_ndarr(rows0[s]+r,cols0[s]+Cols); ++it, --it_inp) {*it = *it_inp;}
 	      } else {
-                  std::memcpy(&img_ndarr[rows0[s]+r][cols0[s]] ,&inp_ndarr[s][r][0], Cols*sizeof(T)); // copy inp_ndarr -> img_ndarr
+		std::memcpy(&img_ndarr(rows0[s]+r, cols0[s]) ,&inp_ndarr(s,r,0), Cols*sizeof(T)); // copy inp_ndarr -> img_ndarr
 	          //for (size_t c=0; c<Cols; ++c) img_ndarr[rows0[s]+r][cols0[s]+c] = inp_ndarr[s][r][c];
 	      }
 	    }

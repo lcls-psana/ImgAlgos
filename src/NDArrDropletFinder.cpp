@@ -345,7 +345,7 @@ NDArrDropletFinder::saveDropletsInEvent(Event& evt)
   int i=0;
   for( vector<AlgDroplet::Droplet>::iterator it  = v_droplets.begin();
                                              it != v_droplets.end(); it++, i++ ) {
-    droplet_t* p = &nda[i][0];
+    droplet_t* p = &nda(i,0);
     p[0]= droplet_t(it->seg);
     p[1]= droplet_t(it->row);
     p[2]= droplet_t(it->col);

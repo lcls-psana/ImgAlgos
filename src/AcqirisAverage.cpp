@@ -202,7 +202,7 @@ AcqirisAverage::procEvent(Event& evt, Env& env)
 
 	        bool threshold_is_crossed = false;
 
-	        wform_t* wf = &m_wf[c][0];
+	        wform_t* wf = &m_wf(c,0);
 	        wform_t  threshold = v_thresholds[c]; 
                 //cout << "  threshold: " << threshold << "\n";
 
@@ -219,12 +219,12 @@ AcqirisAverage::procEvent(Event& evt, Env& env)
 		    or (!threshold_is_crossed && !v_do_inverse_selection[c]) ) {
 
 		    // discard waveform - fill it with 0
-                    std::fill_n(&m_wf[c][0], int(m_nbrSamples), wform_t(0));
+		  std::fill_n(&m_wf(c,0), int(m_nbrSamples), wform_t(0));
 		}
 		else {
 		    // accumulate statistics
 		    m_channel_stat[c] ++;
-		    for(unsigned s=0; s<m_nbrSamples; s++) m_wf_sum[c][s] += wf[s];
+		    for(unsigned s=0; s<m_nbrSamples; s++) m_wf_sum(c,s) += wf[s];
 		}
 	    }
 	}    
@@ -234,10 +234,10 @@ AcqirisAverage::procEvent(Event& evt, Env& env)
 	  //cout << "Do not apply thresholds";	    
 
 	    for(unsigned c=0; c<m_nbrChannels; c++) {
-	            wform_t* wf = &m_wf[c][0];
+	            wform_t* wf = &m_wf(c,0);
 		    m_channel_stat[c] ++;
 		    for(unsigned s=0; s<m_nbrSamples; s++) {
-                         m_wf_sum[c][s] += wf[s];
+		      m_wf_sum(c,s) += wf[s];
 			 //if (s<10) cout << " " << wf[s];
 		    }
 	    }                      //cout << endl; 
@@ -290,10 +290,10 @@ AcqirisAverage::evaluateAverage(Event& evt)
 
     if ( m_channel_stat[c] > 0 ) {
       for(unsigned s=0; s<m_nbrSamples; s++)
-	m_wf_ave[c][s] = m_wf_sum[c][s] / m_channel_stat[c];
+	m_wf_ave(c,s) = m_wf_sum(c,s) / m_channel_stat[c];
       }
 
-    else std::fill_n(&m_wf_ave[c][0], int(m_nbrSamples), wform_t(0));
+    else std::fill_n(&m_wf_ave(c,0), int(m_nbrSamples), wform_t(0));
   }        
 
   if (m_do_save_ave_evt) saveNonConst2DArrayInEvent<wform_t> (evt, m_src, m_key_ave, m_wf_ave);

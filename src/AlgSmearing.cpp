@@ -82,17 +82,17 @@ AlgSmearing::evaluateWeights()
 
   //std::cout << "In AlgSmearing::evaluateWeights()\n";
 
-  if ( m_sigma == 0 ) { 
+  if (m_sigma == 0) { 
     if(m_pbits) MsgLog(_name(), info, "Smearing is turned OFF by sigma = " << m_sigma); 
     std::fill_n(m_weights.data(), int(m_weights.size()*sizeof(double)), double(0));
-    m_weights[0][0] = 1;
+    m_weights(0,0) = 1;
     return;
   }
 
   double norm = -0.5/(m_sigma*m_sigma);
   for (int r = 0; r < m_nsm1; r++) {
     for (int c = 0; c < m_nsm1; c++) {
-      m_weights[r][c] = exp( norm * (r*r+c*c) );
+      m_weights(r,c) = exp(norm * (r*r+c*c));
     }
   }
 }
@@ -110,7 +110,7 @@ AlgSmearing::printWeights()
     for (int r = 0; r < m_nsm1; r++) {
       ss << "\n   row=" << r << ": " << fixed; 
       for (int c = 0; c < m_nsm1; c++) {
-	ss << "  " << std::left << std::setw(8) << m_weights[r][c];
+	ss << "  " << std::left << std::setw(8) << m_weights(r,c);
       }
     }
     MsgLog(_name(), info, ss.str()); 

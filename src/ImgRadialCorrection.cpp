@@ -344,7 +344,7 @@ ImgRadialCorrection::accumulateHistograms()
   for(uint16_t r=0; r<m_nrows; r++){
     for(uint16_t c=0; c<m_ncols; c++){
 
-      double amp  = amparr[r][c];
+      double amp  = amparr(r,c);
       int    ind  = get_img_index(r,c);
       int    irad = m_radind[ind];
       int    iphi = m_phiind[ind];
@@ -411,7 +411,7 @@ ImgRadialCorrection::applyRadialCorrection()
   for(uint16_t r=0; r<m_nrows; r++){
     for(uint16_t c=0; c<m_ncols; c++){
 
-      double amp  = amparr[r][c];
+      double amp  = amparr(r,c);
       int    ind  = get_img_index(r,c);
       int    irad = m_radind[ind];
       int    iphi = m_phiind[ind];

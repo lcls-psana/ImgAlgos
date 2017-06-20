@@ -127,7 +127,7 @@ protected:
 
 	for( int r=row_min; r<row_max; r++ ) {
 
-	  m_data[ind][c] += img_data[r*m_cols + c];
+	  m_data(ind, c) += img_data[r*m_cols + c];
 	}
       }
     }

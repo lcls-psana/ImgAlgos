@@ -172,7 +172,7 @@ ExampleDumpImg::procEventForType(Event& evt)
 	   std::cout << "\nPrint ndarray<T,2> using two indexes:\n";
 	   for (unsigned row=m_row_dump; row<m_row_dump+10; ++row) {
 	     for (unsigned col=cols/3; col<cols/3+10; ++col)
-               std::cout << " " << nda[row][col]; 
+               std::cout << " " << nda(row,col); 
              std::cout << "\n";
 	   }
 	 }
@@ -181,7 +181,7 @@ ExampleDumpImg::procEventForType(Event& evt)
 	   std::cout << "\nPrint ndarray using iterator:\n";
 	   typename ndarray<const T, 2>::iterator it;
 	   //for ( it=nda.begin(); it!=nda.end(); ++it) {
-	     for ( it=&nda[m_row_dump][0]; it!=&nda[m_row_dump][cols]; ++it) {
+	   for ( it=&nda(m_row_dump,0); it!=&nda(m_row_dump,cols); ++it) {
              std::cout << " " << *it;
            }
            std::cout << "\n";

@@ -194,13 +194,13 @@ public:
     if (m_mode == 0) {
       // Pixel intensity is replaced by the latest mapped pixel
       for (unsigned i=0; i<m_size; ++i)
-        img_nda[m_coor_x_ind[i]][m_coor_y_ind[i]] = p_data[i];
+        img_nda(m_coor_x_ind[i], m_coor_y_ind[i]) = p_data[i];
     }
 
     else if (m_mode == 1) {
       // Select maximal intensity of two overlapping pixels
       for (unsigned i=0; i<m_size; ++i) {  
-	 T* p_tmp = &img_nda[m_coor_x_ind[i]][m_coor_y_ind[i]];
+	T* p_tmp = &img_nda(m_coor_x_ind[i], m_coor_y_ind[i]);
 	 if ( *p_tmp==0 || p_data[i] > *p_tmp) *p_tmp = p_data[i];
       }
     }
@@ -210,7 +210,7 @@ public:
       for (unsigned i=0; i<m_size; ++i) {  
         //unsigned ix = m_coor_x_ind[i];
         //unsigned iy = m_coor_y_ind[i];  
-        img_nda[m_coor_x_ind[i]][m_coor_y_ind[i]] += p_data[i]; 
+        img_nda(m_coor_x_ind[i], m_coor_y_ind[i]) += p_data[i]; 
       }
     }
 
@@ -220,7 +220,7 @@ public:
     else {
       // The same as mode 0
       for (unsigned i=0; i<m_size; ++i)
-        img_nda[m_coor_x_ind[i]][m_coor_y_ind[i]] = p_data[i];
+        img_nda(m_coor_x_ind[i], m_coor_y_ind[i]) = p_data[i];
     }
 
     if      ( m_dtype == ASINP  ) save2DArrayInEvent<T>(evt, m_src, m_outimgkey, img_nda);

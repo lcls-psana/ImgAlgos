@@ -190,9 +190,9 @@ ImgSpectra::printSpectra(Event& evt)
   unsigned dc = 100;
   MsgLog( name(), info, "Image spectra for run=" << stringRunNumber(evt) << " Evt=" << stringFromUint(m_count) );
   std::cout <<   "Column:"; for( unsigned c=0; c<m_cols; c+=dc ) std::cout << std::setw(8) << c;
-  std::cout << "\nSignal:"; for( unsigned c=0; c<m_cols; c+=dc ) std::cout << std::setw(8) << std::setprecision(0) << std::fixed << m_data[0][c];
-  std::cout << "\nRefer.:"; for( unsigned c=0; c<m_cols; c+=dc ) std::cout << std::setw(8) << std::setprecision(0) << std::fixed << m_data[1][c];
-  std::cout << "\nDiff. :"; for( unsigned c=0; c<m_cols; c+=dc ) std::cout << std::setw(8) << std::setprecision(3) << std::fixed << m_data[2][c];
+  std::cout << "\nSignal:"; for( unsigned c=0; c<m_cols; c+=dc ) std::cout << std::setw(8) << std::setprecision(0) << std::fixed << m_data(0,c);
+  std::cout << "\nRefer.:"; for( unsigned c=0; c<m_cols; c+=dc ) std::cout << std::setw(8) << std::setprecision(0) << std::fixed << m_data(1,c);
+  std::cout << "\nDiff. :"; for( unsigned c=0; c<m_cols; c+=dc ) std::cout << std::setw(8) << std::setprecision(3) << std::fixed << m_data(2,c);
   std::cout << "\n";
 }
 
@@ -202,8 +202,8 @@ void
 ImgSpectra::difSpectrum()
 {
       for( unsigned c=0; c<m_cols; c++ ) {
-	double sum = m_data[0][c] + m_data[1][c];
-	m_data[2][c] = (sum > 0) ? 2*(m_data[0][c] - m_data[1][c]) / sum : 0;
+	double sum = m_data(0,c) + m_data(1,c);
+	m_data(2,c) = (sum > 0) ? 2*(m_data(0,c) - m_data(1,c)) / sum : 0;
       }
 }
 

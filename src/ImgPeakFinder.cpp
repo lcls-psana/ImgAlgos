@@ -491,15 +491,15 @@ ImgPeakFinder::printPeakInfo(Peak& p)
 //--------------------
 // Save peak info in vector
 void 
-ImgPeakFinder::savePeakInfo(size_t& row, size_t& col, double& amp, double& amp_tot, unsigned& npix )
+ImgPeakFinder::savePeakInfo(size_t& row, size_t& col, double& amp, double& amp_tot, unsigned& npix)
 {
-  if ( v_peaks.size() == v_peaks.capacity() ) {
-      v_peaks.reserve( v_peaks.capacity() + 100 );
-      if( m_print_bits & 8 ) MsgLog( name(), info, "Peaks vector capacity is increased to:" << v_peaks.capacity() );
+  if (v_peaks.size() == v_peaks.capacity()) {
+      v_peaks.reserve(v_peaks.capacity() + 100);
+      if(m_print_bits & 8) MsgLog(name(), info, "Peaks vector capacity is increased to:" << v_peaks.capacity());
   }
-  Peak onePeak = { (double)col, (double)row, amp, amp_tot, npix };
+  Peak onePeak = {(double)col, (double)row, amp, amp_tot, npix};
   v_peaks.push_back(onePeak);
-  if( m_print_bits & 8 ) printPeakInfo( onePeak );
+  if(m_print_bits & 8) printPeakInfo(onePeak);
 }
 
 //--------------------
@@ -526,11 +526,11 @@ ImgPeakFinder::savePeaksInEventAsNDArr(Event& evt)
   for(vector<Peak>::const_iterator itv  = v_peaks.begin();
                                    itv != v_peaks.end(); itv++) {
     i++;
-    peaks_nda[i][0] = float(itv->x);
-    peaks_nda[i][1] = float(itv->y);
-    peaks_nda[i][2] = float(itv->ampmax);
-    peaks_nda[i][3] = float(itv->amptot);
-    peaks_nda[i][4] = float(itv->npix);
+    peaks_nda(i,0) = float(itv->x);
+    peaks_nda(i,1) = float(itv->y);
+    peaks_nda(i,2) = float(itv->ampmax);
+    peaks_nda(i,3) = float(itv->amptot);
+    peaks_nda(i,4) = float(itv->npix);
   }
 
   save2DArrayInEvent<float>(evt, m_src, m_key_peaks_nda, peaks_nda);
@@ -541,7 +541,7 @@ ImgPeakFinder::savePeaksInEventAsNDArr(Event& evt)
 void 
 ImgPeakFinder::savePeaksInFile(Event& evt)
 {
-  if(m_count != m_event ) return;
+  if(m_count != m_event) return;
 
   string fname; fname = getCommonFileName(evt) + "-peaks.txt";
   MsgLog( name(), info, "Save the peak info in file:" << fname.data() );
@@ -577,11 +577,11 @@ ImgPeakFinder::weight(int& dr, int& dc)
 void 
 ImgPeakFinder::evaluateWeights()
 {
-    if ( m_sigma == 0 ) { MsgLog( name(), info, "Smearing is turned OFF by sigma =" << m_sigma ); }
+    if (m_sigma == 0) { MsgLog( name(), info, "Smearing is turned OFF by sigma =" << m_sigma ); }
 
     for (int r = 0; r <= m_nsm; r++) {
       for (int c = 0; c <= m_nsm; c++) {
-        m_weights[r][c] = ( m_sigma != 0 ) ? exp( -0.5*(r*r+c*c) / (m_sigma*m_sigma) ) : 0;
+        m_weights[r][c] = (m_sigma != 0) ? exp(-0.5*(r*r+c*c) / (m_sigma*m_sigma)) : 0;
       }
     }
 }

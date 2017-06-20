@@ -118,7 +118,7 @@ AcqirisCFD::event(Event& evt, Env& env)
     const ndarray<double,2> &wtime = *tptr;
 
     for (unsigned i=0; i<nchan; i++) {
-      double sampInterval = wtime[i][1]-wtime[i][0];
+      double sampInterval = wtime(i,1)-wtime(i,0);
       ndarray<double,1> onewf = make_ndarray(wf->data()+i*nsamples,nsamples);
 
       ndarray<double,2> edges;
@@ -132,13 +132,13 @@ AcqirisCFD::event(Event& evt, Env& env)
       if (nedges) {
         // overwrite the edge "bin" information with "time" information
         for (unsigned j=0; j<nedges; j++) {
-          unsigned bin = unsigned(edges[j][0]);
-          double binfrac = edges[j][0]-bin;
-          double time = wtime[i][bin]+binfrac*sampInterval;
-          edges[j][0]= time;
+          unsigned bin = unsigned(edges(j,0));
+          double binfrac = edges(j,0)-bin;
+          double time = wtime(i,bin)+binfrac*sampInterval;
+          edges(j,0)= time;
         }
         std::stringstream ss; ss<<i;
-        saveNonConst2DArrayInEvent<double> (evt, m_src, m_key_edges+ss.str(), edges);
+        saveNonConst2DArrayInEvent<double>(evt, m_src, m_key_edges+ss.str(), edges);
       }
     }
   }

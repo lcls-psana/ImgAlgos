@@ -240,7 +240,7 @@ void _checkIfPixIsDroplet( const ndarray<const T,2>& nda, size_t r0, size_t c0 )
   size_t ncols = nda.shape()[1];
 
   //double   a0    = nda[r0*ncols + c0];
-  double   a0    = nda[r0][c0];
+  double   a0    = nda(r0,c0);
   double   a     = 0;
   double   sum_a = 0;
   unsigned n_pix = 0;
@@ -254,7 +254,7 @@ void _checkIfPixIsDroplet( const ndarray<const T,2>& nda, size_t r0, size_t c0 )
     for (size_t c = cmin; c < cmax; c++) {
 
       //a = nda[r*ncols + c];
-      a = nda[r][c];
+      a = nda(r,c);
 
       if( a > a0 ) return; // This is not a local droplet...
 
