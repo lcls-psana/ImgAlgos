@@ -4,12 +4,16 @@
 #
 # Description:
 #  ChangeLog file for package ImgAlgos
-#------------------------------------------------------------------------
+#------------------------------------------------------------------------  
 
 Package author: Mikhail S. Dubrovin
 
 Please describe any modifications that you made to the package in the
 reverse time order.
+
+Tag: V01-00-03
+2017-08-16 Mikhail S. Dubrovin
+- AlgImgProc._makeMapOfLocalMinimums/Maximums - fix indexing for peakFinderV3r2
 
 Tag: V01-00-02
 2017-06-20 Mikhail S. Dubrovin

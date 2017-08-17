@@ -744,6 +744,7 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>& data
       }
 
       // (r,c) is a local dip, jump ahead through the tested rank range
+      if(!(c<cmax)) break;
       if(m_local_minimums(r, c) & 1) c+=rank;
     }
   }
@@ -780,6 +781,7 @@ _makeMapOfLocalMinimums( const ndarray<const T,2>& data
       }
 
       // (r,c) is a local dip, jump ahead through the tested rank range
+      if(!(r<rmax)) break;
       if(m_local_minimums(r, c) & 2) r+=rank;
     }
   }
@@ -830,7 +832,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
       for(unsigned cd=c+1; cd<=dmax; cd++) {
         if(mask(r, cd) && (data(r, cd) > data(r, c))) {
           m_local_maximums(r, c) &=~1; // clear 1st bit
-          c=cd-1; // jump ahead 
+          c=cd-1; // jump ahead (+1 incremented in c-loop)
 	  break;
 	}
       }
@@ -848,6 +850,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
       }
 
       // (r,c) is a local dip, jump ahead through the tested rank range
+      if(!(c<cmax)) break;
       if(m_local_maximums(r, c) & 1) c+=rank;
     }
   }
@@ -884,6 +887,7 @@ _makeMapOfLocalMaximums( const ndarray<const T,2>& data
       }
 
       // (r,c) is a local dip, jump ahead through the tested rank range
+      if(!(r<rmax)) break;
       if(m_local_maximums(r, c) & 2) r+=rank;
     }
   }
@@ -1877,7 +1881,7 @@ _procPixGroup( const ndarray<const T,2>& data,
 
   //BkgdAvgRms bkgd = _evaluateBkgdAvgRmsV2<T>(r0, c0, data);
 
-  double   a0 = data(r0,c0);
+  double   a0 = data(r0,c0) - bkgd.avg;
   unsigned npix = 0;
   double   samp = 0;
   double   sac1 = 0;
@@ -1893,7 +1897,7 @@ _procPixGroup( const ndarray<const T,2>& data,
                                          ij != vinds.end(); ij++) {
       int r = ij->i;
       int c = ij->j;
-      double a = data(r, c);
+      double a = data(r, c) - bkgd.avg;
 
       if(r<rmin) rmin=r;
       if(r>rmax) rmax=r;
@@ -1916,8 +1920,8 @@ _procPixGroup( const ndarray<const T,2>& data,
   peak.row       = r0;
   peak.col       = c0;
   peak.npix      = npix;
-  peak.amp_max   = a0 - bkgd.avg;
-  peak.amp_tot   = samp - bkgd.avg * npix;
+  peak.amp_max   = a0;
+  peak.amp_tot   = samp;
 
   if(samp>0) {
     sar1 /= samp;
@@ -2625,13 +2629,11 @@ peakFinderV3r2( const ndarray<const T,2>& data
   //std::fill_n(m_pixel_status.data(), int(m_pixel_status.size()), pixel_status_t(0));
 
   if(m_pbits & 512) MsgLog(_name(), info, "in peakFinderV3r2, seg=" << m_seg << " win" << m_win << " rank=" << rank);
-
   _makeMapOfLocalMaximums<T>(data, mask, rank); // fills m_local_maximums
   _makeMapOfLocalMinimums<T>(data, mask, rank); // fills m_local_minimums
   if(m_pbits & 8) _printStatisticsOfLocalExtremes();
   _makeMapOfConnectedPixelsForLocalMaximums<T>(data, mask, rank, nsigm); // fills m_conmap, v_peaks, vv_peak_pixinds
   _makeVectorOfSelectedPeaks();                            // make vector of selected peaks
-
   return v_peaks_sel; 
 }
 
