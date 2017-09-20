@@ -143,7 +143,7 @@ private:
 	    for (size_t r=0; r<Rows; ++r) {
 
 	      if ( is_rotated[s] ) {
-		for ( T* it=&img_ndarr(rows0[s]+r,cols0[s]); it!=&img_ndarr(rows0[s]+r,cols0[s]+Cols); ++it, --it_inp) {*it = *it_inp;}
+		for ( T* it=&img_ndarr(rows0[s]+r,cols0[s]); it<=&img_ndarr(rows0[s]+r,cols0[s]+Cols-1); ++it, --it_inp) {*it = *it_inp;}
 	      } else {
 		std::memcpy(&img_ndarr(rows0[s]+r, cols0[s]) ,&inp_ndarr(s,r,0), Cols*sizeof(T)); // copy inp_ndarr -> img_ndarr
 	          //for (size_t c=0; c<Cols; ++c) img_ndarr[rows0[s]+r][cols0[s]+c] = inp_ndarr[s][r][c];

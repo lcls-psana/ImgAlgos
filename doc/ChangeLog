@@ -4,12 +4,16 @@
 #
 # Description:
 #  ChangeLog file for package ImgAlgos
-#------------------------------------------------------------------------  
+#--------------------------------------------------------------------------
 
 Package author: Mikhail S. Dubrovin
 
 Please describe any modifications that you made to the package in the
 reverse time order.
+
+Tag: V01-00-04
+2017-09-20 Mikhail S. Dubrovin
+- PnccdImageProducer.h - fix issue with iteratir loop termination by the addres of element exceeding array size.
 
 Tag: V01-00-03
 2017-08-16 Mikhail S. Dubrovin
