@@ -482,38 +482,83 @@ AlgImgProc::_mergeConnectedPixelCouples(const fphoton_t& thr_on_max, const fphot
 
   m_numreg=0;
 
-  //if(m_pixel_status.empty()) 
-  //   m_pixel_status = make_ndarray<pixel_status_t>(shape[0], shape[1]);
-  //std::fill_n(&m_pixel_status[0][0], int(m_fphoton.size()), pixel_status_t(0));
+  //if(v_indcross.empty()) _fillCrossIndexes();
 
-  /*
-  int rmin = (int)m_win.rowmin;
-  int rmax = (int)m_win.rowmax;				  
-  int cmin = (int)m_win.colmin;
-  int cmax = (int)m_win.colmax;
-  */
+  TwoIndexes pU(-1, 0);
+  TwoIndexes pD( 1, 0);
+  TwoIndexes pL( 0,-1);
+  TwoIndexes pR( 0, 1);
 
-  if(v_indcross.empty()) _fillCrossIndexes();
+  // CENTARL AREA
+  // merge central pixels
+  TwoIndexes aC[]={pU, pD, pL, pR}; vector<TwoIndexes> vC(aC,aC+4);
+  _mergePixelCouplesInArea(thr_on_max, thr_on_tot, DO_TEST, m_win.rowmin+1, m_win.rowmax-1, m_win.colmin+1, m_win.colmax-1, vC);
 
+  // EDGES
+  // merge left-edge pixels
+  TwoIndexes aL[]={pU, pD, pR}; vector<TwoIndexes> vL(aL,aL+3);
+  _mergePixelCouplesInArea(thr_on_max, thr_on_tot, DO_TEST, m_win.rowmin+1, m_win.rowmax-1, m_win.colmin, m_win.colmin+1, vL);
+
+  // merge right-edge pixels
+  TwoIndexes aR[]={pU, pD, pL}; vector<TwoIndexes> vR(aR,aR+3);
+  _mergePixelCouplesInArea(thr_on_max, thr_on_tot, DO_TEST, m_win.rowmin+1, m_win.rowmax-1, m_win.colmax-1, m_win.colmax, vR);
+
+  // merge upper-edge pixels
+  TwoIndexes aU[]={pD, pL, pR}; vector<TwoIndexes> vU(aU,aU+3);
+  _mergePixelCouplesInArea(thr_on_max, thr_on_tot, DO_TEST, m_win.rowmin, m_win.rowmin+1, m_win.colmin+1, m_win.colmax-1, vU);
+
+  // merge down-edge pixels
+  TwoIndexes aD[]={pU, pL, pR}; vector<TwoIndexes> vD(aD,aD+3);
+  _mergePixelCouplesInArea(thr_on_max, thr_on_tot, DO_TEST, m_win.rowmax-1, m_win.rowmax, m_win.colmin+1, m_win.colmax-1, vD);
+
+  // CORNERS
+  // merge down-left pixels
+  TwoIndexes aDL[]={pU, pR}; vector<TwoIndexes> vDL(aDL,aDL+2);
+  _mergePixelCouplesInArea(thr_on_max, thr_on_tot, DO_TEST, m_win.rowmax-1, m_win.rowmax, m_win.colmin, m_win.colmin+1, vDL);
+
+  // merge down-right pixels
+  TwoIndexes aDR[]={pU, pL}; vector<TwoIndexes> vDR(aDR,aDR+2);
+  _mergePixelCouplesInArea(thr_on_max, thr_on_tot, DO_TEST, m_win.rowmax-1, m_win.rowmax, m_win.colmax-1, m_win.colmax, vDR);
+
+  // merge upper-left pixels
+  TwoIndexes aUL[]={pD, pR}; vector<TwoIndexes> vUL(aUL,aUL+2);
+  _mergePixelCouplesInArea(thr_on_max, thr_on_tot, DO_TEST, m_win.rowmin, m_win.rowmin+1, m_win.colmin, m_win.colmin+1, vUL);
+
+  // merge upper-right pixels
+  TwoIndexes aUR[]={pD, pL}; vector<TwoIndexes> vUR(aUR,aUR+2);
+  _mergePixelCouplesInArea(thr_on_max, thr_on_tot, DO_TEST, m_win.rowmin, m_win.rowmin+1, m_win.colmax-1, m_win.colmax, vUR);
+}
+  
+//--------------------
+
+void
+AlgImgProc::_mergePixelCouplesInArea(
+  const fphoton_t thr_on_max,
+  const fphoton_t thr_on_tot,
+  const bool      DO_TEST,
+  const unsigned  rowmin,
+  const unsigned  rowmax1,
+  const unsigned  colmin,
+  const unsigned  colmax1,
+  const vector<TwoIndexes>& vneighbs)
+{
   // loop over internal image pixels ignoring first and last rows and columns
-  for(unsigned r = m_win.rowmin+1; r<m_win.rowmax-1; r++) {
-    for(unsigned c = m_win.colmin+1; c<m_win.colmax-1; c++) {
+  for(unsigned r = rowmin; r<rowmax1; r++) {
+    for(unsigned c = colmin; c<colmax1; c++) {
 
       if(m_local_maximums(r,c) != 3)  continue; // check local maximums only
-
       if(m_fphoton(r,c) < thr_on_max) continue; // apply threshold on max
 
       fphoton_t vmax = 0.0;
       TwoIndexes ijmax(0,0);
 
       // find not-busy neighbor pixel with maximal intensity
-      for(vector<TwoIndexes>::const_iterator ij  = v_indcross.begin();
-                                             ij != v_indcross.end(); ij++) {
+      for(vector<TwoIndexes>::const_iterator ij  = vneighbs.begin();
+                                             ij != vneighbs.end(); ij++) {
          int ir = r + (ij->i);
          int ic = c + (ij->j);
 
          if(m_conmap(ir,ic)) continue; // pixel is already used for other pair
-
          if(m_fphoton(ir,ic) < vmax) continue; // not a maximal neighbor
 
 	 vmax = m_fphoton(ir,ic);

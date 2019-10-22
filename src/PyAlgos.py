@@ -748,8 +748,10 @@ def test_photons_2d() :
     piagu.print_ndarr(data, 'data', last=10)
     piagu.print_ndarr(mask, 'mask', last=10)
 
+    #print("data:", local_maximums_cross1(data))
+
     t0_sec = time()
-    arr = photons_2d(data, mask)
+    arr = photons_2d(data, mask, thr_fraction=0.9)
     print '\nTime consumed by photons_2d(data, mask) (sec) = %10.6f' % (time()-t0_sec)
 
     piagu.print_ndarr(arr, 'arr', last=10)
@@ -758,6 +760,39 @@ def test_photons_2d() :
     plotImageLarge(data, title='data')
     plotImageLarge(arr, title='array')
     show()
+
+##-----------------------------
+
+def test_photons_2d_chuck() :
+    from time import time
+
+    shape = (4,4)
+    mask  = np.ones(shape, dtype=np.uint8)
+    data  = np.array(((0.0, 3.5, 0.1, 0.2),   
+                      (0.2, 0.4, 0.0, 1.2),
+                      (0.1, 4.7, 3.4, 0.0),
+                      (0.5, 0.4, 0.4, 0.1)), dtype=np.float32)
+
+    #shape = (6,6)
+    #mask  = np.ones(shape, dtype=np.uint8)
+    #data  = np.array(((0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+    #                  (0.0, 0.0, 3.5, 0.1, 0.2, 0.0),    
+    #                  (0.0, 0.2, 0.4, 0.0, 1.2, 0.0),
+    #                  (0.0, 0.1, 4.7, 3.4, 0.0, 0.0),
+    #                  (0.0, 0.5, 0.4, 0.4, 0.1, 0.0),
+    #                  (0.0, 0.0, 0.0, 0.0, 0.0, 0.0)), dtype=np.float32)
+
+    piagu.print_ndarr(data, 'data', last=12)
+    piagu.print_ndarr(mask, 'mask', last=12)
+
+    print("data:", data)
+
+    t0_sec = time()
+    arr = photons_2d(data, mask, thr_fraction=0.9)
+    print '\nTime consumed by photons_2d(data, mask) (sec) = %10.6f' % (time()-t0_sec)
+    print("res:", arr)
+
+    piagu.print_ndarr(arr, 'arr', last=10)
 
 ##-----------------------------
 
@@ -819,7 +854,8 @@ if __name__ == "__main__" :
 
     elif(sys.argv[1]=='1') : test_pyalgos()
     elif(sys.argv[1]=='2') : test_photons_2d()
-    elif(sys.argv[1]=='3') : test_photons_3d()
+    elif(sys.argv[1]=='3') : test_photons_2d_chuck()
+    elif(sys.argv[1]=='4') : test_photons_3d()
 
     else : print 'Non-expected arguments: sys.argv=', sys.argv, ' use 0,1,2,...'
 

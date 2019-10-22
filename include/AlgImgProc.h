@@ -532,7 +532,19 @@ private:
   void _printStatisticsOfLocalExtremes();
 
   /// Join local maximum fractional intensity with largest adjesent pixel (very special algorithm for Chuck's photon counting)
-  void _mergeConnectedPixelCouples(const fphoton_t& thr_on_max = 0.5, const fphoton_t& thr_on_tot = 0.9, const bool& DO_TEST = false);
+  void _mergeConnectedPixelCouples(const fphoton_t& thr_on_max=0.5, const fphoton_t& thr_on_tot=0.9, const bool& DO_TEST = false);
+
+  /// algorithmical part running inside _mergeConnectedPixelCouples
+  void _mergePixelCouplesInArea(
+    const fphoton_t thr_on_max,
+    const fphoton_t thr_on_tot,
+    const bool      DO_TEST,
+    const unsigned  rowmin,
+    const unsigned  rowmax1,
+    const unsigned  colmin,
+    const unsigned  colmax1,
+    const vector<TwoIndexes>& vneighbs
+  );
 
 //--------------------
   /**
@@ -3051,14 +3063,24 @@ mapOfPhotonNumbersV1( const ndarray<const T,2>&      data
 
   _splitDataForUintAndFloat<T>(data, mask);
 
+  //cout << "XXX thr_fraction " << thr_fraction << '\n';
+  //cout << "XXX m_fphoton(1) " << m_fphoton << '\n';
+  //cout << "XXX m_nphoton(1) " << m_nphoton << '\n';
+
   //size_t rank=1;
   //_makeMapOfLocalMaximums<fphoton_t>(m_fphoton, mask, rank);
 
   _makeMapOfLocalMaximumsRank1Cross<fphoton_t>(m_fphoton);
 
+  //cout << "XXX m_local_maximums(1) " << m_local_maximums<< '\n';
+
   const fphoton_t thr_on_max = 0.5; const fphoton_t thr_on_tot = thr_fraction; const bool DO_TEST = false;
 
   _mergeConnectedPixelCouples(thr_on_max, thr_on_tot, DO_TEST); // DO_TEST fills m_mphoton
+
+  //cout << "XXX m_conmap     " << m_conmap << '\n';
+  //cout << "XXX m_mphoton    " << m_mphoton << '\n';
+  //cout << "XXX m_nphoton(2) " << m_nphoton << '\n';
 
   return m_nphoton; 
   //return m_conmap
@@ -3092,7 +3114,8 @@ mapOfPhotonNumbersV1( const ndarray<const T,2> data
                     )
 {
   size_t      seg  = 0;
-  AlgImgProc algo(seg);
+  AlgImgProc algo(seg); //, 0, 100000, 0, 100000, 017777);
+
   return algo.mapOfPhotonNumbersV1<T>(data, mask, thr_fraction);
 }
 
