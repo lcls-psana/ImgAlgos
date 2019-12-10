@@ -25,6 +25,7 @@ part of it, please give an appropriate acknowledgment.
 @author Mikhail Dubrovin
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 #------------------------------
 #  Module's version from CVS --
@@ -48,7 +49,7 @@ import commands
 import subprocess # for subprocess.Popen
 import time
 
-import CorAnaPars as cap
+from . import CorAnaPars as cap
 
 cp = cap.coranapars
 #--------------------
