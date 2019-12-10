@@ -24,6 +24,7 @@ part of it, please give an appropriate acknowledgment.
 
 @author Mikhail Dubrovin
 """
+from __future__ import print_function
 
 #------------------------------
 #  Module's version from CVS --
@@ -73,7 +74,7 @@ class CorAnaPars :
     fname_com    = None # 'img-xcs-r0015'
 
     def __init__ ( self ) :
-        print """__init__"""
+        print("""__init__""")
         pass
 
     def set_default_pars(self, cmd_split, cmd_proc, cmd_merge, cmd_procres, batch_queue, pwdir) :
@@ -107,28 +108,28 @@ class CorAnaPars :
         self.dname_work   = dname_work
         
     def print_pars ( self ) :
-        print """CorAnaPars::print_pars()"""
-        print 'fname config     :', self.fname_cfg
-        print 'fname xtc        :', self.fname_xtc
-        print 'fname tau        :', self.fname_tau
-        print 'xtc file dirname :', self.dname
-        print 'xtc file name    :', self.name
-        print 'xtc file ext     :', self.ext
-        print 'inst             :', self.inst   
-        print 'exp              :', self.exp    
-        print 'run_str          :', self.run_str
-        print 'run_num          :', self.run_num
-        print 'fname_prefix     :', self.fname_prefix
-        print 'nfiles_out       :', self.nfiles_out
-        print 'fname_com        :', self.fname_com
-        print 'dname_work       :', self.dname_work
-        print 'cmd_split        :', self.cmd_split  
-        print 'cmd_proc         :', self.cmd_proc   
-        print 'cmd_merge        :', self.cmd_merge  
-        print 'cmd_procres      :', self.cmd_procres  
-        print 'batch_queue      :', self.batch_queue
-        print 'pwdir            :', self.pwdir
-        print '                 :', 
+        print("""CorAnaPars::print_pars()""")
+        print('fname config     :', self.fname_cfg)
+        print('fname xtc        :', self.fname_xtc)
+        print('fname tau        :', self.fname_tau)
+        print('xtc file dirname :', self.dname)
+        print('xtc file name    :', self.name)
+        print('xtc file ext     :', self.ext)
+        print('inst             :', self.inst)   
+        print('exp              :', self.exp)    
+        print('run_str          :', self.run_str)
+        print('run_num          :', self.run_num)
+        print('fname_prefix     :', self.fname_prefix)
+        print('nfiles_out       :', self.nfiles_out)
+        print('fname_com        :', self.fname_com)
+        print('dname_work       :', self.dname_work)
+        print('cmd_split        :', self.cmd_split)  
+        print('cmd_proc         :', self.cmd_proc)   
+        print('cmd_merge        :', self.cmd_merge)  
+        print('cmd_procres      :', self.cmd_procres)  
+        print('batch_queue      :', self.batch_queue)
+        print('pwdir            :', self.pwdir)
+        print('                 :', end=' ') 
 
 #---------------------------------------
 # Makes a single object of this class --

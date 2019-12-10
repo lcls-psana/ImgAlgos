@@ -128,6 +128,7 @@ If you use all or part of it, please give an appropriate acknowledgment.
 
 @author Mikhail S. Dubrovin
 """
+from __future__ import print_function
 #------------------------------
 __version__ = "$Revision$"
 # $Source$
@@ -166,20 +167,20 @@ def reshape_nda_to_3d(arr) :
 
 def print_arr_attr(arr, cmt='') :
     if arr is None :
-        print '  %s attributes: array is None' % (cmt)
+        print('  %s attributes: array is None' % (cmt))
         return
     nda = np.array(arr)
-    print '  %s attributes: size = %d, shape = %s, dtype = %s' % (cmt, nda.size, nda.shape, nda.dtype)
+    print('  %s attributes: size = %d, shape = %s, dtype = %s' % (cmt, nda.size, nda.shape, nda.dtype))
 
 ##-----------------------------
 
 def print_arr(arr, cmt='') :
     if arr is None :
-        print '  %s attributes: array is None' % (cmt)
+        print('  %s attributes: array is None' % (cmt))
         return
     nda = np.array(arr)
-    print '\nprint_arr: %s:\n%s' % (cmt, str(nda))
-    print '  %s attributes: size = %d, shape = %s, dtype = %s' % (cmt, nda.size, nda.shape, nda.dtype)
+    print('\nprint_arr: %s:\n%s' % (cmt, str(nda)))
+    print('  %s attributes: size = %d, shape = %s, dtype = %s' % (cmt, nda.size, nda.shape, nda.dtype))
 
 ##-----------------------------
 
@@ -199,7 +200,7 @@ class PyAlgos :
         - mask  - n-d array with mask or None
         - pbits - print control bit-word
         """
-        if pbits & 128 : print 'in c-tor %s' % self.__class__.__name__
+        if pbits & 128 : print('in c-tor %s' % self.__class__.__name__)
 
         self.pbits = pbits
 
@@ -218,7 +219,7 @@ class PyAlgos :
         """
         - windows - tuple of windows
         """
-        if self.pbits & 128 : print 'in PyAlgos.set_windows()'
+        if self.pbits & 128 : print('in PyAlgos.set_windows()')
 
         self.windows = np.array(windows, dtype=np.uint32)
         self.aap.set_windows(self.windows)
@@ -230,7 +231,7 @@ class PyAlgos :
         - r0 - ring internal radius
         - dr - ring width
         """
-        if self.pbits & 128 : print 'in PyAlgos.set_son_pars()'
+        if self.pbits & 128 : print('in PyAlgos.set_son_pars()')
 
         self.aap.set_son_pars(r0, dr)
 
@@ -244,7 +245,7 @@ class PyAlgos :
         - amax_thr - threshold on total amplitude
         - son_min - minimal S/N in peak
         """
-        if self.pbits & 128 : print 'in PyAlgos.set_peak_selection_pars()'
+        if self.pbits & 128 : print('in PyAlgos.set_peak_selection_pars()')
 
         self.aap.set_peak_selection_pars(npix_min, npix_max, amax_thr, atot_thr, son_min)
 
@@ -254,7 +255,7 @@ class PyAlgos :
         """
         - mask - array with mask 1/0 - good/bad pixel
         """
-        if self.pbits & 128 : print 'in PyAlgos.set_mask()'
+        if self.pbits & 128 : print('in PyAlgos.set_mask()')
 
         if mask is None : self.mask = None
         else : self.mask = np.array(mask, dtype=np.uint16)
@@ -262,15 +263,15 @@ class PyAlgos :
 ##-----------------------------
 
     def print_input_pars(self) :
-        if self.pbits & 128 : print 'in PyAlgos.print_input_pars()'
+        if self.pbits & 128 : print('in PyAlgos.print_input_pars()')
 
         self.aap.print_input_pars()
 
 ##-----------------------------
 
     def print_attributes(self) :
-        print '%s attributes:' % self.__class__.__name__, \
-              '\n  pbits  : %d' % self.pbits # , \
+        print('%s attributes:' % self.__class__.__name__, \
+              '\n  pbits  : %d' % self.pbits) # , \
               #'\n  windows:%s' % str(self.windows), \
               #'\n  size: %s  shape: %s  dtype: %s' % (self.windows.size, self.windows.shape, self.windows.dtype)
         print_arr_attr(self.windows, cmt='windows')
@@ -317,7 +318,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.number_of_pix_above_thr_u3(nda, msk, thr)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.number_of_pix_above_thr(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.number_of_pix_above_thr(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -348,7 +349,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.intensity_of_pix_above_thr_u3(nda, msk, thr)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.intensity_of_pix_above_thr(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.intensity_of_pix_above_thr(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -379,7 +380,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.peak_finder_v1_u3(nda, msk, thr_low, thr_high, radius, dr)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.peak_finder_v1(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.peak_finder_v1(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -410,7 +411,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.peak_finder_v4_u3(nda, msk, thr_low, thr_high, rank, r0, dr)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.peak_finder_v4(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.peak_finder_v4(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -441,7 +442,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.peak_finder_v4r1_u3(nda, msk, thr_low, thr_high, rank, r0, dr)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.peak_finder_v4r1(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.peak_finder_v4r1(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -472,7 +473,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.peak_finder_v4r2_u3(nda, msk, thr_low, thr_high, rank, r0, dr)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.peak_finder_v4r2(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.peak_finder_v4r2(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -508,7 +509,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.peak_finder_v2_u3(nda, msk, thr, r0, dr)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.peak_finder_v2(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.peak_finder_v2(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -539,7 +540,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.peak_finder_v2r1_u3(nda, msk, thr, r0, dr)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.peak_finder_v2r1(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.peak_finder_v2r1(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -547,7 +548,7 @@ class PyAlgos :
 
     def maps_of_pixel_status(self) :
 
-        if self.pbits & 128 : print 'in PyAlgos.maps_of_pixel_status()'
+        if self.pbits & 128 : print('in PyAlgos.maps_of_pixel_status()')
         arr = self.aap.maps_of_pixel_status()
         if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_pixel_status arr:')
         return arr
@@ -556,7 +557,7 @@ class PyAlgos :
 
     def maps_of_connected_pixels(self) :
 
-        if self.pbits & 128 : print 'in PyAlgos.maps_of_connected_pixels()'
+        if self.pbits & 128 : print('in PyAlgos.maps_of_connected_pixels()')
         arr = self.aap.maps_of_connected_pixels()
         if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_connected_pixels arr:')
         return arr
@@ -588,7 +589,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.peak_finder_v3_u3(nda, msk, rank, r0, dr, nsigm)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.peak_finder_v3(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.peak_finder_v3(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -619,7 +620,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.peak_finder_v3r1_u3(nda, msk, rank, r0, dr, nsigm)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.peak_finder_v3r1(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.peak_finder_v3r1(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -650,7 +651,7 @@ class PyAlgos :
         if dtype == np.uint16 : return self.aap.peak_finder_v3r2_u3(nda, msk, rank, r0, dr, nsigm)
 
         if self.pbits :
-            print 'WARNING: PyAlgos.peak_finder_v3r2(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+            print('WARNING: PyAlgos.peak_finder_v3r2(.) method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
 
         return None
 
@@ -658,7 +659,7 @@ class PyAlgos :
 
     def maps_of_local_minimums(self) :
 
-        if self.pbits & 128 : print 'in PyAlgos.maps_of_local_minimums()'
+        if self.pbits & 128 : print('in PyAlgos.maps_of_local_minimums()')
         arr = self.aap.maps_of_local_minimums()
         if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_local_minimums arr:')
         return arr
@@ -667,7 +668,7 @@ class PyAlgos :
 
     def maps_of_local_maximums(self) :
 
-        if self.pbits & 128 : print 'in PyAlgos.maps_of_local_maximums()'
+        if self.pbits & 128 : print('in PyAlgos.maps_of_local_maximums()')
         arr = self.aap.maps_of_local_maximums()
         if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_local_maximums arr:')
         return arr
@@ -706,7 +707,7 @@ def photons_2d(data, mask=None, thr_fraction=0.9) :
     #if dtype == np.int16  : return ImgAlgos.map_photon_numbers_v1_s2(nda, msk, thr)
     #if dtype == np.uint16 : return ImgAlgos.map_photon_numbers_v1_u2(nda, msk, thr)
 
-    print 'WARNING: PyAlgos.photons_2d method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype))
+    print('WARNING: PyAlgos.photons_2d method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
     return None
 
 #arr = ImgAlgos.local_maximums_f2(data, mask, 5)
@@ -752,7 +753,7 @@ def test_photons_2d() :
 
     t0_sec = time()
     arr = photons_2d(data, mask, thr_fraction=0.9)
-    print '\nTime consumed by photons_2d(data, mask) (sec) = %10.6f' % (time()-t0_sec)
+    print('\nTime consumed by photons_2d(data, mask) (sec) = %10.6f' % (time()-t0_sec))
 
     piagu.print_ndarr(arr, 'arr', last=10)
 
@@ -785,12 +786,12 @@ def test_photons_2d_chuck() :
     piagu.print_ndarr(data, 'data', last=12)
     piagu.print_ndarr(mask, 'mask', last=12)
 
-    print("data:", data)
+    print(("data:", data))
 
     t0_sec = time()
     arr = photons_2d(data, mask, thr_fraction=0.9)
-    print '\nTime consumed by photons_2d(data, mask) (sec) = %10.6f' % (time()-t0_sec)
-    print("res:", arr)
+    print('\nTime consumed by photons_2d(data, mask) (sec) = %10.6f' % (time()-t0_sec))
+    print(("res:", arr))
 
     piagu.print_ndarr(arr, 'arr', last=10)
 
@@ -810,7 +811,7 @@ def test_photons_3d() :
 
     t0_sec = time()
     arr3d = photons(data, mask)
-    print '\nTime consumed by photons(data, mask) (sec) = %10.6f' % (time()-t0_sec)
+    print('\nTime consumed by photons(data, mask) (sec) = %10.6f' % (time()-t0_sec))
 
 
     arr2d = arr3d[1,:]
@@ -840,7 +841,7 @@ def test_pyalgos() :
     alg = PyAlgos(windows, pbits=0)
     alg.print_attributes()
 
-    print '\nC++ consumed time to get raw data (sec) = %10.6f' % (time()-t0_sec)
+    print('\nC++ consumed time to get raw data (sec) = %10.6f' % (time()-t0_sec))
 
 ##-----------------------------
 ##-----------------------------
@@ -849,7 +850,7 @@ def test_pyalgos() :
 if __name__ == "__main__" :
 
     if len(sys.argv)==1    :
-        print 'For test(s) use command: python', sys.argv[0], '<test-number=1-...>'
+        print('For test(s) use command: python', sys.argv[0], '<test-number=1-...>')
         test_pyalgos()
 
     elif(sys.argv[1]=='1') : test_pyalgos()
@@ -857,7 +858,7 @@ if __name__ == "__main__" :
     elif(sys.argv[1]=='3') : test_photons_2d_chuck()
     elif(sys.argv[1]=='4') : test_photons_3d()
 
-    else : print 'Non-expected arguments: sys.argv=', sys.argv, ' use 0,1,2,...'
+    else : print('Non-expected arguments: sys.argv=', sys.argv, ' use 0,1,2,...')
 
     sys.exit ('Self test is done.')
 

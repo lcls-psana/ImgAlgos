@@ -24,6 +24,7 @@ part of it, please give an appropriate acknowledgment.
 
 @author Mikhail Dubrovin
 """
+from __future__ import print_function
 
 #------------------------------
 #  Module's version from CVS --
@@ -92,7 +93,7 @@ def input_option_parser() :
 def init_pars() :
 
 # 1-1) parse input parameters, set default pars:
-    print '\n1-1) Get and set input and default parameters:'
+    print('\n1-1) Get and set input and default parameters:')
     pwdir       = commands.getoutput('echo $PWD') # or may be .getstatusoutput('cd $PWD')
 
     opts, args = input_option_parser()
@@ -108,29 +109,29 @@ def init_pars() :
 
     if args != [] : fname_xtc = args[0]
 
-    print 'pwdir           :', pwdir
-    print 'fname config    :', fname_cfg
-    print 'fname xtc       :', fname_xtc
-    print 'fname tau       :', fname_tau
-    print 'cmd_split       :', cmd_split  
-    print 'cmd_proc        :', cmd_proc   
-    print 'cmd_merge       :', cmd_merge  
-    print 'cmd_procres     :', cmd_procres   
-    print 'batch_queue     :', batch_queue
+    print('pwdir           :', pwdir)
+    print('fname config    :', fname_cfg)
+    print('fname xtc       :', fname_xtc)
+    print('fname tau       :', fname_tau)
+    print('cmd_split       :', cmd_split)  
+    print('cmd_proc        :', cmd_proc)   
+    print('cmd_merge       :', cmd_merge)  
+    print('cmd_procres     :', cmd_procres)   
+    print('batch_queue     :', batch_queue)
 
 # 1-2) parse path to XTC file
     dname, name, ext = parse_path(fname_xtc)
-    print '\n1-2) XTC path parsing results:'
-    print 'dname : ' + dname
-    print 'name  : ' + name 
-    print 'ext   : ' + ext 
+    print('\n1-2) XTC path parsing results:')
+    print('dname : ' + dname)
+    print('name  : ' + name) 
+    print('ext   : ' + ext) 
 
 # 1-3) parse XTC file name
     instrument, experiment, run_str, run_num = parse_xtc_fname(fname_xtc)
-    print '\n1-3) XTC file name parsing results:'
-    print 'inst  : ' + instrument
-    print 'exp   : ' + experiment
-    print 'run   : ' + run_str, run_num
+    print('\n1-3) XTC file name parsing results:')
+    print('inst  : ' + instrument)
+    print('exp   : ' + experiment)
+    print('run   : ' + run_str, run_num)
 
 # 1-4) parse the cfg file and get parameters
 #  fname_prefix  = img-xcs
@@ -141,14 +142,14 @@ def init_pars() :
     fname_com    = fname_prefix + '-' + run_str
     dname_work   = get_dirname_from_path(fname_com)
 
-    print '\n1-4) Get parameters from configuration file:'
-    print 'fname_prefix is found with value: ' + fname_prefix  
-    print 'nfiles_out   is found with value: ',  nfiles_out
-    print 'fname_com                       : ' + fname_com
-    print 'dname_work                      : ' + dname_work
+    print('\n1-4) Get parameters from configuration file:')
+    print('fname_prefix is found with value: ' + fname_prefix)  
+    print('nfiles_out   is found with value: ',  nfiles_out)
+    print('fname_com                       : ' + fname_com)
+    print('dname_work                      : ' + dname_work)
 
 # 1-5) save all parameters in a singleton object coranapars = CorAnaPars()
-    print '\n1-5) Save all parameters in a singleton object "coranapars"'
+    print('\n1-5) Save all parameters in a singleton object "coranapars"')
     cp = cap.coranapars
     cp.set_default_pars(cmd_split, cmd_proc, cmd_merge, cmd_procres, batch_queue, pwdir)
     cp.set_input_pars(fname_cfg, fname_xtc, fname_tau)
@@ -165,40 +166,40 @@ def get_list_of_files_in_dir(dirname) :
 #--------------------
 
 def print_all_files_in_dir(dirname) :
-    print 'List of files in the dir.', dirname
+    print('List of files in the dir.', dirname)
     for fname in get_list_of_files_in_dir(dirname) :
-        print fname
-    print '\n'
+        print(fname)
+    print('\n')
 
 #--------------------
 
 def print_list_of_files_in_dir(dirname, path_or_fname) :
     dname, fname = os.path.split(path_or_fname)     # i.e. ('work_corana', 'img-xcs-r0015-b0000.bin')
-    print 'print_list_of_files_in_dir():  directory:' + dirname + '  fname:' + fname
+    print('print_list_of_files_in_dir():  directory:' + dirname + '  fname:' + fname)
 
     for fname_in_dir in get_list_of_files_in_dir(dirname) :
         if fname in fname_in_dir :
-            print fname_in_dir    
-    print '\n'
+            print(fname_in_dir)    
+    print('\n')
 
 #--------------------
 
 def get_array_from_file(fname) :
-    print 'get_array_from_file:', fname
+    print('get_array_from_file:', fname)
     return np.loadtxt(fname, dtype=np.float32)
 
 #--------------------
 
 def print_parsed_path(path) :
-    print 'print_parsed_path(path): path:', path
-    print 'exists(path)  =', os.path.exists(path)
-    print 'splitext(path)=', os.path.splitext(path)
-    print 'basename(path)=', os.path.basename(path)
-    print 'dirname(path) =', os.path.dirname(path)
-    print 'lexists(path) =', os.path.lexists(path)
-    print 'isfile(path)  =', os.path.isfile(path)
-    print 'isdir(path)   =', os.path.isdir(path)
-    print 'split(path)   =', os.path.split(path)   
+    print('print_parsed_path(path): path:', path)
+    print('exists(path)  =', os.path.exists(path))
+    print('splitext(path)=', os.path.splitext(path))
+    print('basename(path)=', os.path.basename(path))
+    print('dirname(path) =', os.path.dirname(path))
+    print('lexists(path) =', os.path.lexists(path))
+    print('isfile(path)  =', os.path.isfile(path))
+    print('isdir(path)   =', os.path.isdir(path))
+    print('split(path)   =', os.path.split(path))   
 
 #--------------------
 
@@ -234,7 +235,7 @@ def get_xtc_fname_from_cfg_file(cfgname) :
         pos = line.find('files')
         if line[pos:pos+5] != 'files' : continue
         fname_xtc = line[line.find('/reg/d/psdm/'):line.find('.xtc')+4]
-        print 'The 1st xtc file name: ' + fname_xtc
+        print('The 1st xtc file name: ' + fname_xtc)
         return fname_xtc
 
     return None
@@ -306,44 +307,44 @@ def split_string(str,separator='-s') :
 #--------------------
 
 def check_the_file(trailer) :
-    print 'check_the_file(trailer): for trailer: ' + trailer
-    print 'in the directory: ' + cp.dname_work
+    print('check_the_file(trailer): for trailer: ' + trailer)
+    print('in the directory: ' + cp.dname_work)
     list_of_files = get_list_of_files_in_dir(cp.dname_work)
     #print 'list_of_files =', list_of_files
     
     path = cp.fname_com + trailer
     dname, fname = os.path.split(path)     # i.e. ('work_corana', 'img-xcs-r0015-b0000.bin')
-    print path,        
+    print(path, end=' ')        
 
     if fname in list_of_files :
-        print '- is found'
+        print('- is found')
     else :
-        print '- is NOT FOUND !!!'
+        print('- is NOT FOUND !!!')
         sys.exit('Files with splitted image are not produced successfully... Job is terminated.')
 
 #--------------------
 
 def check_list_of_files(trailer) :
-    print 'check_list_of_files(trailer): for trailer: ' + trailer
-    print 'in the directory: ' + cp.dname_work
+    print('check_list_of_files(trailer): for trailer: ' + trailer)
+    print('in the directory: ' + cp.dname_work)
     list_of_files = get_list_of_files_in_dir(cp.dname_work)
     #print 'list_of_files =', list_of_files
     
     for f in range (cp.nfiles_out) :
         path = cp.fname_com + '-b%04d'%(f) + trailer
         dname, fname = os.path.split(path)     # i.e. ('work_corana', 'img-xcs-r0015-b0000.bin')
-        print path,        
+        print(path, end=' ')        
 
         if fname in list_of_files :
-            print '- is found'
+            print('- is found')
         else :
-            print '- is NOT FOUND !!!'
+            print('- is NOT FOUND !!!')
             sys.exit('Files with splitted image are not produced successfully... Job is terminated.')
 
 #--------------------
 
 def remove_file(path) :
-    print 'remove file: ' + path
+    print('remove file: ' + path)
     p = subprocess.Popen(['rm', path], stdout=subprocess.PIPE)
     p.wait() # short time waiting untill submission is done, 
 
@@ -368,11 +369,11 @@ def remove_split_files() :
 def print_subproc_attributes(proc):
     """ Use it after command like: proc = subprocess.Popen(bcmd, stdout=subprocess.PIPE)"""
     pid_str = str(proc.pid)
-    print 'pid           :', proc.pid
-    print 'stdin         :', proc.stdin     # shouuld be treated as open file
-    print 'stderr        :', proc.stderr    # shouuld be treated as open file
-    print 'stdout        :', proc.stdout    # shouuld be treated as open file
-    print 'returncode    :', proc.returncode
+    print('pid           :', proc.pid)
+    print('stdin         :', proc.stdin)     # shouuld be treated as open file
+    print('stderr        :', proc.stderr)    # shouuld be treated as open file
+    print('stdout        :', proc.stdout)    # shouuld be treated as open file
+    print('returncode    :', proc.returncode)
     
 #--------------------
 
@@ -382,7 +383,7 @@ def batch_job_submit(command_seq) : # for example command_seq=['bsub', '-q', cp.
     #print_subproc_attributes(p)
     line = p.stdout.readline() # read() - reads entire file
     # here we pares the line assuming that it looks like: Job <126090> is submitted to queue <psfehq>.
-    print line
+    print(line)
     line_fields = line.split(' ')
     if line_fields[0] != 'Job' :
         sys.exit('EXIT: Unexpected response at batch submission: ' + line)
@@ -420,42 +421,42 @@ def batch_job_status_and_nodename(job_id_str) :
 #--------------------
 
 def one_batch_job_submit_and_wait (command_seq) :
-    print 'Sequence of parameters for the batch command:\n', command_seq
+    print('Sequence of parameters for the batch command:\n', command_seq)
     #=====
     job_id, cp.status = batch_job_submit(command_seq), None
     #=====
-    print 'Wait untill batch job is compleated...\n',
+    print('Wait untill batch job is compleated...\n', end=' ')
     sleep_time = 5 # sleep time in sec
     counter=0
     while cp.status != 'DONE':
         counter+=1
         time.sleep(sleep_time) # sleep time in sec 
         cp.status, cp.nodename = batch_job_status_and_nodename(job_id)
-        print 'Check batch status in', counter*sleep_time,'sec after submission:', job_id, cp.status, cp.nodename
+        print('Check batch status in', counter*sleep_time,'sec after submission:', job_id, cp.status, cp.nodename)
 
         if cp.status == 'EXIT':
-            print 'Something is going wrong. Check the log file for this command sequence:\n', command_seq
+            print('Something is going wrong. Check the log file for this command sequence:\n', command_seq)
             sys.exit('EXIT: Job IS NOT completed !!! See the log-file for details.')
             
 #--------------------
 
 def submit_jobs_for_cor_proc_interactive() :
     cmd_base = cp.cmd_proc # 'corana'
-    print '-cmd_base:\n', cmd_base + ' -f <fname_data> [-t <fname_tau>] [-l <logfile>]'
+    print('-cmd_base:\n', cmd_base + ' -f <fname_data> [-t <fname_tau>] [-l <logfile>]')
 
     for f in range (cp.nfiles_out) :
         fname = cp.fname_com + '-b%04d'%(f) + '.bin'
         cmd = cmd_base + ' -f ' + fname
         if cp.fname_tau is not None : cmd += ' -t ' + cp.fname_tau
-        print cmd
-        print '  Wait untill processing of this file is compleated...\n',
+        print(cmd)
+        print('  Wait untill processing of this file is compleated...\n', end=' ')
         status, log =0, 'DEFAULT LOGFILE FOR CORRELATION PROCESSING - THIS IS A TEST MODE !!!\nTHE getstatusoutput(cmd) IS COMMENTED OUT !!!'
         #=====
         status, log = commands.getstatusoutput(cmd)
         #=====
 
         if status != 0 : 
-            print 'Correlation processing job status:', status
+            print('Correlation processing job status:', status)
             sys.exit('Correlation processing job is completed with non-zero status... Job is terminated.')
 
 #--------------------
@@ -466,7 +467,7 @@ def submit_jobs_for_cor_proc() :
     #bcmd = "bsub -q psfehq -o ~/LCLS/PSANA-V01/log.txt 'corana -f img-xcs-r0015-b0001.bin'"
     #print 'command should be like that:\n', bcmd
 
-    print 'Command stub:', cmd_base + ' -f <fname_data> [-t <fname_tau>] [-l <logfile>]'
+    print('Command stub:', cmd_base + ' -f <fname_data> [-t <fname_tau>] [-l <logfile>]')
 
     d_jobs = {} # Dict. structure {<int-index-of-the-file>:[<job-id>,<status>]}
 
@@ -480,12 +481,12 @@ def submit_jobs_for_cor_proc() :
         bcmd = ['bsub', '-q', cp.batch_queue, '-o', logfn, cmd]
         
         #print cmd
-        print 'Sequence for batch:\n',bcmd
+        print('Sequence for batch:\n',bcmd)
 
         job_id, status, node = batch_job_submit(bcmd), None, None
         d_jobs[f] = [job_id, status, node]
 
-    print 'Wait untill all splitted files processing is compleated...\n',
+    print('Wait untill all splitted files processing is compleated...\n', end=' ')
 
     sleep_time = 10 # sleep time in sec
     cp.all_done = False
@@ -493,7 +494,7 @@ def submit_jobs_for_cor_proc() :
     while not cp.all_done :
         counter+=1
         time.sleep(sleep_time)
-        print 'Check batch status in', counter*sleep_time, 'sec after submission:'
+        print('Check batch status in', counter*sleep_time, 'sec after submission:')
         cp.all_done = True
         
         for ind,job_pars in d_jobs.items():
@@ -501,13 +502,13 @@ def submit_jobs_for_cor_proc() :
             if job_pars[1] != 'DONE' :
                 job_pars[1],job_pars[2] = batch_job_status_and_nodename(job_id)
 
-            print ind, job_pars
+            print(ind, job_pars)
             if job_pars[1] != 'DONE' :
                 cp.all_done = False
 
             if job_pars[1] == 'EXIT' :
                 logfn = cp.fname_com + '-b%04d'%(ind) + '-result-log.txt'
-                print '\nSomething is going wrong. Check the log file: ' + logfn
+                print('\nSomething is going wrong. Check the log file: ' + logfn)
                 sys.exit('EXIT: Job IS NOT completed !!!')
 
     #sys.exit('TEST EXIT')
@@ -517,17 +518,17 @@ def submit_jobs_for_cor_proc() :
 def submit_job_for_splitter_interactive() :
     cmd_base = cp.cmd_split # 'psana'
     command = cmd_base + ' -c ' + cp.fname_cfg + ' ' + cp.fname_xtc
-    print 'run command:\n', command
-    print '  Wait untill splitting is compleated...\n',
+    print('run command:\n', command)
+    print('  Wait untill splitting is compleated...\n', end=' ')
 
     status, log =0, 'DEFAULT LOGFILE FOR SPLITTER - THIS IS A TEST MODE !!!\nTHE getstatusoutput(command) IS COMMENTED OUT !!!'
     #=====
     status, log = commands.getstatusoutput(command)
     #=====
-    print 'Log:\n', log
+    print('Log:\n', log)
 
     if status != 0 : 
-       print 'Splitter job status:', status
+       print('Splitter job status:', status)
        sys.exit('Job for splitter is completed with non-zero status... Job is terminated.')
     
 #--------------------
@@ -541,24 +542,24 @@ def submit_job_for_splitter() :
     cmd += cmd_base + ' -c ' + cp.fname_cfg + ' ' + cp.fname_xtc
 
     one_batch_job_submit_and_wait(['bsub', '-q', cp.batch_queue, '-o', logfn, cmd])
-    print 'Splitter job is completed.'
+    print('Splitter job is completed.')
 
 #--------------------
 
 def submit_job_for_merging_interactive() :
     cmd_base = cp.cmd_merge # 'corana_merge'
-    print 'cmd_base:\n', cmd_base + ' -f <fname_data> [-t <fname_tau>]'
+    print('cmd_base:\n', cmd_base + ' -f <fname_data> [-t <fname_tau>]')
     fname = cp.fname_com + '-b0000-result.bin'
     cmd = cmd_base + ' -f ' + fname
     if cp.fname_tau is not None : cmd += ' -t ' + cp.fname_tau
-    print cmd
-    print '  Wait untill merging is compleated...\n',
+    print(cmd)
+    print('  Wait untill merging is compleated...\n', end=' ')
     status, log =0, 'DEFAULT LOGFILE FOR MERGING - THIS IS A TEST MODE !!!\nTHE getstatusoutput(cmd) IS COMMENTED OUT !!!'
     #=====
     status, log = commands.getstatusoutput(cmd)
     #=====
     if status != 0 : 
-       print 'Merging job status: ', status
+       print('Merging job status: ', status)
        sys.exit('Job for merging is completed with non-zero status... Job is terminated.')
 
 #--------------------
@@ -573,24 +574,24 @@ def submit_job_for_merging() :
     if cp.fname_tau is not None : cmd += ' -t ' + cp.fname_tau
 
     one_batch_job_submit_and_wait(['bsub', '-q', cp.batch_queue, '-o', logfn, cmd])
-    print 'Merging is completed.'
+    print('Merging is completed.')
 
 #--------------------
 
 def submit_job_for_proc_results_interactive() :
     cmd_base = cp.cmd_procres # 'corana_procres'
-    print 'cmd_base:\n', cmd_base + ' -f <fname_data> [-t <fname_tau>]'
+    print('cmd_base:\n', cmd_base + ' -f <fname_data> [-t <fname_tau>]')
     fname = cp.fname_com + '-b0000-result.bin'
     cmd = cmd_base + ' -f ' + fname
     if cp.fname_tau is not None : cmd += ' -t ' + cp.fname_tau
-    print cmd
-    print '  Wait untill test processing of results is compleated...\n',
+    print(cmd)
+    print('  Wait untill test processing of results is compleated...\n', end=' ')
     status, log =0, 'DEFAULT LOGFILE FOR TEST PROCESSING OF RESULTS - THIS IS A TEST MODE !!!\nTHE getstatusoutput(cmd) IS COMMENTED OUT !!!'
     #=====
     status, log = commands.getstatusoutput(cmd)
     #=====
     if status != 0 : 
-       print 'Test processing of results job status: ', status
+       print('Test processing of results job status: ', status)
        sys.exit('Job test processing of results  is completed with non-zero status... Job is terminated.')
 
 #--------------------
@@ -605,42 +606,42 @@ def submit_job_for_proc_results() :
     if cp.fname_tau is not None : cmd += ' -t ' + cp.fname_tau
 
     one_batch_job_submit_and_wait(['bsub', '-q', cp.batch_queue, '-o', logfn, cmd])
-    print 'Test processing of results is completed.'
+    print('Test processing of results is completed.')
 
 #--------------------
 
 def do_main() :
 
 # 1)===========
-    print '\n1) Initialize all parameters:'
+    print('\n1) Initialize all parameters:')
     init_pars()
 
 # 2)===========
-    print '\n2) Run psana to split image for files:'
+    print('\n2) Run psana to split image for files:')
     submit_job_for_splitter()
     #submit_job_for_splitter_interactive()
     #sys.exit('TEST END')
 
 # 3)===========
-    print '\n3) Check that all splitted files are produced:'
+    print('\n3) Check that all splitted files are produced:')
     check_list_of_files('.bin')
 
 # 4)===========
-    print '\n4) Submit job for time-correlation processing:'
+    print('\n4) Submit job for time-correlation processing:')
     submit_jobs_for_cor_proc()
     #submit_jobs_for_cor_proc_interactive()
 
 # 5)===========
-    print '\n5) Check that all processed files are produced:'
+    print('\n5) Check that all processed files are produced:')
     check_list_of_files('-result.bin')
 
 # 6)===========
-    print '\n6) Submit job for merging:'
+    print('\n6) Submit job for merging:')
     submit_job_for_merging()
     #submit_job_for_merging_interactive()
 
 # 7)===========
-    print '\n7) List all created files:'
+    print('\n7) List all created files:')
     print_list_of_files_in_dir(cp.dname_work, cp.fname_com)
 
 # TODO:
