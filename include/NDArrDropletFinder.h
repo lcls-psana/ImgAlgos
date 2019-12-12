@@ -420,7 +420,7 @@ private:
         m_dtype = NONDEFDT;
 
         // CONST
-        shared_ptr< ndarray<const T,NDim> > shp_const = evt.get(m_source, m_key, &m_src);
+        boost::shared_ptr< ndarray<const T,NDim> > shp_const = evt.get(m_source, m_key, &m_src);
         if (shp_const.get()) {
           m_isconst = true;
           initProcForNDArr<T,NDim>( *shp_const.get() );
@@ -428,7 +428,7 @@ private:
         } 
 
 	// NON-CONST
-        shared_ptr< ndarray<T,NDim> > shp = evt.get(m_source, m_key, &m_src);
+        boost::shared_ptr< ndarray<T,NDim> > shp = evt.get(m_source, m_key, &m_src);
         if (shp.get()) {
           m_isconst = false;
 	  //ndarray<T,NDim>* pnda = shp.get(); 
@@ -447,14 +447,14 @@ private:
     bool procEventForTypeNDim(Event& evt)
     {
       if (m_isconst ) { // CONST
-        shared_ptr< ndarray<const T,NDim> > shp_const = evt.get(m_source, m_key, &m_src);
+        boost::shared_ptr< ndarray<const T,NDim> > shp_const = evt.get(m_source, m_key, &m_src);
         if (shp_const.get()) {
           procEventForNDArr<T,NDim>(evt, *shp_const.get());
  	  return true;
         } 
       }
       else { // NON-CONST
-        shared_ptr< ndarray<T,NDim> > shp = evt.get(m_source, m_key, &m_src);
+        boost::shared_ptr< ndarray<T,NDim> > shp = evt.get(m_source, m_key, &m_src);
         if (shp.get()) {
 	  ndarray<const T,NDim> nda_const(shp->data(), shp->shape());
           procEventForNDArr<T,NDim>(evt, nda_const);

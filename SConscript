@@ -30,5 +30,5 @@ Import('*')
 #standardSConscript()
 
 #standardSConscript(PYEXTMOD="ImgAlgos", LIBS="psalg gomp rt pthread png tiff", UTESTS=[], CCFLAGS="-fopenmp", DOCGEN="doxy-all pyana-ref")
-standardSConscript(PYEXTMOD="imgalgos_ext", LIBS="psalg gomp rt pthread png tiff", UTESTS=[], CCFLAGS="-fopenmp", DOCGEN="doxy-all pyana-ref")
+standardSConscript(PYEXTMOD="imgalgos_ext", LIBS="psalg gomp rt pthread png tiff", UTESTS=[], CCFLAGS="-fopenmp -std=gnu++11", DOCGEN="doxy-all pyana-ref")
 

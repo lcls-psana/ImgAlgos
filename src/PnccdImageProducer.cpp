@@ -84,7 +84,7 @@ PnccdImageProducer::beginCalibCycle(Event& evt, Env& env)
 {
   MsgLog(name(), trace, "in beginCalibCycle()");
 
-  shared_ptr<Psana::PNCCD::ConfigV1> config1 = env.configStore().get(m_str_src);
+  boost::shared_ptr<Psana::PNCCD::ConfigV1> config1 = env.configStore().get(m_str_src);
   if (config1.get()) {
     if( m_print_bits & 4 ) {    
       WithMsgLog(name(), info, str) {
@@ -95,7 +95,7 @@ PnccdImageProducer::beginCalibCycle(Event& evt, Env& env)
     }    
   }
 
-  shared_ptr<Psana::PNCCD::ConfigV2> config2 = env.configStore().get(m_str_src);
+  boost::shared_ptr<Psana::PNCCD::ConfigV2> config2 = env.configStore().get(m_str_src);
   if (config2.get()) {    
     if( m_print_bits & 4 ) {
       WithMsgLog(name(), info, str) {

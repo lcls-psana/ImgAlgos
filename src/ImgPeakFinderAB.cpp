@@ -397,7 +397,7 @@ ImgPeakFinderAB::procStatArrays()
 void 
 ImgPeakFinderAB::procData(Event& evt)
 {
-  shared_ptr< ndarray<const double,2> > img = evt.get(m_str_src, m_key, &m_src);
+  boost::shared_ptr< ndarray<const double,2> > img = evt.get(m_str_src, m_key, &m_src);
   if (img.get()) {
     const double* m_data = img->data();
 
@@ -406,7 +406,7 @@ ImgPeakFinderAB::procData(Event& evt)
     findPeaks();
 
     if(m_key_signal_out != "") {
-        shared_ptr< ndarray<double,2> > img2d( new ndarray<double,2>(m_signal, m_shape) );
+        boost::shared_ptr< ndarray<double,2> > img2d( new ndarray<double,2>(m_signal, m_shape) );
         evt.put(img2d, m_src, m_key_signal_out);
       }
   } 
@@ -874,7 +874,7 @@ ImgPeakFinderAB::savePeaksInFile (std::string& fname, std::vector<Peak> peaks)
 void 
 ImgPeakFinderAB::savePeaksInEvent(Event& evt)
 {
-  shared_ptr< std::vector<Peak> >  sppeaks( new std::vector<Peak>(v_peaks) );
+  boost::shared_ptr< std::vector<Peak> >  sppeaks( new std::vector<Peak>(v_peaks) );
   if( v_peaks.size() > 0 ) evt.put(sppeaks, m_src, m_key_peaks_out);
 }
 

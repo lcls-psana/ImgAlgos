@@ -164,14 +164,14 @@ ImgPixAmpFilter::printInputParameters()
 bool
 ImgPixAmpFilter::getAndProcImage(Event& evt)
 {
-  shared_ptr< CSPadPixCoords::Image2D<double> > img2d = evt.get(m_src, m_key, &m_actualSrc); 
+  boost::shared_ptr< CSPadPixCoords::Image2D<double> > img2d = evt.get(m_src, m_key, &m_actualSrc); 
   if (img2d.get()) {
     MsgLog(name(), debug, "::procImage(...): Get image as Image2D<double>");
     m_img2d = img2d.get();
     return procImage(evt);
   }
 
-  shared_ptr< ndarray<const double,2> > img = evt.get(m_src, m_key, &m_actualSrc);
+  boost::shared_ptr< ndarray<const double,2> > img = evt.get(m_src, m_key, &m_actualSrc);
   if (img.get()) {
     MsgLog(name(), debug, "::procImage(...): Get image as ndarray<double,2> and wrap it in Image2D<double>");
     m_img2d = new CSPadPixCoords::Image2D<double>(img->data(),img->shape()[0],img->shape()[1]);
@@ -246,7 +246,7 @@ ImgPixAmpFilter::procImage(Event& evt)
 void 
 ImgPixAmpFilter::printEventId(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
     //MsgLog( name(), info, "event ID: " << *eventId);
 

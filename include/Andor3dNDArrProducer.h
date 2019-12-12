@@ -102,7 +102,7 @@ private:
   template <typename TOUT>
   bool procEventForOutputType (Event& evt) {
 
-      shared_ptr<Psana::Andor3d::FrameV1> frame1 = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr<Psana::Andor3d::FrameV1> frame1 = evt.get(m_str_src, m_key_in, &m_src);
       if (frame1) {
 	
           std::stringstream str; 

@@ -102,7 +102,7 @@ private:
   template <typename TOUT>
   bool procEventForOutputType (Event& evt) {
 
-      shared_ptr<Psana::PNCCD::FramesV1> frames1 = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr<Psana::PNCCD::FramesV1> frames1 = evt.get(m_str_src, m_key_in, &m_src);
       if (frames1) {
 	
 	  //const unsigned shape = {Segs,Rows,Cols};

@@ -236,7 +236,7 @@ public:
   bool procNDArrForTypeAndND(Event& evt, Env& env) {
 
        // CONST ndarray 
-       shared_ptr< ndarray<const T,ND> > shp_const = evt.get(m_source, m_inkey, &m_src); // get m_src here
+       boost::shared_ptr< ndarray<const T,ND> > shp_const = evt.get(m_source, m_inkey, &m_src); // get m_src here
        if (shp_const.get()) {
          if ( ! getCalibPars(evt, env) ) return false;
          const ndarray<const T,ND>& nda = *shp_const.get();
@@ -245,7 +245,7 @@ public:
        }
 
        // NON-CONST ndarray 
-       shared_ptr< ndarray<T,ND> > shp = evt.get(m_source, m_inkey, &m_src); // get m_src here
+       boost::shared_ptr< ndarray<T,ND> > shp = evt.get(m_source, m_inkey, &m_src); // get m_src here
        if (shp.get()) {
          if ( ! getCalibPars(evt, env) ) return false;
          ndarray<T,ND>& nda = *shp.get();

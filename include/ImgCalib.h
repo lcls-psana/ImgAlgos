@@ -208,11 +208,11 @@ private:
     bool procEventForType(Event& evt)
     {
         // CONST
-     	shared_ptr< ndarray<const T,2> > shp_const = evt.get(m_str_src, m_key_in, &m_src);
+     	boost::shared_ptr< ndarray<const T,2> > shp_const = evt.get(m_str_src, m_key_in, &m_src);
      	if (shp_const.get()) { applyCorrections<T,TOUT>(evt, shp_const->data()); return true; } 
 
         // NON-CONST
-     	shared_ptr< ndarray<T,2> > shp = evt.get(m_str_src, m_key_in, &m_src);
+     	boost::shared_ptr< ndarray<T,2> > shp = evt.get(m_str_src, m_key_in, &m_src);
      	if (shp.get()) { applyCorrections<T,TOUT>(evt, shp->data()); return true; } 
 
         return false;

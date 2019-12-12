@@ -110,7 +110,7 @@ PrincetonImageProducer::beginCalibCycle(Event& evt, Env& env)
 
     MsgLog(name(), info, "in beginCalibCycle()");
     
-    shared_ptr<Psana::Princeton::ConfigV1> config1 = env.configStore().get(m_str_src);
+    boost::shared_ptr<Psana::Princeton::ConfigV1> config1 = env.configStore().get(m_str_src);
     if (config1.get()) {    
       WithMsgLog(name(), info, str) {
         str << "Princeton::ConfigV1:";
@@ -130,7 +130,7 @@ PrincetonImageProducer::beginCalibCycle(Event& evt, Env& env)
       }
     }
     
-    shared_ptr<Psana::Princeton::ConfigV2> config2 = env.configStore().get(m_str_src);
+    boost::shared_ptr<Psana::Princeton::ConfigV2> config2 = env.configStore().get(m_str_src);
     if (config2.get()) {
       WithMsgLog(name(), info, str) {
         str << "Princeton::ConfigV2:";
@@ -151,7 +151,7 @@ PrincetonImageProducer::beginCalibCycle(Event& evt, Env& env)
       }    
     }
     
-    shared_ptr<Psana::Princeton::ConfigV3> config3 = env.configStore().get(m_str_src);
+    boost::shared_ptr<Psana::Princeton::ConfigV3> config3 = env.configStore().get(m_str_src);
     if (config3.get()) {    
       WithMsgLog(name(), info, str) {
         str << "Princeton::ConfigV3:";
@@ -172,7 +172,7 @@ PrincetonImageProducer::beginCalibCycle(Event& evt, Env& env)
       } 
     }
 
-    shared_ptr<Psana::Princeton::ConfigV4> config4 = env.configStore().get(m_src);
+    boost::shared_ptr<Psana::Princeton::ConfigV4> config4 = env.configStore().get(m_src);
     if (config4) {
       WithMsgLog(name(), info, str) {
         str << "Princeton::ConfigV4:";
@@ -196,7 +196,7 @@ PrincetonImageProducer::beginCalibCycle(Event& evt, Env& env)
       }
     }
   
-    shared_ptr<Psana::Princeton::ConfigV5> config5 = env.configStore().get(m_src);
+    boost::shared_ptr<Psana::Princeton::ConfigV5> config5 = env.configStore().get(m_src);
     if (config5) {
       WithMsgLog(name(), info, str) {
         str << "Princeton::ConfigV5:";
@@ -221,7 +221,7 @@ PrincetonImageProducer::beginCalibCycle(Event& evt, Env& env)
       }
     }
 
-    shared_ptr<Psana::Pimax::ConfigV1> config1_pimax = env.configStore().get(m_src);
+    boost::shared_ptr<Psana::Pimax::ConfigV1> config1_pimax = env.configStore().get(m_src);
     if (config1_pimax) {    
       WithMsgLog(name(), info, str) {
         str << "Pimax::ConfigV1:";

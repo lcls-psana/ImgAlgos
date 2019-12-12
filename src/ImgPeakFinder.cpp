@@ -199,7 +199,7 @@ ImgPeakFinder::getAndProcImage(Event& evt)
 {
   //MsgLog(name(), info, "::getAndProcImage(...)");
 
-  shared_ptr< CSPadPixCoords::Image2D<double> > img2d = evt.get(m_str_src, m_key, &m_src); 
+  boost::shared_ptr< CSPadPixCoords::Image2D<double> > img2d = evt.get(m_str_src, m_key, &m_src); 
   if (img2d.get()) {
     if( m_print_bits & 16 ) MsgLog(name(), info, "getAndProcImage(...): Get image as Image2D<double>");
     m_img2d = img2d.get();
@@ -208,7 +208,7 @@ ImgPeakFinder::getAndProcImage(Event& evt)
     return procImage(evt);
   }
 
-  shared_ptr< ndarray<const double,2> > img = evt.get(m_str_src, m_key, &m_src);
+  boost::shared_ptr< ndarray<const double,2> > img = evt.get(m_str_src, m_key, &m_src);
   if (img.get()) {
     if( m_print_bits & 16 ) MsgLog(name(), info, "getAndProcImage(...): Get image as ndarray<double,2>");
     m_img2d = new CSPadPixCoords::Image2D<double>(img->data(), img->shape()[0], img->shape()[1]);
@@ -216,7 +216,7 @@ ImgPeakFinder::getAndProcImage(Event& evt)
     return procImage(evt);
   }
 
-  shared_ptr<Psana::Camera::FrameV1> frmData = evt.get(m_str_src, "", &m_src);
+  boost::shared_ptr<Psana::Camera::FrameV1> frmData = evt.get(m_str_src, "", &m_src);
   if (frmData.get()) {
 
     //unsigned h      = frmData->height();
@@ -509,7 +509,7 @@ ImgPeakFinder::savePeaksInEvent(Event& evt)
 {
   if(m_key_peaks_vec.empty()) return;
 
-  shared_ptr< std::vector<Peak> > sppeaks( new std::vector<Peak>(v_peaks) );
+  boost::shared_ptr< std::vector<Peak> > sppeaks( new std::vector<Peak>(v_peaks) );
   if( v_peaks.size() > 0 ) evt.put(sppeaks, m_src, m_key_peaks_vec);
 }
 

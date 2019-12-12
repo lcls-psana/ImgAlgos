@@ -98,7 +98,7 @@ private:
   template <typename TDATA, typename TOUT>
   bool procDataForIOTypes (Event& evt) {
 
-      shared_ptr<TDATA> frame1 = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr<TDATA> frame1 = evt.get(m_str_src, m_key_in, &m_src);
       if (frame1) {
 
           if( m_print_bits & 2 ) {      

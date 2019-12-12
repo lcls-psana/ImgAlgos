@@ -181,7 +181,7 @@ ImgRadialCorrection::getAndProcImage(Event& evt)
 {
   //MsgLog(name(), info, "::getAndProcImage(...)");
 
-  shared_ptr< CSPadPixCoords::Image2D<double> > img2d = evt.get(m_str_src, m_inkey, &m_src); 
+  boost::shared_ptr< CSPadPixCoords::Image2D<double> > img2d = evt.get(m_str_src, m_inkey, &m_src); 
   if (img2d.get()) {
     if( m_print_bits & 8 ) MsgLog(name(), info, "getAndProcImage(...): Get image as Image2D<double>");
     m_img2d = img2d.get();
@@ -190,7 +190,7 @@ ImgRadialCorrection::getAndProcImage(Event& evt)
     return procImage(evt);
   }
 
-  shared_ptr< ndarray<const double,2> > img = evt.get(m_str_src, m_inkey, &m_src);
+  boost::shared_ptr< ndarray<const double,2> > img = evt.get(m_str_src, m_inkey, &m_src);
   if (img.get()) {
     if( m_print_bits & 8 ) MsgLog(name(), info, "getAndProcImage(...): Get image as ndarray<double,2>");
     m_img2d = new CSPadPixCoords::Image2D<double>(img->data(), img->shape()[0], img->shape()[1]);
@@ -198,8 +198,8 @@ ImgRadialCorrection::getAndProcImage(Event& evt)
     return procImage(evt);
   }
 
-  //shared_ptr<Psana::Camera::FrameV1> frmData = evt.get(m_source);
-  shared_ptr<Psana::Camera::FrameV1> frmData = evt.get(m_str_src, "", &m_src);
+  //boost::shared_ptr<Psana::Camera::FrameV1> frmData = evt.get(m_source);
+  boost::shared_ptr<Psana::Camera::FrameV1> frmData = evt.get(m_str_src, "", &m_src);
   if (frmData.get()) {
 
     //unsigned h      = frmData->height();
@@ -442,7 +442,7 @@ ImgRadialCorrection::saveCorrectedImage()
 void 
 ImgRadialCorrection::printEventId(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
     //MsgLog( name(), info, "Event="  << m_count << " ID: " << *eventId);
     MsgLog( name(), info, "Event="  << m_count << " time: " << stringTimeStamp(evt) );
@@ -454,7 +454,7 @@ ImgRadialCorrection::printEventId(Event& evt)
 std::string
 ImgRadialCorrection::stringTimeStamp(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
     return (eventId->time()).asStringFormat("%Y%m%dT%H:%M:%S%f"); //("%Y-%m-%d %H:%M:%S%f%z");
   }
@@ -477,13 +477,13 @@ ImgRadialCorrection::add_corrected_img_in_event(Event& evt)
 {
   if(m_outkey == "rc_Image2D") {
 
-    shared_ptr< CSPadPixCoords::Image2D<double> > img2d( new CSPadPixCoords::Image2D<double>(m_data_arr, m_nrows, m_ncols) );
+    boost::shared_ptr< CSPadPixCoords::Image2D<double> > img2d( new CSPadPixCoords::Image2D<double>(m_data_arr, m_nrows, m_ncols) );
     evt.put(img2d, m_src, m_outkey);
 
   } else {
 
     const unsigned shape[] = {m_nrows, m_ncols};
-    shared_ptr< ndarray<double,2> > img2d( new ndarray<double,2>(m_data_arr,shape) );
+    boost::shared_ptr< ndarray<double,2> > img2d( new ndarray<double,2>(m_data_arr,shape) );
     evt.put(img2d, m_src, m_outkey);
   }
 }

@@ -111,7 +111,7 @@ EventNumberFilter::event(Event& evt, Env& env)
     if ( ! eventIsInList() ) { skip(); return; } // event is discarded
   }
 
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
     if( m_print_bits & 1<<2 ) MsgLog(name(), info, "Select event " << m_count << ", ID: " << *eventId); // "Run: " << eventId->run()
   }

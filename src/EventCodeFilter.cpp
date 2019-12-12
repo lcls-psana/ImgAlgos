@@ -80,7 +80,7 @@ namespace {
   template <typename T> // T = Psana::EvrData::DataV3, 4, ...
   bool printFIFOEventsInEventForType(Event& evt, const Source& source, const unsigned& vers)
   {
-    shared_ptr<T> data = evt.get(source);
+    boost::shared_ptr<T> data = evt.get(source);
     if (data) {    
       WithMsgLog("EventCodeFilter::printFIFOEvents...", info, str) {
         str << "EvrData::DataV" << vers << ": numFifoEvents=" << data->numFifoEvents();
@@ -96,7 +96,7 @@ namespace {
   template <typename T> // T = Psana::EvrData::DataV3, 4, ...
   bool evcodeIsAvailableForType(Event& evt, const Source& source, const uint32_t& evcode) {
 
-    shared_ptr<T> data = evt.get(source);
+    boost::shared_ptr<T> data = evt.get(source);
     if (data) {
       //std::cout << "EvrData::DataV3, 4,...: numFifoEvents=" << data->numFifoEvents();
       const ndarray<const Psana::EvrData::FIFOEvent, 1>& array = data->fifoEvents();

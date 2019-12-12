@@ -258,7 +258,7 @@ UsdUsbEncoderFilter::eventIsSelected(Event& evt, Env& env)
 
   // --- Get timestamp from EventId
 
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
     cout << "  Time from EventId: "  << eventId->time().sec() << "(sec) "
          << eventId->time().nsec() << "(nsec) "
@@ -275,7 +275,7 @@ UsdUsbEncoderFilter::eventIsSelected(Event& evt, Env& env)
 
   // --- Get code from UsdUsb
 
-  shared_ptr<Psana::UsdUsb::DataV1> data1 = evt.get(m_source);
+  boost::shared_ptr<Psana::UsdUsb::DataV1> data1 = evt.get(m_source);
   if (data1) {
     //tstamp_t tstamp = data1->timestamp();
     code_t code = data1->digital_in() & m_bitmask;
@@ -287,7 +287,7 @@ UsdUsbEncoderFilter::eventIsSelected(Event& evt, Env& env)
 
   // --- Get timestamp from Evr
   // Source src_evr("DetInfo(:Evr)");
-  // shared_ptr<Psana::EvrData::DataV3> data3 = evt.get(src_evr);
+  // boost::shared_ptr<Psana::EvrData::DataV3> data3 = evt.get(src_evr);
   // if (data3) {
   //   cout << "  EvrData::DataV3: numFifoEvents=" << data3->numFifoEvents();
   //   const ndarray<const Psana::EvrData::FIFOEvent, 1>& array = data3->fifoEvents();
@@ -336,7 +336,7 @@ UsdUsbEncoderFilter::eventIsSelected(Event& evt, Env& env)
 void 
 UsdUsbEncoderFilter::printConfig(Env& env)
 {
-  shared_ptr<Psana::UsdUsb::ConfigV1> config1 = env.configStore().get(m_source);
+  boost::shared_ptr<Psana::UsdUsb::ConfigV1> config1 = env.configStore().get(m_source);
   if (config1) {
     WithMsgLog(name(), info, str) {
       str << "UsdUsb::ConfigV1:";
@@ -351,7 +351,7 @@ UsdUsbEncoderFilter::printConfig(Env& env)
 void 
 UsdUsbEncoderFilter::printData(Event& evt)
 {
-  shared_ptr<Psana::UsdUsb::DataV1> data1 = evt.get(m_source);
+  boost::shared_ptr<Psana::UsdUsb::DataV1> data1 = evt.get(m_source);
   if (data1) {
     WithMsgLog(name(), info, str) {
       str << "UsdUsb::DataV1:";

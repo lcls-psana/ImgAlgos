@@ -109,12 +109,12 @@ void
 AcqirisCFD::event(Event& evt, Env& env)
 {
   _evtcount++;
-  shared_ptr< ndarray<double,2> > wptr = evt.get(m_str_src, m_key_wform, &m_src);
+  boost::shared_ptr< ndarray<double,2> > wptr = evt.get(m_str_src, m_key_wform, &m_src);
   const ndarray<double,2> *wf = wptr.get();
   unsigned nchan = wf->shape()[0];
   unsigned nsamples = wf->shape()[1];
   if (wf) {
-    shared_ptr< ndarray<double,2> > tptr = evt.get(m_str_src, m_key_wtime, &m_src);
+    boost::shared_ptr< ndarray<double,2> > tptr = evt.get(m_str_src, m_key_wtime, &m_src);
     const ndarray<double,2> &wtime = *tptr;
 
     for (unsigned i=0; i<nchan; i++) {

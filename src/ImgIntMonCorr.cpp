@@ -320,7 +320,7 @@ ImgIntMonCorr::procIntMonData(Event& evt, Env& env)
 Quartet
 ImgIntMonCorr::getIntMonDataForSource(Event& evt, Env& env, const Source& src)
 {  
-  shared_ptr<Psana::Bld::BldDataFEEGasDetEnergy> fee = evt.get(src);
+  boost::shared_ptr<Psana::Bld::BldDataFEEGasDetEnergy> fee = evt.get(src);
   if (fee.get()) {
 
     if( m_print_bits & 64 ) MsgLog( name(), info, "get: " << src << " from Bld::BldDataFEEGasDetEnergy, f_ij_ENRC(): " 
@@ -338,7 +338,7 @@ ImgIntMonCorr::getIntMonDataForSource(Event& evt, Env& env, const Source& src)
 
 //----- for XCS-IPM-02, XCS-IPM-mono, XcsBeamline.1:Ipimb.4, XcsBeamline.1:Ipimb.5, see: psana_examples/src/DumpIpimb.cpp
 
-  shared_ptr<Psana::Lusi::IpmFexV1> fex = evt.get(src);
+  boost::shared_ptr<Psana::Lusi::IpmFexV1> fex = evt.get(src);
   if (fex) {
 
     if( m_print_bits & 64 ) MsgLog( name(), info, "get: " << src << " from Lusi::IpmFexV1" << " channel =" << fex->channel() );
@@ -350,7 +350,7 @@ ImgIntMonCorr::getIntMonDataForSource(Event& evt, Env& env, const Source& src)
   }
 
  
-  shared_ptr<Psana::Ipimb::DataV2> data2 = evt.get(src);
+  boost::shared_ptr<Psana::Ipimb::DataV2> data2 = evt.get(src);
   if (data2.get()) {
 
     if( m_print_bits & 64 ) MsgLog( name(), info, "get: " << src << " from Ipimb::DataV2" );
@@ -363,7 +363,7 @@ ImgIntMonCorr::getIntMonDataForSource(Event& evt, Env& env, const Source& src)
 
 //----- for XCS-IPM-02 and XCS-IPM-mono, see psana_examples/src/DumpBld.cpp
 
-  shared_ptr<Psana::Bld::BldDataIpimbV1> ipimb1 = evt.get(src); 
+  boost::shared_ptr<Psana::Bld::BldDataIpimbV1> ipimb1 = evt.get(src); 
   if (ipimb1.get()) {
 
     const Psana::Lusi::IpmFexV1& ipmFexData = ipimb1->ipmFexData();
@@ -394,7 +394,7 @@ ImgIntMonCorr::getIntMonDataForSource(Event& evt, Env& env, const Source& src)
 Quartet
 ImgIntMonCorr::getIntMonDataForSourceV1(Event& evt, Env& env, const Source& src)
 {  
-  shared_ptr<Psana::Bld::BldDataFEEGasDetEnergy> fee = evt.get(src);
+  boost::shared_ptr<Psana::Bld::BldDataFEEGasDetEnergy> fee = evt.get(src);
   if (fee.get()) {
     return Quartet ((float)fee->f_11_ENRC(), 
                     (float)fee->f_12_ENRC(), 
@@ -404,7 +404,7 @@ ImgIntMonCorr::getIntMonDataForSourceV1(Event& evt, Env& env, const Source& src)
 
 //-----
  
-  shared_ptr<Psana::Ipimb::DataV2> data2 = evt.get(src);
+  boost::shared_ptr<Psana::Ipimb::DataV2> data2 = evt.get(src);
   if (data2.get()) {
     return Quartet ((float)data2->channel0Volts(), 
                     (float)data2->channel1Volts(), 
@@ -414,7 +414,7 @@ ImgIntMonCorr::getIntMonDataForSourceV1(Event& evt, Env& env, const Source& src)
 
 //-----
 
-  shared_ptr<Psana::Bld::BldDataIpimbV1> ipimb1 = evt.get(src);
+  boost::shared_ptr<Psana::Bld::BldDataIpimbV1> ipimb1 = evt.get(src);
   if (ipimb1.get()) {
     const Psana::Ipimb::DataV2& ipimbData = ipimb1->ipimbData();
 

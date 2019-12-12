@@ -100,7 +100,7 @@ private:
   template <typename T>
   bool procEventForFullFrame(Event& evt)
   { 
-      shared_ptr<const T> frame = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr<const T> frame = evt.get(m_str_src, m_key_in, &m_src);
       if (frame) {
       
 	  const ndarray<const data_t, 2> data = frame->data(); // .copy(); - if no const
@@ -119,7 +119,7 @@ private:
   template <typename T>
   bool procEventFor3DArrType(Event& evt)
   { 
-      shared_ptr< ndarray<const T,3> > shp = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr< ndarray<const T,3> > shp = evt.get(m_str_src, m_key_in, &m_src);
       if (shp.get()) {
 
           const ndarray<const T,3> inp_ndarr = *shp.get(); //const T* p_data = shp->data();

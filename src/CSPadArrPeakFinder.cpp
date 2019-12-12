@@ -396,14 +396,14 @@ CSPadArrPeakFinder::procData(Event& evt)
 {
   bool fillArr = m_key_signal_out != "";
 
-  shared_ptr<Psana::CsPad::DataV1> data1 = evt.get(source(), inputKey());
+  boost::shared_ptr<Psana::CsPad::DataV1> data1 = evt.get(source(), inputKey());
   if (data1.get()) {
 
     MsgLog(name(), debug, "Found CsPad::DataV1 object with address " << source() << " and key \"" << inputKey() << "\"");
 
     ++ m_count;
     //setCollectionMode();
-    shared_ptr<cspad_mod::DataV1> newobj(new cspad_mod::DataV1());
+    boost::shared_ptr<cspad_mod::DataV1> newobj(new cspad_mod::DataV1());
     
     int nQuads = data1->quads_shape()[0];
 
@@ -424,14 +424,14 @@ CSPadArrPeakFinder::procData(Event& evt)
     if(fillArr) evt.put<Psana::CsPad::DataV1>(newobj, source(), m_key_signal_out); // put newobj in event
   }
   
-  shared_ptr<Psana::CsPad::DataV2> data2 = evt.get(source(), inputKey());
+  boost::shared_ptr<Psana::CsPad::DataV2> data2 = evt.get(source(), inputKey());
   if (data2.get()) {
 
     MsgLog(name(), debug, "Found CsPad::DataV2 object with address " << source() << " and key \"" << inputKey() << "\"");
 
     ++ m_count;
     //setCollectionMode();
-    shared_ptr<cspad_mod::DataV2> newobj(new cspad_mod::DataV2());
+    boost::shared_ptr<cspad_mod::DataV2> newobj(new cspad_mod::DataV2());
     
     int nQuads = data2->quads_shape()[0];
 
@@ -900,7 +900,7 @@ CSPadArrPeakFinder::evaluateSoNForPixel(unsigned col, unsigned row, const int16_
 void 
 CSPadArrPeakFinder::printEventId(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
     MsgLog( name(), info, "Event="  << m_count << " ID: " << *eventId);
   }
@@ -911,7 +911,7 @@ CSPadArrPeakFinder::printEventId(Event& evt)
 void 
 CSPadArrPeakFinder::printTimeStamp(Event& evt, std::string comment)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
 
     MsgLog( name(), info, "Run="    <<  eventId->run()
@@ -963,7 +963,7 @@ CSPadArrPeakFinder::strEventCounter()
 std::string  
 CSPadArrPeakFinder::strTimeStamp(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
 
     //m_time = eventId->time();
@@ -982,7 +982,7 @@ CSPadArrPeakFinder::strTimeStamp(Event& evt)
 std::string  
 CSPadArrPeakFinder::strRunNumber(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
     std::stringstream ssRunNum; ssRunNum << "r" << std::setw(4) << std::setfill('0') << eventId->run();
     return ssRunNum.str();
@@ -1079,7 +1079,7 @@ CSPadArrPeakFinder::savePeaksInEvent(Event& evt)
 {
   if(m_key_peaks_out.empty()) return;
 
-  shared_ptr< std::vector<Peak> >  sppeaks( new std::vector<Peak>(v_peaks) );
+  boost::shared_ptr< std::vector<Peak> >  sppeaks( new std::vector<Peak>(v_peaks) );
   evt.put(sppeaks, source(), m_key_peaks_out);
 }
 

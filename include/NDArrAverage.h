@@ -202,7 +202,7 @@ protected:
     template <typename T, unsigned NDim>
     bool collectStatForTypeNdim(Event& evt)
     { 
-        shared_ptr< ndarray<T,NDim> > shp = evt.get(m_str_src, m_key, &m_src);
+        boost::shared_ptr< ndarray<T,NDim> > shp = evt.get(m_str_src, m_key, &m_src);
         if (shp.get()) { accumulateCorrelators<T>(shp->data()); return true; } 
         return false;
     }

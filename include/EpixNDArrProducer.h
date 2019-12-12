@@ -96,7 +96,7 @@ private:
   template <typename T>
   bool getConfigData (Env& env, const std::string& objname=std::string("ConfigV1")) {
 
-    shared_ptr<T> config1 = env.configStore().get(m_str_src);
+    boost::shared_ptr<T> config1 = env.configStore().get(m_str_src);
     if (config1.get()) {    
       if( m_print_bits & 4 ) {
         WithMsgLog(name(), info, str) {
@@ -132,7 +132,7 @@ private:
   template <typename TOUT>
   bool procEventForOutputType (Event& evt) {
 
-      shared_ptr<Psana::Epix::ElementV1> data1 = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr<Psana::Epix::ElementV1> data1 = evt.get(m_str_src, m_key_in, &m_src);
       if (data1) {
 	
           const ndarray<const data_t, 2> data = data1->frame();
@@ -171,7 +171,7 @@ private:
 	  }
       }
 
-      shared_ptr<Psana::Epix::ElementV2> data2 = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr<Psana::Epix::ElementV2> data2 = evt.get(m_str_src, m_key_in, &m_src);
       if (data2) {
 	
           const ndarray<const data_t, 2> data = data2->frame();
@@ -209,7 +209,7 @@ private:
 	  }
       }
 
-      shared_ptr<Psana::Epix::ElementV3> data3 = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr<Psana::Epix::ElementV3> data3 = evt.get(m_str_src, m_key_in, &m_src);
       if (data3) {
 	
           const ndarray<const data_t, 2> data = data3->frame();

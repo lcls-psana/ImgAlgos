@@ -130,7 +130,7 @@ ImgPeakFilter::event(Event& evt, Env& env)
 
   if ( m_sel_mode == SELECTION_OFF ) { ++ m_selected; return; } // If the filter is OFF then event is selected
 
-  shared_ptr< vector<Peak> > peaks = evt.get(m_str_src, m_key, &m_src);
+  boost::shared_ptr< vector<Peak> > peaks = evt.get(m_str_src, m_key, &m_src);
   if (peaks.get()) {
     m_peaks = peaks.get();
     if ( m_sel_mode == SELECTION_ON  &&  eventIsSelected(evt) ) { doForSelectedEvent(evt); return; } // event is selected
@@ -233,7 +233,7 @@ ImgPeakFilter::printPeaks()
 void 
 ImgPeakFilter::printEventId(Event& evt)
 {
-  //shared_ptr<PSEvt::EventId> eventId = evt.get();
+  //boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   //if (eventId.get()) MsgLog( name(), info, "event ID: " << *eventId );
 
   MsgLog( name(), info, "r"        << stringRunNumber(evt) 

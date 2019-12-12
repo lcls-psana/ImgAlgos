@@ -175,7 +175,7 @@ protected:
     template <typename T>
     bool initSplitInFilesForType(Event& evt, Env& env)
     {
-      shared_ptr< ndarray<const T,2> > img = evt.get(m_str_src, m_key, &m_src);
+      boost::shared_ptr< ndarray<const T,2> > img = evt.get(m_str_src, m_key, &m_src);
 
       if (img.get()) {
 
@@ -238,7 +238,7 @@ protected:
     template <typename T>
     bool procEventForType(Event& evt)
     {
-      shared_ptr< ndarray<const T,2> > shp = evt.get(m_str_src, m_key, &m_src);
+      boost::shared_ptr< ndarray<const T,2> > shp = evt.get(m_str_src, m_key, &m_src);
       if (shp.get()) {
         m_data_type_input = typeid(T).name();
         procSplitAndWriteImgInFiles<T> (shp, m_print_bits & 8);

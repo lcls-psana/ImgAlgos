@@ -138,7 +138,7 @@ AcqirisArrProducer::event(Event& evt, Env& env)
 std::string
 AcqirisArrProducer::getAcqirisConfig(Event& evt, Env& env)
 {
-  shared_ptr<Psana::Acqiris::ConfigV1> acqConfig = env.configStore().get(m_str_src, &m_src);
+  boost::shared_ptr<Psana::Acqiris::ConfigV1> acqConfig = env.configStore().get(m_str_src, &m_src);
   if (acqConfig) {
       stringstream ss; 
       ss  << "Acqiris::ConfigV1:\n"
@@ -177,11 +177,11 @@ AcqirisArrProducer::print_wf_in_event(Event& evt, Env& env)
 {
 
   //Pds::Src src;
-  shared_ptr<Psana::Acqiris::DataDescV1> acqData = evt.get(m_src);
+  boost::shared_ptr<Psana::Acqiris::DataDescV1> acqData = evt.get(m_src);
   if (acqData) {
     
     // find matching config object
-    shared_ptr<Psana::Acqiris::ConfigV1> acqConfig = env.configStore().get(m_src);
+    boost::shared_ptr<Psana::Acqiris::ConfigV1> acqConfig = env.configStore().get(m_src);
     
     // loop over channels
     int nchan = acqData->data_shape()[0];
@@ -239,10 +239,10 @@ AcqirisArrProducer::print_wf_index_info(uint32_t indexFirstPoint, int32_t i0_seg
 void 
 AcqirisArrProducer::proc_and_put_wf_in_event(Event& evt, Env& env)
 {
-  shared_ptr<Psana::Acqiris::DataDescV1> acqData = evt.get(m_src);
+  boost::shared_ptr<Psana::Acqiris::DataDescV1> acqData = evt.get(m_src);
   if (acqData) {
     // find matching config object
-    shared_ptr<Psana::Acqiris::ConfigV1> acqConfig = env.configStore().get(m_src);
+    boost::shared_ptr<Psana::Acqiris::ConfigV1> acqConfig = env.configStore().get(m_src);
     // int nbrChannels = acqData->data_shape()[0];
     //uint32_t channelMask = acqConfig->channelMask();
     uint32_t nbrChannels = acqConfig->nbrChannels();

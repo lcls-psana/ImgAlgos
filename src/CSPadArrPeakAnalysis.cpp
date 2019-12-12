@@ -128,7 +128,7 @@ CSPadArrPeakAnalysis::endJob(Event& evt, Env& env)
 void 
 CSPadArrPeakAnalysis::procEvent(Event& evt)
 {
-  shared_ptr< std::vector<Peak> > peaks = evt.get(m_str_src, m_key, &m_src);
+  boost::shared_ptr< std::vector<Peak> > peaks = evt.get(m_str_src, m_key, &m_src);
   if (peaks.get()) {
     m_peaks = peaks.get();
     if( m_print_bits & 4 ) printPeaks();
@@ -231,7 +231,7 @@ CSPadArrPeakAnalysis::printInputParameters()
 void 
 CSPadArrPeakAnalysis::printEventId(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
     MsgLog( name(), info, "Event="  << m_count << " ID: " << *eventId);
   }
@@ -242,7 +242,7 @@ CSPadArrPeakAnalysis::printEventId(Event& evt)
 void 
 CSPadArrPeakAnalysis::printTimeStamp(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
 
     MsgLog( name(), info, " Run="   <<  eventId->run()

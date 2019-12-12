@@ -367,7 +367,7 @@ CSPadArrNoise::printInputParameters()
 void 
 CSPadArrNoise::printEventId(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
     MsgLog( name(), info, "Event="  << counter() << " ID: " << *eventId);
   }
@@ -378,7 +378,7 @@ CSPadArrNoise::printEventId(Event& evt)
 void 
 CSPadArrNoise::printTimeStamp(Event& evt)
 {
-  shared_ptr<PSEvt::EventId> eventId = evt.get();
+  boost::shared_ptr<PSEvt::EventId> eventId = evt.get();
   if (eventId.get()) {
 
     MsgLog( name(), info, " Run="   <<  eventId->run()

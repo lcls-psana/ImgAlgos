@@ -120,7 +120,7 @@ private:
   template <typename TDATA, typename TOUT>
   bool procDataForIOTypes (Event& evt) {
 
-      shared_ptr<TDATA> frame = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr<TDATA> frame = evt.get(m_str_src, m_key_in, &m_src);
       if (frame.get()) {
 
           if(m_dtype == ASDATA) {

@@ -127,7 +127,7 @@ CameraImageProducer::beginCalibCycle(Event& evt, Env& env)
 
       MsgLog(name(), info, "in beginCalibCycle()");
       
-      shared_ptr<Psana::Camera::FrameFexConfigV1> config1 = env.configStore().get(m_src);
+      boost::shared_ptr<Psana::Camera::FrameFexConfigV1> config1 = env.configStore().get(m_src);
       if (config1) {
         WithMsgLog(name(), info, str) {
           str << "Camera::FrameFexConfigV1:";

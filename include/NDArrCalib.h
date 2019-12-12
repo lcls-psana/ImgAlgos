@@ -491,7 +491,7 @@ private:
     {
       if (m_ndim != NDim) return false;
 
-      shared_ptr< ndarray<T,NDim> > shp = evt.get(m_str_src, m_key_in, &m_src);
+      boost::shared_ptr< ndarray<T,NDim> > shp = evt.get(m_str_src, m_key_in, &m_src);
       if (shp.get()) { 
         ndarray<TPROC,NDim> out_nda(shp->shape());
         applyCorrections<T,TPROC>(evt, shp->data(), out_nda.data()); 
