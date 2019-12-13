@@ -47,7 +47,7 @@ print('%s\nExample for\n  dataset: %s\n  source : %s' % (85*'_',dsname, src))
 psana.setOption('psana.calib-dir', '/reg/d/psdm/CXI/cxif5315/calib')
 
 ds  = psana.DataSource(dsname)
-evt = ds.events().next()
+evt = next(ds.events())
 env = ds.env()
 
 runnum = evt.run()

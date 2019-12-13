@@ -176,7 +176,7 @@ def get_index_arrays(gfname) :
     if store.iX is None :
 
         print('It would be nice to reconstruct image for available geometry file:\n  %s' % gfname)
-        geometry = GeometryAccess(gfname, 0377)
+        geometry = GeometryAccess(gfname, 0o377)
         iX_asdata, iY_asdata = geometry.get_pixel_coord_indexes()
         print('Geometry array original shape for iX, iY:', str(iX_asdata.shape), str(iY_asdata.shape))
         
