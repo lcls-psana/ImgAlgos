@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import os
 import sys
 import numpy as np
@@ -19,8 +20,8 @@ def get_input_parameters() :
 #    parser.add_option('-v', dest='verbose', action='store_true',  help='set flag to print more details',  default=True)
 #    parser.add_option('-q', dest='verbose', action='store_false', help='set flag to print less details')
     (opts, args) = parser.parse_args()
-    print 'opts:',opts
-    print 'args:',args
+    print('opts:',opts)
+    print('args:',args)
 
     return (opts, args)
 
@@ -60,7 +61,7 @@ def plot_corr_subplot(arr,ind,nr=3,nc=2) :
 #--------------------
 
 def get_array_from_file(fname) :
-    print 'get_array_from_file:', fname
+    print('get_array_from_file:', fname)
     return np.loadtxt(fname, dtype=np.float32)
 
 #--------------------
@@ -77,8 +78,8 @@ def do_main() :
     arr = get_array_from_file(fname)
 
     #print 'arr:\n', arr
-    print 'arr.shape=', arr.shape
-    print 'arr_tau=', arr[...,0]
+    print('arr.shape=', arr.shape)
+    print('arr_tau=', arr[...,0])
 
     plot_correlators(arr, figsize=(8,8))
     plt.get_current_fig_manager().window.geometry("+450+10")

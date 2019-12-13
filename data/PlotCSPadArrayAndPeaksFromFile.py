@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches # for patches.Circle
@@ -15,10 +16,10 @@ from PyCSPadImage import CSPadImageProducer as cip
 
 class Storage :
     def __init__(self) :
-        print 'Storage object is created'
+        print('Storage object is created')
 
     def printStorage(self) :
-        print 'Object of class Storage'
+        print('Object of class Storage')
 
 #--------------------
 # Define graphical methods
@@ -38,7 +39,7 @@ def plot_histogram(arr, amp_range=None, figsize=(5,5)) :
     #fig.canvas.manager.window.move(500,10)
 
 def saveHRImageInFile(arr, ampRange=None, fname='cspad-arr-hr.png', figsize=(12,12), dpi=300, store=None) :
-    print 'SAVE HIGH RESOLUTION IMAGE IN FILE', fname
+    print('SAVE HIGH RESOLUTION IMAGE IN FILE', fname)
     plot_image(arr, zrange=ampRange, figsize=figsize, dpi=dpi, store=store)
     title = ''
     for q in range(4) : title += ('Quad %d'%(q) + 20*' ')  
@@ -50,7 +51,7 @@ def plot_peaks_for_arr (arr_peaks, store=None, color='w') :
     axes = store.figAxes
     #ampmax = np.average(arr_peaks,axis=0)[8]
     ampmax = np.max(arr_peaks,axis=0)[8]
-    print 'ampmax=', ampmax
+    print('ampmax=', ampmax)
 
     # arr_peaks : 0  0  26.7143  381.881  5  0.672354  0.570576  152  371
     for peak in arr_peaks :
@@ -73,7 +74,7 @@ def plot_peaks_for_img (arr_peaks, store=None, color='w') :
     xpix, ypix = cpe.cpeval.getCSPadPixCoordinates_pix()
 
     #print " xpix:\n", xpix
-    print " xpix.shape:\n", xpix.shape
+    print(" xpix.shape:\n", xpix.shape)
 
     # arr_peaks : 0  0  26.7143  381.881  5  0.672354  0.570576  152  371
     for peak in arr_peaks :
@@ -93,8 +94,8 @@ def print_peaks (arr_peaks) :
     # arr_peaks : 0  0  26.7143  381.881  5  0.672354  0.570576  152  371
     for peak in arr_peaks :
         q, s, r, c, npix, sig_r, sig_c, amp_max, amp_tot = peak
-        print 'q, s, r, c, npix, amp_max, amp_tot, sig_r, sig_c =',\
-               q, s, r, c, npix, amp_max, amp_tot, sig_r, sig_c
+        print('q, s, r, c, npix, amp_max, amp_tot, sig_r, sig_c =',\
+               q, s, r, c, npix, amp_max, amp_tot, sig_r, sig_c)
 
 #--------------------
 
@@ -102,7 +103,7 @@ def getCSPadArrayWithGap(arr, gap=3) :
     #print 'getCSPadArrayWithGap(...): Input array shape =', arr.shape
     nrows,ncols = arr.shape # (32*185,388) # <== expected input array shape
     if ncols != 388 or nrows<185 :
-        print 'getCSPadArrayWithGap(...): WARNING! UNEXPECTED INPUT ARRAY SHAPE =', arr.shape
+        print('getCSPadArrayWithGap(...): WARNING! UNEXPECTED INPUT ARRAY SHAPE =', arr.shape)
         return arr
     arr_gap = np.zeros( (nrows,gap), dtype=np.int16 )
     arr_halfs = np.hsplit(arr,2)
@@ -127,7 +128,7 @@ def getQuad2D(arr_all,quad=0) :
         arr_segm_rot = np.rot90(arr_segm,pairInQaudOriInd[quad][segm])
 
         nrows, ncols = arr_segm_rot.shape
-        print 'nrows, ncols = ', nrows, ncols
+        print('nrows, ncols = ', nrows, ncols)
 
         xOff = pairXInQaud[quad][segm] - nrows/2
         yOff = pairYInQaud[quad][segm] - ncols/2
@@ -139,7 +140,7 @@ def getQuad2D(arr_all,quad=0) :
 def getQuadImage(arr, quad=0, gap=3) :
     arr_all       = getCSPadArrayWithGap(arr, gap)
     arr_all.shape = (4,8,185,388+gap) # Reshape for quad and segment indexes
-    print 'arr_all.shape =', arr_all.shape
+    print('arr_all.shape =', arr_all.shape)
     return getQuad2D(arr_all,quad)
 
 #--------------------
@@ -216,7 +217,7 @@ def getCSPadGeometryShort() :
 #--------------------
 
 def get_array_from_file(fname) :
-    print 'get_array_from_file:', fname
+    print('get_array_from_file:', fname)
     return np.loadtxt(fname, dtype=np.float32)
 
 #--------------------
@@ -246,12 +247,12 @@ def get_input_parameters() :
     Amax_def = None
 
     nargs = len(sys.argv)
-    print 'sys.argv[0]: ', sys.argv[0]
-    print 'N arguments: ', nargs
+    print('sys.argv[0]: ', sys.argv[0])
+    print('N arguments: ', nargs)
 
     if nargs == 1 :
-        print 'Will use all default parameters\n',\
-              'Expected command: ' + sys.argv[0] + ' <infname> <Amin> <Amax>' 
+        print('Will use all default parameters\n',\
+              'Expected command: ' + sys.argv[0] + ' <infname> <Amin> <Amax>') 
         sys.exit('CHECK INPUT PARAMETERS!')
 
     if nargs  > 1 : fname = sys.argv[1]
@@ -264,13 +265,13 @@ def get_input_parameters() :
     else          : Amax = Amax_def
 
     if nargs  > 4 :         
-        print 'WARNING: Too many input arguments! Exit program.\n'
+        print('WARNING: Too many input arguments! Exit program.\n')
         sys.exit('CHECK INPUT PARAMETERS!')
 
     ampRange = (Amin, Amax)
 
-    print 'Input file name:', fname
-    print 'ampRange       :', ampRange
+    print('Input file name:', fname)
+    print('ampRange       :', ampRange)
     if ampRange[0]==None or ampRange[1]==None : ampRange = None
  
     return fname,ampRange 
@@ -284,14 +285,14 @@ def do_main() :
     # Get peaks form file
     splitfname, splitfext = fname.rsplit('.',1)
     fname_peaks = splitfname + '-peaks.' + splitfext
-    print 'Peaks file name:', fname_peaks
+    print('Peaks file name:', fname_peaks)
     arr_peaks = np.loadtxt(fname_peaks, dtype=np.double)
     #print 'Array of peaks:\n', arr_peaks
 
     s = Storage()
 
     arr_raw = get_array_from_file(fname)
-    print 'arr_raw.shape=\n', arr_raw.shape
+    print('arr_raw.shape=\n', arr_raw.shape)
     #print 'arr_raw=\n', arr_raw
 
     arr_segs = getCSPadSegments2D(arr_raw, gap=0, space=0)

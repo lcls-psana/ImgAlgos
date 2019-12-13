@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import numpy as np
 from time import time
@@ -44,15 +45,15 @@ thr = 20
 
 t0_sec = time()
 n1 = alg.number_of_pix_above_thr(data, thr)
-print '%s\n  alg.number_of_pix_above_thr = %d, fr = %8.6f' % (80*'_', n1, float(n1)/data.size)
-print '  Time consumed by the test = %10.6f(sec)' % (time()-t0_sec)
+print('%s\n  alg.number_of_pix_above_thr = %d, fr = %8.6f' % (80*'_', n1, float(n1)/data.size))
+print('  Time consumed by the test = %10.6f(sec)' % (time()-t0_sec))
 
 ##-----------------------------
 
 t0_sec = time()
 a1 = alg.intensity_of_pix_above_thr(data, thr)
-print '%s\n  alg.intensity_of_pix_above_thr = %12.3f' % (80*'_', a1)
-print '  Time consumed by the test = %10.6f(sec)' % (time()-t0_sec)
+print('%s\n  alg.intensity_of_pix_above_thr = %12.3f' % (80*'_', a1))
+print('  Time consumed by the test = %10.6f(sec)' % (time()-t0_sec))
 
 ##-----------------------------
 ##-----------------------------

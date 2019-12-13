@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import h5py
 import sys
 
@@ -17,22 +18,22 @@ def print_hdf5_file_structure(file_name) :
 def print_hdf5_item_structure(g, offset='    ') :
     """Prints the input file/group/dataset (g) name and begin iterations on its content"""
     if   isinstance(g,h5py.File) :
-        print g.file, '(File)', g.name
+        print(g.file, '(File)', g.name)
 
     elif isinstance(g,h5py.Dataset) :
-        print '(Dataset)', g.name, '    len =', g.shape #, g.dtype
+        print('(Dataset)', g.name, '    len =', g.shape) #, g.dtype
 
     elif isinstance(g,h5py.Group) :
-        print '(Group)', g.name
+        print('(Group)', g.name)
 
     else :
-        print 'WORNING: UNKNOWN ITEM IN HDF5 FILE', g.name
+        print('WORNING: UNKNOWN ITEM IN HDF5 FILE', g.name)
         sys.exit ( "EXECUTION IS TERMINATED" )
 
     if isinstance(g, h5py.File) or isinstance(g, h5py.Group) :
         for key,val in dict(g).iteritems() :
             subg = val
-            print offset, key, #,"   ", subg.name #, val, subg.len(), type(subg),
+            print(offset, key, end=' ') #,"   ", subg.name #, val, subg.len(), type(subg),
             print_hdf5_item_structure(subg, offset + '    ')
 
 #--------------------
@@ -43,22 +44,22 @@ def get_input_parameters() :
     fname_def = '/reg/d/psdm/CXI/cxi49012/scratch/hdf5/r0025-a/LCLS_2012_Feb02_r0025_184302_e1e6_cspad.h5'
 
     nargs = len(sys.argv)
-    print 'sys.argv[0]: ', sys.argv[0]
-    print 'nargs: ', nargs
+    print('sys.argv[0]: ', sys.argv[0])
+    print('nargs: ', nargs)
 
     if nargs == 1 :
-        print 'Will use all default parameters\n',\
-              'Expected command: ' + sys.argv[0] + ' <fname>' 
+        print('Will use all default parameters\n',\
+              'Expected command: ' + sys.argv[0] + ' <fname>') 
         #sys.exit('CHECK INPUT PARAMETERS!')
 
     if nargs  > 1 : fname = sys.argv[1]
     else          : fname = fname_def
 
     if nargs  > 2 :         
-        print 'WARNING: Too many input arguments! Exit program.\n'
+        print('WARNING: Too many input arguments! Exit program.\n')
         sys.exit('CHECK INPUT PARAMETERS!')
 
-    print 'Input file name  :', fname
+    print('Input file name  :', fname)
 
     return fname
 

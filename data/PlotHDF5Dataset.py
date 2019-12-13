@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -37,12 +38,12 @@ def get_dataset_from_hdf5(fname,dsname,event=0) :
     #evdata  = dataset[event]
 
     fiducial = file['/LCLS/fiducial'].value
-    print '/LCLS/fiducial'        , fiducial, hex(int(fiducial))
-    print '/LCLS/eventTime'       , file['/LCLS/eventTime'       ].value
-    print '/LCLS/eventTimeString' , file['/LCLS/eventTimeString' ].value
-    print '/LCLS/machineTime'     , file['/LCLS/machineTime'     ].value
-    print '/LCLS/phaseCavityTime1', file['/LCLS/phaseCavityTime1'].value
-    print '/LCLS/phaseCavityTime2', file['/LCLS/phaseCavityTime2'].value
+    print('/LCLS/fiducial'        , fiducial, hex(int(fiducial)))
+    print('/LCLS/eventTime'       , file['/LCLS/eventTime'       ].value)
+    print('/LCLS/eventTimeString' , file['/LCLS/eventTimeString' ].value)
+    print('/LCLS/machineTime'     , file['/LCLS/machineTime'     ].value)
+    print('/LCLS/phaseCavityTime1', file['/LCLS/phaseCavityTime1'].value)
+    print('/LCLS/phaseCavityTime2', file['/LCLS/phaseCavityTime2'].value)
 
     file.close()
     #return evdata 
@@ -78,12 +79,12 @@ def get_input_parameters() :
     #dsname  = '/processing/pixelmasks'
 
     nargs = len(sys.argv)
-    print 'sys.argv[0]: ', sys.argv[0]
-    print 'nargs: ', nargs
+    print('sys.argv[0]: ', sys.argv[0])
+    print('nargs: ', nargs)
 
     if nargs == 1 :
-        print 'Will use all default parameters\n',\
-              'Expected command: ' + sys.argv[0] + ' <fname> <Amin> <Amax>' 
+        print('Will use all default parameters\n',\
+              'Expected command: ' + sys.argv[0] + ' <fname> <Amin> <Amax>') 
         #sys.exit('CHECK INPUT PARAMETERS!')
 
     if nargs  > 1 : fname = sys.argv[1]
@@ -96,14 +97,14 @@ def get_input_parameters() :
     else          : Amax = Amax_def
 
     if nargs  > 4 :         
-        print 'WARNING: Too many input arguments! Exit program.\n'
+        print('WARNING: Too many input arguments! Exit program.\n')
         sys.exit('CHECK INPUT PARAMETERS!')
 
     ampRange = (Amin, Amax)
     if ampRange[0]==None or ampRange[1]==None : ampRange = None
 
-    print 'Input file name  :', fname
-    print 'ampRange         :', ampRange
+    print('Input file name  :', fname)
+    print('ampRange         :', ampRange)
  
     return fname, dsname, ampRange 
 
@@ -117,7 +118,7 @@ def do_main() :
     cspad_arr = get_cspad_arr_from_barty_arr(barty_arr) 
     arr = pcaff.getCSPadImage(cspad_arr)
 
-    print 'arr.shape=', arr.shape
+    print('arr.shape=', arr.shape)
 
     plot_image(arr, zrange=ampRange)
     plt.get_current_fig_manager().window.geometry("+10+10")

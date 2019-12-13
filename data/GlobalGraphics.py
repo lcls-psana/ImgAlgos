@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 #!/usr/bin/env python
 #--------------------
@@ -36,7 +37,7 @@ def plot_histogram(arr, amp_range=None, figsize=(6,6), bins=40) :
     #fig.canvas.manager.window.move(500,10)
 
 def saveHRImageInFile(arr, ampRange=None, fname='cspad-arr-hr.png', figsize=(12,12), dpi=300) :
-    print 'SAVE HIGH RESOLUTION IMAGE IN FILE', fname
+    print('SAVE HIGH RESOLUTION IMAGE IN FILE', fname)
     plot_image(arr, zrange=ampRange, figsize=figsize, dpi=dpi)
     title = ''
     for q in range(4) : title += ('Quad %d'%(q) + 20*' ')  

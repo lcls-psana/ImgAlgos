@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Example for peak_finder_v2
 """
+from __future__ import print_function
 #------------------------------
 
 import sys
@@ -31,7 +32,7 @@ for i,evt in enumerate(ds.events()):
     if i>20 : break
 
     nda = det.calib(evt)
-    print '%s\nEvent # %d\n' % (80*'_',i)
+    print('%s\nEvent # %d\n' % (80*'_',i))
     print_ndarr(nda,  'data ndarray')
     
     # r,dr setup a "quantized ring" which will be used for background evaluation

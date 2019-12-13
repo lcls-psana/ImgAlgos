@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -12,7 +13,7 @@ import GlobalGraphics as gg
 # Define graphical methods
 
 def get_array_from_file(fname) :
-    print 'get_array_from_file:', fname
+    print('get_array_from_file:', fname)
     return np.loadtxt(fname, dtype=np.float32)
 
 #---------------------
@@ -53,12 +54,12 @@ def getImageArrayForCSpad2x2(arr1ev):
 
     if (arr1ev.shape[-1] == 2) :
         arr1ev.shape = (185,388,2)
-        print 'Shaped as data:', arr1ev.shape
+        print('Shaped as data:', arr1ev.shape)
         return getImageArrayForCSpad2x2FromSegments(arr1ev[:,:,0], arr1ev[:,:,1])
 
     else :
         arr1ev.shape = (2,185,388)
-        print 'Shaped as in natural order:', arr1ev.shape
+        print('Shaped as in natural order:', arr1ev.shape)
         return getImageArrayForCSpad2x2FromSegments(arr1ev[0,:,:], arr1ev[1,:,:])
 
 #--------------------
@@ -70,12 +71,12 @@ def get_input_parameters() :
     Amax_def  = None
 
     nargs = len(sys.argv)
-    print 'sys.argv[0]: ', sys.argv[0]
-    print 'nargs: ', nargs
+    print('sys.argv[0]: ', sys.argv[0])
+    print('nargs: ', nargs)
 
     if nargs == 1 :
-        print 'Will use all default parameters\n',\
-              'Expected command: ' + sys.argv[0] + ' <infname> <Amin> <Amax>' 
+        print('Will use all default parameters\n',\
+              'Expected command: ' + sys.argv[0] + ' <infname> <Amin> <Amax>') 
         sys.exit('CHECK INPUT PARAMETERS!')
 
     if nargs  > 1 : fname = sys.argv[1]
@@ -88,14 +89,14 @@ def get_input_parameters() :
     else          : Amax = Amax_def
 
     if nargs  > 4 :         
-        print 'WARNING: Too many input arguments! Exit program.\n'
+        print('WARNING: Too many input arguments! Exit program.\n')
         sys.exit('CHECK INPUT PARAMETERS!')
 
     ampRange = (Amin, Amax)
     if ampRange[0]==None or ampRange[1]==None : ampRange = None
 
-    print 'Input file name  :', fname
-    print 'ampRange         :', ampRange
+    print('Input file name  :', fname)
+    print('ampRange         :', ampRange)
  
     return fname, ampRange 
 
@@ -110,18 +111,18 @@ def do_main() :
     if (arr1ev.size != 185*388*2) :
         msg = 'Input array size %s is not consistent with CSPAD2x2 (185*388*2)' % arr1ev.size
         sys.exit(msg)
-    print 'arr:\n', arr1ev
-    print 'arr1ev.shape=', arr1ev.shape
+    print('arr:\n', arr1ev)
+    print('arr1ev.shape=', arr1ev.shape)
 
     arr = getImageArrayForCSpad2x2(arr1ev)
     
-    print 'Image arr.shape=', arr.shape
+    print('Image arr.shape=', arr.shape)
 
     gg.plot_image(arr, zrange=ampRange)
     plt.get_current_fig_manager().window.geometry('+10+10') # move(10,10)
     plt.savefig('cspad2x2-img.png')
 
-    print 'Histogram contains pixels only!'
+    print('Histogram contains pixels only!')
     gg.plot_histogram(arr1ev, ampRange)
     plt.get_current_fig_manager().window.geometry('+950+10') # .move(950,10)
     plt.savefig('cspad2x2-spe.png')

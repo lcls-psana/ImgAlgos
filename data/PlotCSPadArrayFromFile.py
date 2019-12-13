@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import os
 import sys
 import numpy as np
@@ -19,7 +20,7 @@ def getCSPadArrayWithGap(arr, gap=3) :
     #print 'getCSPadArrayWithGap(...): Input array shape =', arr.shape
     nrows,ncols = arr.shape # (32*185,388) # <== expected input array shape
     if ncols != 388 or nrows<185 :
-        print 'getCSPadArrayWithGap(...): WARNING! UNEXPECTED INPUT ARRAY SHAPE =', arr.shape
+        print('getCSPadArrayWithGap(...): WARNING! UNEXPECTED INPUT ARRAY SHAPE =', arr.shape)
         return arr
     arr_gap = np.zeros( (nrows,gap), dtype=np.int16 )
     arr_halfs = np.hsplit(arr,2)
@@ -46,7 +47,7 @@ def getQuad2D(arr_all,quad=0) :
         arr_segm_rot = np.rot90(arr_segm,pairInQaudOriInd[quad][segm])
 
         nrows, ncols = arr_segm_rot.shape
-        print 'nrows, ncols = ', nrows, ncols
+        print('nrows, ncols = ', nrows, ncols)
 
         xOff = pairXInQaud[quad][segm] - nrows/2
         yOff = pairYInQaud[quad][segm] - ncols/2
@@ -59,7 +60,7 @@ def getQuadImage(arr,quad=0) :
     gap=3
     arr_all       = getCSPadArrayWithGap(arr, gap)
     arr_all.shape = (4,8,185,388+gap) # Reshape for quad and segment indexes
-    print 'arr_all.shape =', arr_all.shape
+    print('arr_all.shape =', arr_all.shape)
     return getQuad2D(arr_all,quad)
 
 #--------------------
@@ -137,7 +138,7 @@ def getCSPadGeometryShort() :
 #--------------------
 
 def get_array_from_file(fname) :
-    print 'get_array_from_file:', fname
+    print('get_array_from_file:', fname)
     base, ext = os.path.splitext(fname)
     if ext == '.npy' : return np.load(fname)
     else             : return np.loadtxt(fname, dtype=np.float32)
@@ -152,7 +153,7 @@ def getCSPadImageAligned(arr_raw, path_calib, runnum) :
 
     #calib = calp.CalibPars(path=path_calib, run=runnum) #, list_of_clib_types)
 
-    print 'Make the CSPad image from raw array'
+    print('Make the CSPad image from raw array')
     #cspadimg = cip.CSPadImageProducer(calib, rotation=1, tiltIsOn=True)#, mirror=True)
     #return cspadimg.getCSPadImage( arr_raw )
 
@@ -170,12 +171,12 @@ def get_input_parameters() :
     Amax_def = None
 
     nargs = len(sys.argv)
-    print 'sys.argv[0]: ', sys.argv[0]
-    print 'nargs: ', nargs
+    print('sys.argv[0]: ', sys.argv[0])
+    print('nargs: ', nargs)
 
     if nargs == 1 :
-        print 'Will use all default parameters\n',\
-              'Expected command: ' + sys.argv[0] + ' <infname> <Amin> <Amax>' 
+        print('Will use all default parameters\n',\
+              'Expected command: ' + sys.argv[0] + ' <infname> <Amin> <Amax>') 
         sys.exit('CHECK INPUT PARAMETERS!')
 
     if nargs  > 1 : fname = sys.argv[1]
@@ -188,14 +189,14 @@ def get_input_parameters() :
     else          : Amax = Amax_def
 
     if nargs  > 4 :         
-        print 'WARNING: Too many input arguments! Exit program.\n'
+        print('WARNING: Too many input arguments! Exit program.\n')
         sys.exit('CHECK INPUT PARAMETERS!')
 
     ampRange = (Amin, Amax)
     if ampRange[0]==None or ampRange[1]==None : ampRange = None
 
-    print 'Input file name  :', fname
-    print 'ampRange         :', ampRange
+    print('Input file name  :', fname)
+    print('ampRange         :', ampRange)
  
     return fname,ampRange 
 
@@ -206,11 +207,11 @@ def do_main() :
     fname, ampRange = get_input_parameters()
 
     arr_raw = get_array_from_file(fname)
-    print 'arr_raw.shape=', arr_raw.shape
+    print('arr_raw.shape=', arr_raw.shape)
     #print 'arr_raw=\n', arr_raw
 
     arr_segs = getCSPadSegments2D(arr_raw)
-    print 'arr_segs.shape=', arr_segs.shape
+    print('arr_segs.shape=', arr_segs.shape)
     
     arr = getCSPadImage(arr_raw) # GET IMAGE WITHOUT ALIGNMENT !!!
     #arr = getQuadImage(arr_raw,quad=1)

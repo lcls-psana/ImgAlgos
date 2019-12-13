@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 #import scipy.misc as scim
@@ -51,17 +52,17 @@ def plot_graphs(arr, trange=None, figsize=(10,5)) :
 #--------------------
 
 def get_array_from_file(fname, dtype=np.float32) :
-    print 'get_array_from_text_file:', fname
+    print('get_array_from_text_file:', fname)
     arr = np.loadtxt(fname, dtype=dtype)
-    print 'arr.shape=', arr.shape
+    print('arr.shape=', arr.shape)
     return arr
 
 def get_array_from_bin_file(fname, dtype=np.float32) :
-    print 'get_array_from_bin_file:', fname
+    print('get_array_from_bin_file:', fname)
     return np.fromfile(fname, dtype)
 
 def get_numpy_array_from_file(fname) :
-    print 'get_numpy_array_from_file:', fname
+    print('get_numpy_array_from_file:', fname)
     return np.load(fname)
 
 #--------------------
@@ -73,12 +74,12 @@ def get_input_parameters() :
     Amax_def  = None
 
     nargs = len(sys.argv)
-    print 'sys.argv: ', sys.argv
-    print 'nargs: ', nargs
+    print('sys.argv: ', sys.argv)
+    print('nargs: ', nargs)
 
     if nargs == 1 :
-        print 'Will use all default parameters\n',\
-              'Expected command: ' + sys.argv[0] + ' <infname> <Tmin> <Tmax>' 
+        print('Will use all default parameters\n',\
+              'Expected command: ' + sys.argv[0] + ' <infname> <Tmin> <Tmax>') 
         sys.exit('CHECK INPUT PARAMETERS!')
 
     if nargs  > 1 : fname = sys.argv[1]
@@ -91,14 +92,14 @@ def get_input_parameters() :
     else          : Amax = Amax_def
 
     if nargs  > 4 :         
-        print 'WARNING: Too many input arguments! Exit program.\n'
+        print('WARNING: Too many input arguments! Exit program.\n')
         sys.exit('CHECK INPUT PARAMETERS!')
 
     ampRange = (Amin, Amax)
     if ampRange[0]==None or ampRange[1]==None : ampRange = None
 
-    print 'Input file name  :', fname
-    print 'ampRange         :', ampRange
+    print('Input file name  :', fname)
+    print('ampRange         :', ampRange)
  
     return fname,ampRange 
 
@@ -134,8 +135,8 @@ def do_main() :
 
     arr = get_array(fname)
 
-    print 'arr:\n', arr
-    print 'arr.shape=', arr.shape
+    print('arr:\n', arr)
+    print('arr.shape=', arr.shape)
 
     #plot_image(arr, zrange=ampRange)
     #plt.get_current_fig_manager().window.move(10,10)       # works for GTk

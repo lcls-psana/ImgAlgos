@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import os
 import sys
 import numpy as np
@@ -22,7 +23,7 @@ def get_input_parameters() :
     parser.add_option('-d', '--dname', dest='dname', default=def_dname, action='store', type='string', help='input/output directory name, default: %s' % def_dname)
 
     (opts, args) = parser.parse_args()
-    print 'opts:',opts
+    print('opts:',opts)
     #print 'args:',args
     return (opts, args)
 
@@ -67,7 +68,7 @@ def do_main() :
     for fname in get_list_of_files_to_convert(dname, fnpre, fnext) :
         ifpath = os.path.join(dname, fname)       
         ofpath = os.path.join(dname, os.path.splitext(fname)[0] + '.tiff')
-        print 'Convert ' + ifpath + ' ===> ' + ofpath
+        print('Convert ' + ifpath + ' ===> ' + ofpath)
         dtype = np.float32 # np.int16
         dtype = np.float32 # np.int16
         arr = get_array_from_file(ifpath, dtype)

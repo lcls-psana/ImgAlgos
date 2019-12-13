@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import os
 import sys
 import numpy as np
@@ -8,9 +9,9 @@ import numpy as np
 #--------------------
 
 def get_array_from_file(fname, dtype=np.float32) :
-    print 'get_array_from_text_file:', fname
+    print('get_array_from_text_file:', fname)
     arr = np.loadtxt(fname, dtype=dtype)
-    print 'arr.shape=', arr.shape
+    print('arr.shape=', arr.shape)
     return arr
 
 def save_array_in_text_file(fname, arr, fmt='%f') :
@@ -18,12 +19,12 @@ def save_array_in_text_file(fname, arr, fmt='%f') :
 
 
 def get_array_from_bin_file(fname, dtype=np.float32) :
-    print 'get_array_from_bin_file:', fname
+    print('get_array_from_bin_file:', fname)
     return np.fromfile(fname, dtype)
 
 
 def get_numpy_array_from_file(fname) :
-    print 'get_numpy_array_from_file:', fname
+    print('get_numpy_array_from_file:', fname)
     return np.load(fname)
 
 
@@ -43,12 +44,12 @@ def get_input_parameters() :
     fname_def = 'array.txt'
 
     nargs = len(sys.argv)
-    print 'sys.argv: ', sys.argv
-    print 'nargs: ', nargs
+    print('sys.argv: ', sys.argv)
+    print('nargs: ', nargs)
 
     if nargs == 1 :
-        print 'Will use all default parameters\n',\
-              'Expected command: ' + sys.argv[0] + ' <infname>' 
+        print('Will use all default parameters\n',\
+              'Expected command: ' + sys.argv[0] + ' <infname>') 
         #sys.exit('CHECK INPUT PARAMETERS!')
     fname = fname_def
 
@@ -56,10 +57,10 @@ def get_input_parameters() :
     else          : fname = fname_def
 
     if nargs  > 2 :         
-        print 'WARNING: Too many input arguments! Exit program.\n'
+        print('WARNING: Too many input arguments! Exit program.\n')
         sys.exit('CHECK INPUT PARAMETERS!')
 
-    print 'Input file name  :', fname
+    print('Input file name  :', fname)
  
     return fname
 
@@ -90,8 +91,8 @@ def do_main() :
     fname = get_input_parameters()
     arr = get_array(fname)
 
-    print 'arr:\n', arr
-    print 'arr.shape=', arr.shape
+    print('arr:\n', arr)
+    print('arr.shape=', arr.shape)
 
     save_array_in_text_file(fname, arr)
 

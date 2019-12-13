@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import numpy as np
 import sys
 import os
@@ -16,12 +17,12 @@ def get_input_parameters() :
     outfname_def  = None
 
     nargs = len(sys.argv)
-    print 'get_input_parameters() :'
-    print 'nargs : ', nargs, ' List of input parameters :'
-    for par in sys.argv : print par
+    print('get_input_parameters() :')
+    print('nargs : ', nargs, ' List of input parameters :')
+    for par in sys.argv : print(par)
 
-    if nargs == 1 : print 'Will use all default parameters\n',\
-                    'Expected command: ' + sys.argv[0] + ' <infname> <threshold> <outfname>' 
+    if nargs == 1 : print('Will use all default parameters\n',\
+                    'Expected command: ' + sys.argv[0] + ' <infname> <threshold> <outfname>') 
 
     if nargs  > 1 : infname   = sys.argv[1]
     else          : infname   = infname_def
@@ -35,38 +36,38 @@ def get_input_parameters() :
         outfname  = path + '/' + fname.split('.')[0] + '-mask-' + str(threshold) + '.dat'
 
     if nargs  > 4 :         
-        print 'WARNING: Too many input arguments! Exit program.\n'
+        print('WARNING: Too many input arguments! Exit program.\n')
         sys.exit('CHECK INPUT PARAMETERS!')
 
-    print 'Input file name  :', infname
-    print 'Threshold        :', threshold
-    print 'Output file name :', outfname
+    print('Input file name  :', infname)
+    print('Threshold        :', threshold)
+    print('Output file name :', outfname)
 
     return infname, threshold, outfname 
     
 #--------------------
 
 def get_array_from_file(fname) :
-    print 'get_array_from_file:', fname
+    print('get_array_from_file:', fname)
     return np.loadtxt(fname, dtype=np.float32)
 
 #--------------------
 
 def save_array_in_file(arr, fname='mask.dat') :
-    print 'save_array_in_file:', fname
-    print 'arr:\n', arr
-    print 'arr.shape:', arr.shape
+    print('save_array_in_file:', fname)
+    print('arr:\n', arr)
+    print('arr.shape:', arr.shape)
     np.savetxt(fname, arr, fmt='%d') 
 
 #--------------------
 
 def evaluate_mask_array(arr,threshold=30) :
-    print 'evaluate_mask_array(...)'
-    print 'Threshold: ', threshold
-    print 'Input array:\n'
-    print arr
+    print('evaluate_mask_array(...)')
+    print('Threshold: ', threshold)
+    print('Input array:\n')
+    print(arr)
     rows,cols = shape = arr.shape
-    print 'shape, rows, cols=', shape, rows, cols
+    print('shape, rows, cols=', shape, rows, cols)
     #arr_mask = np.ones(shape, dtype=np.uint16) 
     #arr_mask = np.select([arr>threshold],[0], default=arr_mask)
     arr_mask = np.select([arr>threshold],[0], default=[1])
@@ -74,24 +75,24 @@ def evaluate_mask_array(arr,threshold=30) :
 
     num_zeros, num_ones = np.bincount(arr_mask.flatten())
 
-    print 'Total number of masked pixels is', num_zeros, 'of', arr.size, 'fraction of masked: %6.4f' % ( float(num_zeros)/arr.size )
+    print('Total number of masked pixels is', num_zeros, 'of', arr.size, 'fraction of masked: %6.4f' % ( float(num_zeros)/arr.size ))
     return arr_mask
 
 #--------------------
 
 def mask_rect(arr, quad, sect, row0=10, rowN=185, col0=0, colN=388) :
-    print 'mask_rect : arr.shape=', arr.shape 
+    print('mask_rect : arr.shape=', arr.shape) 
 
     shape2d = (5920, 388)
     shape4d = (4, 8, 185, 388)
 
     if arr.shape != shape2d :
-        print 'mask_rect : UNEXPECTED SHAPE OF THE INPUT MASK ARRAY =', arr.shape
+        print('mask_rect : UNEXPECTED SHAPE OF THE INPUT MASK ARRAY =', arr.shape)
         return arr
 
     arr.shape = shape4d
 
-    print 'Mask rect in quad, sect=', quad, ', ', sect, 'for rows:', row0, rowN, 'and cols:', col0, colN
+    print('Mask rect in quad, sect=', quad, ', ', sect, 'for rows:', row0, rowN, 'and cols:', col0, colN)
 
     rect = np.zeros( (rowN-row0,colN-col0), dtype=np.int16 )
     arr[quad,sect,row0:rowN,col0:colN] = rect

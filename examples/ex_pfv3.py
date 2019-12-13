@@ -2,6 +2,7 @@
 
 #------------------------------
 
+from __future__ import print_function
 import numpy as np
 from time import time
 
@@ -46,18 +47,18 @@ def test_02() :
 
     t0_sec = time()
     n1 = alg.number_of_pix_above_thr(data, thr)
-    print '%s\n  alg.number_of_pix_above_thr = %d, fr = %8.6f' % (80*'_', n1, float(n1)/data.size)
-    print '  Time consumed by the test = %10.6f(sec)' % (time()-t0_sec)
+    print('%s\n  alg.number_of_pix_above_thr = %d, fr = %8.6f' % (80*'_', n1, float(n1)/data.size))
+    print('  Time consumed by the test = %10.6f(sec)' % (time()-t0_sec))
 
     t0_sec = time()
     a1 = alg.intensity_of_pix_above_thr(data, thr)
-    print '%s\n  alg.intensity_of_pix_above_thr = %12.3f' % (80*'_', a1)
-    print '  Time consumed by the test = %10.6f(sec)' % (time()-t0_sec)
+    print('%s\n  alg.intensity_of_pix_above_thr = %12.3f' % (80*'_', a1))
+    print('  Time consumed by the test = %10.6f(sec)' % (time()-t0_sec))
 
 #------------------------------
 
 def test_11() :
-    print '%s\n%s\n' % (80*'_','test_01 for alg.maps_of_local_minimums')
+    print('%s\n%s\n' % (80*'_','test_01 for alg.maps_of_local_minimums'))
 
     import pyimgalgos.GlobalGraphics as gg
 
@@ -85,7 +86,7 @@ def test_11() :
     counter = 0
     for i in range(10) :
 
-        print '\nEvent # %d' % i
+        print('\nEvent # %d' % i)
 
         nda = np.array(mu + sigma*np.random.standard_normal(shape), dtype=np.float64)
         #print_arr_attr(nda, 'nda')
@@ -93,7 +94,7 @@ def test_11() :
         t0_sec = time()
         peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=6, dr=2)
         #peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=5.0, dr=0.05)
-        print '  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec)
+        print('  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec))
 
         maps = alg.maps_of_local_minimums()
         print_arr_attr(maps, 'maps')
@@ -102,7 +103,7 @@ def test_11() :
         map_stat += np.bincount(maps.flatten(), weights=None, minlength=map_stat.size)
         counter += 1
 
-        print hdr
+        print(hdr)
         reg = 'IMG'
 
         for pk in peaks :
@@ -113,7 +114,7 @@ def test_11() :
             rec = fmt % (i, reg, seg, row, col, npix, amax, atot, rcent, ccent, rsigma, csigma,\
                   rmin, rmax, cmin, cmax, bkgd, rms, son) #,\
                   #imrow, imcol, xum, yum, rum, phi)
-            print rec
+            print(rec)
 
         img, amin, amax = maps, -1, 3 #, 0, 10
         #img = nda
@@ -127,8 +128,8 @@ def test_11() :
 
     map_stat = map_stat / counter
     map_frac = map_stat / np.sum(map_stat)
-    print 'map_stat', map_stat
-    print 'rank=%d,  fractions=%s' % (rank, map_frac)
+    print('map_stat', map_stat)
+    print('rank=%d,  fractions=%s' % (rank, map_frac))
 
     gg.save_fig(fig, fname='map-locmax-100x100-rank-%d.png'%rank, pbits=1)
     #gg.save_fig(fig, fname='map-locmax-100x100-random.png', pbits=1)
@@ -138,7 +139,7 @@ def test_11() :
 #------------------------------
 
 def test_01() :
-    print '%s\n%s\n' % (80*'_','test_01 for alg.maps_of_local_maximums')
+    print('%s\n%s\n' % (80*'_','test_01 for alg.maps_of_local_maximums'))
 
     import pyimgalgos.GlobalGraphics as gg
 
@@ -166,7 +167,7 @@ def test_01() :
     counter = 0
     for i in range(10) :
 
-        print '\nEvent # %d' % i
+        print('\nEvent # %d' % i)
 
         nda = np.array(mu + sigma*np.random.standard_normal(shape), dtype=np.float64)
         #print_arr_attr(nda, 'nda')
@@ -175,7 +176,7 @@ def test_01() :
         #peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=5.0, dr=0.05)
         #peaks = alg.peak_finder_v3r1(nda, rank=rank, r0=6, dr=2)
         peaks = alg.peak_finder_v3r2(nda, rank=rank, r0=6, dr=2)
-        print '  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec)
+        print('  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec))
 
         maps = alg.maps_of_local_maximums()
         #print_arr_attr(maps, 'maps')
@@ -184,7 +185,7 @@ def test_01() :
         map_stat += np.bincount(maps.flatten(), weights=None, minlength=map_stat.size)
         counter += 1
 
-        print hdr
+        print(hdr)
         reg = 'IMG'
 
         for pk in peaks :
@@ -195,7 +196,7 @@ def test_01() :
             rec = fmt % (i, reg, seg, row, col, npix, amax, atot, rcent, ccent, rsigma, csigma,\
                   rmin, rmax, cmin, cmax, bkgd, rms, son) #,\
                   #imrow, imcol, xum, yum, rum, phi)
-            print rec
+            print(rec)
 
         img, amin, amax = maps, 0, 10
         #img = nda
@@ -208,8 +209,8 @@ def test_01() :
 
     map_stat = map_stat / counter
     map_frac = map_stat / np.sum(map_stat)
-    print 'map_stat', map_stat
-    print 'rank=%d,  fractions=%s' % (rank, map_frac)
+    print('map_stat', map_stat)
+    print('rank=%d,  fractions=%s' % (rank, map_frac))
 
     gg.save_fig(fig, fname='map-locmax-100x100-rank-%d.png'%rank, pbits=1)
     #gg.save_fig(fig, fname='map-locmax-100x100-random.png', pbits=1)
@@ -225,11 +226,11 @@ def usage() : return 'Use command: python %s <test-number>, where <test-number> 
 def main() :
     import sys; global sys
     tname = sys.argv[1] if len(sys.argv) > 1 else '1'
-    print 50*'_', '\nTest %s:' % tname
+    print(50*'_', '\nTest %s:' % tname)
     if   tname ==  '1' : test_01()
     elif tname ==  '2' : test_02()
     elif tname == '11' : test_11()
-    else : print 'Not-recognized test name: %s\n%s' % (tname, usage())
+    else : print('Not-recognized test name: %s\n%s' % (tname, usage()))
     sys.exit('End of test %s' % tname)
 
 #------------------------------

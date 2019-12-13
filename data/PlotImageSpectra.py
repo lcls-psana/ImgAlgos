@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import numpy as np
 import sys
 import os
@@ -22,8 +23,8 @@ def get_input_parameters_adv() :
     parser.add_option('-q', dest='verbose', action='store_false', help='set flag to print less details')
     (opts, args) = parser.parse_args()
 
-    print 'opts:',opts
-    print 'args:',args
+    print('opts:',opts)
+    print('args:',args)
 
     return (opts, args)
 
@@ -36,12 +37,12 @@ def get_input_parameters() :
     Amax_def  = None
 
     nargs = len(sys.argv)
-    print 'sys.argv[0]: ', sys.argv[0]
-    print 'nargs: ', nargs
+    print('sys.argv[0]: ', sys.argv[0])
+    print('nargs: ', nargs)
 
     if nargs == 1 :
-        print 'Will use all default parameters\n',\
-              'Expected command: ' + sys.argv[0] + ' <infname> <Amin> <Amax>' 
+        print('Will use all default parameters\n',\
+              'Expected command: ' + sys.argv[0] + ' <infname> <Amin> <Amax>') 
         sys.exit('CHECK INPUT PARAMETERS!')
 
     if nargs  > 1 : fname = sys.argv[1]
@@ -54,14 +55,14 @@ def get_input_parameters() :
     else          : Amax = Amax_def
 
     if nargs  > 4 :         
-        print 'WARNING: Too many input arguments! Exit program.\n'
+        print('WARNING: Too many input arguments! Exit program.\n')
         sys.exit('CHECK INPUT PARAMETERS!')
 
     ampRange = (Amin, Amax)
     if ampRange[0]==None or ampRange[1]==None : ampRange = None
 
-    print 'Input file name  :', fname
-    print 'ampRange         :', ampRange
+    print('Input file name  :', fname)
+    print('ampRange         :', ampRange)
  
     return fname,ampRange 
 
@@ -103,7 +104,7 @@ def plot_spectra(arr, amp_range=None, figsize=(5,5)) :
 #--------------------
 
 def get_array_from_file(fname) :
-    print 'get_array_from_file:', fname
+    print('get_array_from_file:', fname)
     return np.loadtxt(fname, dtype=np.float32)
 
 #--------------------
@@ -118,9 +119,9 @@ def do_main() :
     #plot_histogram(arr,range=ampRange)
     #plt.get_current_fig_manager().window.geometry("+950+10")
 
-    print 'arr[0,]=', arr[0,]
-    print 'arr[1,]=', arr[1,]
-    print 'arr[2,]=', arr[2,]
+    print('arr[0,]=', arr[0,])
+    print('arr[1,]=', arr[1,])
+    print('arr[2,]=', arr[2,])
 
     plot_spectra(arr, figsize=(8,8))
     plt.get_current_fig_manager().window.geometry("+450+10")

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #--------------------
+from __future__ import print_function
 import os
 import sys
 from time import sleep
@@ -16,7 +17,7 @@ from PSCalib.GeometryObject import data2x2ToTwo2x1
 
 class Storage :
     def __init__(self) :
-        print 'Storage object is created in order to pass common parameters between methods.'
+        print('Storage object is created in order to pass common parameters between methods.')
         self.iX = None
 
 #--------------------
@@ -68,15 +69,15 @@ def print_peaks(arr_peaks) :
     # arr_peaks : 1         4         311       32.999    32.999    1
     for peak in arr_peaks :
         s, r, c, amax, atot, npix = peak
-        print 's:%2d  r:%3d  c:%3d  amax:%8.1f  atot:%8.1f  npix:%2d' % \
-               (s, r, c, amax, atot, npix) 
+        print('s:%2d  r:%3d  c:%3d  amax:%8.1f  atot:%8.1f  npix:%2d' % \
+               (s, r, c, amax, atot, npix)) 
 
 #--------------------
 
 def get_array_from_file(fname) :
     """ Loads and returns numpy array from file
     """    
-    if store.verbos : print 'get_array_from_file:', fname
+    if store.verbos : print('get_array_from_file:', fname)
     arr = np.loadtxt(fname, dtype=np.float32)
 
     if len(arr.shape)<2 : return [arr]
@@ -91,13 +92,13 @@ def get_array_from_file(fname) :
 def list_of_files_as(ifname='./xxx-r0081-e000002-raw.txt') :
     """This module makes the list of files like ./xxx-r0081-*-raw.txt
     """
-    print 'input file name: %s' % ifname
+    print('input file name: %s' % ifname)
 
     dname = os.path.dirname(ifname)
     dname = './' if dname=='' else dname
     bname  = os.path.basename(ifname)
     pref, medi, suff = bname.rsplit('-',2)
-    print 'Splited fields: ', dname, pref, medi, suff
+    print('Splited fields: ', dname, pref, medi, suff)
 
     lst = os.listdir(dname)
     #if patrn is None :
@@ -121,10 +122,10 @@ def list_of_files_in_dir(dname='./', patrn=None) :
 def print_list_of_files(dname='./', patrn=None) :
     """ Prints a list of files in the directory for with names containing pattern
     """    
-    print 'List of files in the dir.', dname
+    print('List of files in the dir.', dname)
     for name in list_of_files_in_dir(dname, patrn) :
-        print name
-    print '\n'
+        print(name)
+    print('\n')
 
 #--------------------
 
@@ -174,10 +175,10 @@ def get_index_arrays(gfname) :
     """
     if store.iX is None :
 
-        print 'It would be nice to reconstruct image for available geometry file:\n  %s' % gfname
+        print('It would be nice to reconstruct image for available geometry file:\n  %s' % gfname)
         geometry = GeometryAccess(gfname, 0377)
         iX_asdata, iY_asdata = geometry.get_pixel_coord_indexes()
-        print 'Geometry array original shape for iX, iY:', str(iX_asdata.shape), str(iY_asdata.shape)
+        print('Geometry array original shape for iX, iY:', str(iX_asdata.shape), str(iY_asdata.shape))
         
         if is_cspad2x2(geometry) :
             # case of cspad2x2
@@ -191,10 +192,10 @@ def get_index_arrays(gfname) :
             store.iX = iX_asdata
             store.iY = iY_asdata
         
-        print 'iX, iY shapes:', str(store.iX.shape), str(store.iY.shape)
+        print('iX, iY shapes:', str(store.iX.shape), str(store.iY.shape))
         
         shape_3d = nda_3d_shape(store.iX)
-        print '3-d shape of ndarrays:', str(shape_3d)
+        print('3-d shape of ndarrays:', str(shape_3d))
         
         store.iX.shape = store.iY.shape = shape_3d
 
@@ -206,10 +207,10 @@ def get_image(arr, gfname) :
     """ Reconstruct image from input array and geometry file
     """
     iX, iY = get_index_arrays(gfname)
-    if store.verbos : print 'Original arr.shape: %s' % str(arr.shape),
+    if store.verbos : print('Original arr.shape: %s' % str(arr.shape), end=' ')
     arr.shape = iX.shape
     img = img_from_pixel_arrays(iX,iY,W=arr)
-    if store.verbos : print '  img.shape:', str(img.shape)
+    if store.verbos : print('  img.shape:', str(img.shape))
     return img
 
 #--------------------
@@ -217,7 +218,7 @@ def get_image(arr, gfname) :
 def plot_one(fname) :
     """ Plot image from file and peaks from associated file
     """    
-    print 'Plot for file: %s' % fname
+    print('Plot for file: %s' % fname)
 
     fig, axim, axcb = store.fig, store.axim, store.axcb
     gfname, verbos, colring = store.gfname, store.verbos, store.color
@@ -235,7 +236,7 @@ def plot_one(fname) :
 
     if amp_range is None :
         rms = np.std(arrim)
-        if verbos : print 'arrim.rms = %f' % rms
+        if verbos : print('arrim.rms = %f' % rms)
         imsh.set_clim(-3*rms,6*rms)
     else :
         imsh.set_clim(amp_range[0],amp_range[1])
@@ -254,7 +255,7 @@ def plot_one(fname) :
                 plot_peaks_for_img(arr_peaks, axim, color=colring)
 
     else :
-        print 'File with peaks: %s does not exist' % fname_peaks        
+        print('File with peaks: %s does not exist' % fname_peaks)        
 
     fig.canvas.set_window_title('File: %s'%fname)
     fig.canvas.draw()
@@ -267,7 +268,7 @@ def plot_next() :
     store.count += 1
     if store.count >= store.lst_len :
         store.count = store.lst_len-1
-        print 'Counter reached the last file in the list: %s' % store.lst[store.count]
+        print('Counter reached the last file in the list: %s' % store.lst[store.count])
         return
     #print 'plot_next(): %d' % store.count
     plot_one(store.lst[store.count])
@@ -280,7 +281,7 @@ def plot_previous() :
     store.count -= 1
     if store.count < 0 :
         store.count = 0 
-        print 'Counter reached the first file in the list: %s' % store.lst[store.count] 
+        print('Counter reached the first file in the list: %s' % store.lst[store.count]) 
         return
 
     #print 'plot_previous: %d' % store.count
@@ -291,7 +292,7 @@ def plot_previous() :
 def on_key_press(event):
     """ Switch for input control key
     """
-    if store.verbos : print 'You pressed: ', event.key #, event.xdata, event.ydata
+    if store.verbos : print('You pressed: ', event.key) #, event.xdata, event.ydata
 
     if   event.key == 'escape'  \
       or event.key == 'e' : sys.exit('The End')
@@ -333,8 +334,8 @@ def do_plots() :
 
     store.lst = list_of_files_as(ifname)
 
-    print 'List of files to plot:'
-    for fname in store.lst : print fname
+    print('List of files to plot:')
+    for fname in store.lst : print(fname)
 
     store.lst_len = len(store.lst)
     store.count = 0
@@ -345,7 +346,7 @@ def do_plots() :
     cid = store.fig.canvas.mpl_connect('key_press_event', on_key_press)
 
     plot_one(store.lst[store.count])
-    print 'Control buttons: arrows or n/b - next/previous file, e/Escape-exit, s-save, f-full screen, p-pan/zoom'
+    print('Control buttons: arrows or n/b - next/previous file, e/Escape-exit, s-save, f-full screen, p-pan/zoom')
     move_window(500,10)
     plt.show()
 
@@ -413,9 +414,9 @@ if __name__ == '__main__' :
 
     #if opts.verbos :
     if True :
-        print 'Command arguments:', ' '.join(sys.argv)
-        print '  opts:\n', opts
-        print '  args:\n', args
+        print('Command arguments:', ' '.join(sys.argv))
+        print('  opts:\n', opts)
+        print('  args:\n', args)
 
     store.gfname = opts.gfname
     store.ifname = opts.ifname

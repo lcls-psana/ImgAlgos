@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import math
 import numpy as np
@@ -18,7 +19,7 @@ import pyimgalgos.GlobalGraphics as gg
 ##-----------------------------
 
 ntest = int(sys.argv[1]) if len(sys.argv)>1 else 1
-print 'Test # %d' % ntest
+print('Test # %d' % ntest)
 
 ##-----------------------------
 SKIP        = 0
@@ -39,7 +40,7 @@ def do_print(i) :
     
 dsname = 'exp=cxif5315:run=169'
 src    = psana.Source('DetInfo(CxiDs2.0:Cspad.0)')
-print '%s\nExample for\n  dataset: %s\n  source : %s' % (85*'_',dsname, src)
+print('%s\nExample for\n  dataset: %s\n  source : %s' % (85*'_',dsname, src))
 
 # Non-standard calib directory
 #psana.setOption('psana.calib-dir', './empty/calib')
@@ -59,7 +60,7 @@ runnum = evt.run()
 ##-----------------------------
 
 det = AreaDetector(src, env, pbits=0)
-print 85*'_', '\nInstrument: %s  run number: %d' % (det.instrument(), runnum)
+print(85*'_', '\nInstrument: %s  run number: %d' % (det.instrument(), runnum))
 
 nda_peds  = det.pedestals(evt)
 nda_bkgd  = det.bkgd(evt)
@@ -158,7 +159,7 @@ peaks = None
 # loop over events in data set
 for i, evt in enumerate(ds.events()) :
 
-    if do_print(i) and i%100==0 : print 'Event %d' % (i)
+    if do_print(i) and i%100==0 : print('Event %d' % (i))
 
     if i<SKIP    : continue
     if i>=EVTMAX : break
@@ -204,7 +205,7 @@ for i, evt in enumerate(ds.events()) :
         #maps_of_locmax_equ = alg_equ.maps_of_local_maximums()
 
         ###===================
-        if do_print(i) : print '%s\n%s\n%s\n%s' % (85*'_', pstore.header[0:66], pstore.rec_evtid(evt), addhdr)
+        if do_print(i) : print('%s\n%s\n%s\n%s' % (85*'_', pstore.header[0:66], pstore.rec_evtid(evt), addhdr))
         ###===================
 
         peak_reg_lists = zip(('ARC','EQU'), (peaks_arc, peaks_equ)) 
@@ -230,11 +231,11 @@ for i, evt in enumerate(ds.events()) :
                 pstore.save_peak(evt, rec)
 
                 ###===================
-                if do_print(i) : print '%s' % rec
+                if do_print(i) : print('%s' % rec)
                 ###===================
 
         ###===================
-        if do_print(i) : print 'Event %d --- dt/evt = %f sec' % (i, time()-t0_sec)
+        if do_print(i) : print('Event %d --- dt/evt = %f sec' % (i, time()-t0_sec))
         ###===================
 
         if DO_PLOT and i%EVTPLOT==0 :
@@ -259,7 +260,7 @@ for i, evt in enumerate(ds.events()) :
             fig.canvas.draw() # re-draw figure content
 
 
-print ' ----> Event loop time = %f sec' % (time()-t0_sec_evloop)
+print(' ----> Event loop time = %f sec' % (time()-t0_sec_evloop))
 
 pstore.close_file()
 

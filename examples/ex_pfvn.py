@@ -1,3 +1,4 @@
+from __future__ import print_function
 #------------------------------
 ### #!/usr/bin/env python
 
@@ -99,7 +100,7 @@ def test_pf(tname) :
         if ev<SKIP : continue
         #if ev>=EVTMAX : break
 
-        print 50*'_', '\nEvent %04d' % ev1
+        print(50*'_', '\nEvent %04d' % ev1)
 
         img, peaks_sim = image_with_random_peaks(shape)
 
@@ -126,27 +127,27 @@ def test_pf(tname) :
                 alg.peak_finder_v4r2(img, thr_low=20, thr_high=40, rank=6, r0=7, dr=2)
                 #alg.peak_finder_v4r2(img, thr_low=20, thr_high=40, rank=6, r0=3.3, dr=0)
 
-        print '  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec)
+        print('  Time consumed by the peak_finder = %10.6f(sec)' % (time()-t0_sec))
 
         map2 = reshape_to_2d(alg.maps_of_pixel_status())     if DO_PLOT_PIXEL_STATUS    else None # np.zeros((10,10))
         map3 = reshape_to_2d(alg.maps_of_connected_pixels()) if DO_PLOT_CONNECED_PIXELS else None # np.zeros((10,10))
         map4 = reshape_to_2d(alg.maps_of_local_maximums())   if DO_PLOT_LOCAL_MAXIMUMS  else None # np.zeros((10,10))
         map5 = reshape_to_2d(alg.maps_of_local_minimums())   if DO_PLOT_LOCAL_MINIMUMS  else None # np.zeros((10,10))
 
-        print 'arrays are extracted'
+        print('arrays are extracted')
 
         #print_arr(map2, 'map_of_pixel_status')
         #print_arr(map3, 'map_of_connected_pixels')
         #maps.shape = shape 
 
 
-        print 'Simulated peaks:'
+        print('Simulated peaks:')
         for i, (r0, c0, a0, sigma) in enumerate(peaks_sim) :
-            print '  %04d  row=%6.1f  col=%6.1f  amp=%6.1f  sigma=%6.3f' % (i, r0, c0, a0, sigma)
+            print('  %04d  row=%6.1f  col=%6.1f  amp=%6.1f  sigma=%6.3f' % (i, r0, c0, a0, sigma))
         #plot_image(img)
 
-        print 'Found peaks:'
-        print hdr
+        print('Found peaks:')
+        print(hdr)
         reg = 'IMG'
         for pk in peaks :
             seg,row,col,npix,amax,atot,rcent,ccent,rsigma,csigma,\
@@ -154,7 +155,7 @@ def test_pf(tname) :
             rec = fmt % (ev, reg, seg, row, col, npix, amax, atot, rcent, ccent, rsigma, csigma,\
                   rmin, rmax, cmin, cmax, bkgd, rms, son) #,\
                   #imrow, imcol, xum, yum, rum, phi)
-            print rec
+            print(rec)
 
 
         if DO_PLOT_PIXEL_STATUS :
@@ -164,7 +165,7 @@ def test_pf(tname) :
 
         if DO_PLOT_CONNECED_PIXELS :
             cmin, cmax = (map3.min(), map3.max()) if map3 is not None else (None,None)
-            print 'Connected pixel groups min/max:', cmin, cmax
+            print('Connected pixel groups min/max:', cmin, cmax)
             gg.plot_imgcb(fig3, axim3, axcb3, imsh3, map3, amin=cmin, amax=cmax, title='Connected pixel groups, ev: %04d' % ev1)
             gg.move_fig(fig3, x0=100, y0=30)
 
@@ -211,9 +212,9 @@ def test_pf(tname) :
 
 def ex_image_with_random_peaks() :     
     img, peaks = image_with_random_peaks()
-    print 'peaks:'
+    print('peaks:')
     for i, (r0, c0, a0, sigma) in enumerate(peaks) :
-        print '  %04d  row=%6.1f  col=%6.1f  amp=%6.1f  sigma=%6.3f' % (i, r0, c0, a0, sigma)
+        print('  %04d  row=%6.1f  col=%6.1f  amp=%6.1f  sigma=%6.3f' % (i, r0, c0, a0, sigma))
     plot_image(img)
 
 #------------------------------
@@ -221,10 +222,10 @@ def ex_image_with_random_peaks() :
 if __name__ == "__main__" :
     import sys; global sys
     tname = sys.argv[1] if len(sys.argv) > 1 else '0'
-    print 50*'_', '\nTest %s:' % tname
+    print(50*'_', '\nTest %s:' % tname)
     if   tname == '0' : ex_image_with_random_peaks()
     elif tname in ('1','2','3','4') : test_pf(tname)
-    else : print 'Not-recognized test name: %s' % tname
+    else : print('Not-recognized test name: %s' % tname)
     sys.exit('End of test %s' % tname)
  
 #------------------------------

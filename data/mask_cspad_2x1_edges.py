@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 
+from __future__ import print_function
 import os
 import sys
 import numpy as np
@@ -29,13 +30,13 @@ def mask_cspad_2x1_edges() :
 if __name__ == '__main__' :
 
     mask = mask_cspad_2x1_edges()
-    print 'mask:\n', mask
-    print 'mask.shape:', mask.shape
+    print('mask:\n', mask)
+    print('mask.shape:', mask.shape)
 
     fname = 'cspad_arr_mask_2x1_edges'
-    print 'Save file %s.txt' % fname
+    print('Save file %s.txt' % fname)
     np.savetxt(fname+'.txt', mask, fmt='%d')
-    print 'Save file %s.npy' % fname
+    print('Save file %s.npy' % fname)
     np.save   (fname+'.npy', mask)
 
     sys.exit('The End')
