@@ -129,6 +129,7 @@ If you use all or part of it, please give an appropriate acknowledgment.
 @author Mikhail S. Dubrovin
 """
 from __future__ import print_function
+from __future__ import division
 #------------------------------
 __version__ = "$Revision$"
 # $Source$
@@ -150,7 +151,7 @@ def reshape_nda_to_2d(arr) :
     """
     sh = arr.shape
     if arr.ndim<3 : return arr
-    arr.shape = (arr.size/sh[-1], sh[-1])
+    arr.shape = (arr.size//sh[-1], sh[-1])
     return arr
 
 ##-----------------------------
@@ -160,7 +161,7 @@ def reshape_nda_to_3d(arr) :
     """
     sh = arr.shape
     if arr.ndim<4 : return arr
-    arr.shape = (arr.size/sh[-1]/sh[-2], sh[-2], sh[-1])
+    arr.shape = (arr.size//sh[-1]//sh[-2], sh[-2], sh[-1])
     return arr
 
 ##-----------------------------
@@ -184,7 +185,7 @@ def print_arr(arr, cmt='') :
 
 ##-----------------------------
 
-class PyAlgos :
+class PyAlgos(object) :
     """Python wrapper for C++ algorithms
 
     Low level algorithms are implemented on C++

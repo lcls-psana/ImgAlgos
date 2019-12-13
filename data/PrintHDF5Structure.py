@@ -31,7 +31,7 @@ def print_hdf5_item_structure(g, offset='    ') :
         sys.exit ( "EXECUTION IS TERMINATED" )
 
     if isinstance(g, h5py.File) or isinstance(g, h5py.Group) :
-        for key,val in dict(g).iteritems() :
+        for key,val in dict(g).items() :
             subg = val
             print(offset, key, end=' ') #,"   ", subg.name #, val, subg.len(), type(subg),
             print_hdf5_item_structure(subg, offset + '    ')

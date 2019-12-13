@@ -30,6 +30,8 @@ from __future__ import absolute_import
 #------------------------------
 #  Module's version from CVS --
 #------------------------------
+from future import standard_library
+standard_library.install_aliases()
 __version__ = "$Revision: 1 $"
 # $Source$
 
@@ -45,7 +47,7 @@ import os
 #import h5py
 
 from optparse import OptionParser
-import commands
+import subprocess
 import subprocess # for subprocess.Popen
 import time
 
@@ -95,7 +97,7 @@ def init_pars() :
 
 # 1-1) parse input parameters, set default pars:
     print('\n1-1) Get and set input and default parameters:')
-    pwdir       = commands.getoutput('echo $PWD') # or may be .getstatusoutput('cd $PWD')
+    pwdir       = subprocess.getoutput('echo $PWD') # or may be .getstatusoutput('cd $PWD')
 
     opts, args = input_option_parser()
 
@@ -453,7 +455,7 @@ def submit_jobs_for_cor_proc_interactive() :
         print('  Wait untill processing of this file is compleated...\n', end=' ')
         status, log =0, 'DEFAULT LOGFILE FOR CORRELATION PROCESSING - THIS IS A TEST MODE !!!\nTHE getstatusoutput(cmd) IS COMMENTED OUT !!!'
         #=====
-        status, log = commands.getstatusoutput(cmd)
+        status, log = subprocess.getstatusoutput(cmd)
         #=====
 
         if status != 0 : 
@@ -524,7 +526,7 @@ def submit_job_for_splitter_interactive() :
 
     status, log =0, 'DEFAULT LOGFILE FOR SPLITTER - THIS IS A TEST MODE !!!\nTHE getstatusoutput(command) IS COMMENTED OUT !!!'
     #=====
-    status, log = commands.getstatusoutput(command)
+    status, log = subprocess.getstatusoutput(command)
     #=====
     print('Log:\n', log)
 
@@ -557,7 +559,7 @@ def submit_job_for_merging_interactive() :
     print('  Wait untill merging is compleated...\n', end=' ')
     status, log =0, 'DEFAULT LOGFILE FOR MERGING - THIS IS A TEST MODE !!!\nTHE getstatusoutput(cmd) IS COMMENTED OUT !!!'
     #=====
-    status, log = commands.getstatusoutput(cmd)
+    status, log = subprocess.getstatusoutput(cmd)
     #=====
     if status != 0 : 
        print('Merging job status: ', status)
@@ -589,7 +591,7 @@ def submit_job_for_proc_results_interactive() :
     print('  Wait untill test processing of results is compleated...\n', end=' ')
     status, log =0, 'DEFAULT LOGFILE FOR TEST PROCESSING OF RESULTS - THIS IS A TEST MODE !!!\nTHE getstatusoutput(cmd) IS COMMENTED OUT !!!'
     #=====
-    status, log = commands.getstatusoutput(cmd)
+    status, log = subprocess.getstatusoutput(cmd)
     #=====
     if status != 0 : 
        print('Test processing of results job status: ', status)

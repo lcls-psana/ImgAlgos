@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from __future__ import division
 import sys
 import math
 import numpy as np
@@ -208,7 +209,7 @@ for i, evt in enumerate(ds.events()) :
         if do_print(i) : print('%s\n%s\n%s\n%s' % (85*'_', pstore.header[0:66], pstore.rec_evtid(evt), addhdr))
         ###===================
 
-        peak_reg_lists = zip(('ARC','EQU'), (peaks_arc, peaks_equ)) 
+        peak_reg_lists = list(zip(('ARC','EQU'), (peaks_arc, peaks_equ))) 
 
         # loop over ARC and EQU regions
         for reg, peak_list in peak_reg_lists :

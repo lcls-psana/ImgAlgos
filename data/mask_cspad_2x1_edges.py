@@ -2,6 +2,7 @@
 #--------------------
 
 from __future__ import print_function
+from __future__ import division
 import os
 import sys
 import numpy as np
@@ -11,7 +12,7 @@ import numpy as np
 def mask_cspad_2x1_edges() :
     """Returns CSPAD array of shape (5920, 388) with mask of 2x1 edges
     """
-    segs, rows, cols, colsh = 32, 185, 388, 388/2
+    segs, rows, cols, colsh = 32, 185, 388, 388//2
     zero_col = np.zeros(rows,dtype=np.int)
     zero_row = np.zeros(cols,dtype=np.int)
     mask2x1  = np.ones((rows,cols),dtype=np.int)

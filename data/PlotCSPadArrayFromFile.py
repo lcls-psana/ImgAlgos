@@ -2,6 +2,7 @@
 #--------------------
 
 from __future__ import print_function
+from __future__ import division
 import os
 import sys
 import numpy as np
@@ -49,8 +50,8 @@ def getQuad2D(arr_all,quad=0) :
         nrows, ncols = arr_segm_rot.shape
         print('nrows, ncols = ', nrows, ncols)
 
-        xOff = pairXInQaud[quad][segm] - nrows/2
-        yOff = pairYInQaud[quad][segm] - ncols/2
+        xOff = pairXInQaud[quad][segm] - nrows//2
+        yOff = pairYInQaud[quad][segm] - ncols//2
 
         arr_quad_img[xOff:nrows+xOff, yOff:ncols+yOff] += arr_segm_rot[0:nrows, 0:ncols]
     return  arr_quad_img
@@ -81,8 +82,8 @@ def getCSPadImage(arr) :
             nrows, ncols = arr_segm_rot.shape
             #print 'nrows, ncols = ', nrows, ncols
         
-            xOff = segmX[quad][segm] - nrows/2 + 41
-            yOff = segmY[quad][segm] - ncols/2 + 2 
+            xOff = segmX[quad][segm] - nrows//2 + 41
+            yOff = segmY[quad][segm] - ncols//2 + 2 
         
             arr_cspad_img[xOff:nrows+xOff, yOff:ncols+yOff] += arr_segm_rot[0:nrows, 0:ncols]
     return  arr_cspad_img

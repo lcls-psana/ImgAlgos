@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #--------------------
 from __future__ import print_function
+from __future__ import division
 import os
 import sys
 from time import sleep
@@ -15,7 +16,7 @@ from PSCalib.GeometryAccess import GeometryAccess, img_from_pixel_arrays
 from PSCalib.GeometryObject import data2x2ToTwo2x1
 #--------------------
 
-class Storage :
+class Storage(object) :
     def __init__(self) :
         print('Storage object is created in order to pass common parameters between methods.')
         self.iX = None
@@ -164,7 +165,7 @@ def nda_3d_shape(nda) :
     """
     if len(nda.shape) > 2 :
         rows, cols = nda.shape[-2:]
-        return (nda.size/rows/cols, rows, cols)
+        return (nda.size//rows//cols, rows, cols)
     return nda.shape    
     #return (2, 185, 388)
 

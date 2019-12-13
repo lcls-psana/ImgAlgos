@@ -43,7 +43,7 @@ import numpy as np
 
 #--------------------
 
-class CorAnaPars :
+class CorAnaPars(object) :
     """This is a singleton class for common parameters
 
     @see BaseClass
