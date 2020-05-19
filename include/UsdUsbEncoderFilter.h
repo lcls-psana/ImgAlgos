@@ -89,7 +89,7 @@ namespace ImgAlgos {
 
     bool operator==(const TimeCode& other) const {
       if (m_tst_sec != other.m_tst_sec) return false;
-      if (abs(m_tst_nsec-other.m_tst_sec) > 1e6) return false;
+      if (abs((long)m_tst_nsec-(long)(other.m_tst_sec)) > 1e6) return false;
       return m_code == other.m_code;
     }
 

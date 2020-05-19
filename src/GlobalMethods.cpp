@@ -297,7 +297,7 @@ bool
 file_exists(std::string& fname)
 { 
   std::ifstream f(fname.c_str()); 
-  return f; 
+  return f.is_open(); 
 }
 
 //--------------------
