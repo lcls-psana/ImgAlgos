@@ -64,7 +64,7 @@
 #ifndef BOOST_GIL_NO_IO
 //#include <boost/gil/extension/io/jpeg_io.hpp>
 
-#include <boost/gil/extension/io/png_dynamic_io.hpp>
+//#include <boost/gil/extension/io/png_dynamic_io.hpp>
 //#include <boost/gil/extension/io/jpeg_dynamic_io.hpp> 
 #endif
 
