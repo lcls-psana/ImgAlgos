@@ -11,6 +11,19 @@ Package author: Mikhail S. Dubrovin
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V02-00-01
+2024-11-26 Mikhail S. Dubrovin
+- replace deprecated np.int > np.int32, np.float > np.float32, code cleaning
+	modified:   data/PlotCSPad2x2ArrayFromFile.py
+	modified:   data/PlotCameraImageFromFile.py
+	modified:   data/mask_cspad_2x1_edges.py
+	modified:   examples/ex_pfv3.py
+	modified:   examples/ex_pfv3_old.py
+	modified:   src/PyAlgos.py
+
+Tag: V02-00-00
+Tag: V01-01-00
+
 Tag: V01-00-05
 2019-10-23 Mikhail S. Dubrovin
 - AlgImgProc - extend photon pixel-merging algorithm for image side edges and corners
