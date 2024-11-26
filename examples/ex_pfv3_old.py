@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-from __future__ import division
 import sys
 import numpy as np
 from time import time
 
 from ImgAlgos.PyAlgos import PyAlgos, print_arr, print_arr_attr
 
-#------------------------------
 hdr = 'Evnum  Reg  Seg  Row  Col  Npix      Amax      Atot   rcent   ccent '+\
       'rsigma  csigma rmin rmax cmin cmax    bkgd     rms     son' # +\
       #'  imrow   imcol     x[um]     y[um]     r[um]  phi[deg]'
@@ -17,7 +14,6 @@ fmt = '%5d  %3s  %3d %4d %4d  %4d  %8.1f  %8.1f  %6.1f  %6.1f %6.2f  %6.2f'+\
       ' %4d %4d %4d %4d  %6.2f  %6.2f  %6.2f' # +\
       #' %6d  %6d  %8.0f  %8.0f  %8.0f  %8.2f'
 
-#------------------------------
 
 def test_02() :
     #winds = ((1, 0, 185, 0, 388), \
@@ -53,7 +49,6 @@ def test_02() :
     print('%s\n  alg.intensity_of_pix_above_thr = %12.3f' % (80*'_', a1))
     print('  Time consumed by the test = %10.6f(sec)' % (time()-t0_sec))
 
-#------------------------------
 
 def test_01() :
     print('%s\n%s\n' % (80*'_','test_01'))
@@ -61,14 +56,14 @@ def test_01() :
     import pyimgalgos.GlobalGraphics as gg
 
     fig, axim, axcb = gg.fig_axes() # if not do_plot else (None, None, None)
- 
+
     #shape = (2, 185, 388)
     shape = (100, 100)
     mask = np.ones(shape)
 
     #winds = [(s, 0, 185, 0, 388) for s in (0,1,7,8,9,15,16,17,23,24,25,31)]
     winds = None
-    
+
     alg = PyAlgos(windows=winds, mask=mask, pbits=0)
     #alg.set_peak_selection_pars(npix_min=5, npix_max=500, amax_thr=0, atot_thr=1000, son_min=6)
     #alg = PyAlgos()
@@ -78,7 +73,7 @@ def test_01() :
     rank=5
     mu, sigma = 0, 20
 
-    map_stat = np.zeros((8,), dtype=np.float)
+    map_stat = np.zeros((8,), dtype=np.float64)
     counter = 0
     for i in range(10) :
 
@@ -93,7 +88,7 @@ def test_01() :
 
         maps = alg.maps_of_local_maximums()
         #print_arr_attr(maps, 'maps')
-        maps.shape = shape 
+        maps.shape = shape
 
         map_stat += np.bincount(maps.flatten(), weights=None, minlength=None)
         counter += 1
@@ -115,9 +110,9 @@ def test_01() :
         #img = nda
         #ave, rms = img.mean(), img.std()
         #amin, amax = ave-2*rms, ave+2*rms
-        
+
         gg.plot_img(img, mode='do not hold', amin=amin, amax=amax)
-        fig.canvas.set_window_title('Event: %d' % i)    
+        fig.canvas.set_window_title('Event: %d' % i)
         fig.canvas.draw() # re-draw figure content
 
 
@@ -131,11 +126,9 @@ def test_01() :
 
     gg.show() # hold image untill it is closed
 
-#------------------------------
 
 def usage() : return 'Use command: python %s <test-number>, where <test-number> = 1,2,...,9,...' % sys.argv[0]
 
-#------------------------------
 
 def main() :
     if len(sys.argv) != 2  : test_01(); print('\n%s\n%s\n' %  (80*'_', usage()))
@@ -143,10 +136,9 @@ def main() :
     elif sys.argv[1] =='2' : test_02()
     else                   : print('\n%s\nTest id parameter is not recognized.\n%s' % (80*'_', usage()))
 
-#------------------------------
 
 if __name__ == "__main__" :
     main()
     sys.exit('\nEnd of test')
 
-#------------------------------
+# EOF

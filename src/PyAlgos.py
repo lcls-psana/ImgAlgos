@@ -1,11 +1,10 @@
-#--------------------------------------------------------------------------
+
 # File and Version Information:
 #  $Id$
 #
 # Description:
 #  class PyAlgos
 #
-#------------------------------------------------------------------------
 
 """Class provides access to C++ algorithms from python.
 
@@ -16,7 +15,7 @@ Usage::
     # IMPORT
     # ======
     import psana
-    from ImgAlgos.PyAlgos import PyAlgos    
+    from ImgAlgos.PyAlgos import PyAlgos
 
 
     # INPUT PARAMETERS
@@ -28,7 +27,7 @@ Usage::
     # Mask
     mask = None                   # (default) all pixels in windows will be used for peak finding
     mask = det.mask()             # see class Detector.PyDetector
-    mask = np.loadtxt(fname_mask) # 
+    mask = np.loadtxt(fname_mask) #
     mask.shape = (32,185,388)     # should be the same as shape of data n-d array
 
     # Data n-d array
@@ -50,7 +49,7 @@ Usage::
     # set peak-selector parameters:
     alg.set_peak_selection_pars(npix_min=5, npix_max=5000, amax_thr=0, atot_thr=0, son_min=10)
 
-    
+
     # HIT FINDERS
     # ===========
     # Hit finders return simple values for decision on event selection.
@@ -87,7 +86,7 @@ Usage::
     # OPTIONAL METHODS
     # ================
     # print info
-    alg.print_attributes()   # attributes of the PyAlgos object 
+    alg.print_attributes()   # attributes of the PyAlgos object
     alg.print_input_pars()   # member data of C++ objects
 
     # set parameters for S/N evaluation algorithm
@@ -99,10 +98,10 @@ Usage::
     # set windows in segments to search for peaks
     alg.set_windows(winds)
 
-    # Call after alg.peak_finder_v2, v4r2 ONLY! Returns n-d array with 2-d maps of pixel status 
+    # Call after alg.peak_finder_v2, v4r2 ONLY! Returns n-d array with 2-d maps of pixel status
     maps = alg.maps_of_pixel_status()
 
-    # Call after alg.peak_finder_v2 ONLY! Returns n-d array with 2-d maps of connected pixels 
+    # Call after alg.peak_finder_v2 ONLY! Returns n-d array with 2-d maps of connected pixels
     maps = alg.maps_of_connected_pixels()
 
     # Call after alg.peak_finder_v3 ONLY! Returns n-d array with 2-d maps of local maximums
@@ -128,15 +127,7 @@ If you use all or part of it, please give an appropriate acknowledgment.
 
 @author Mikhail S. Dubrovin
 """
-from __future__ import print_function
-from __future__ import division
-#------------------------------
 __version__ = "$Revision$"
-# $Source$
-##-----------------------------
-
-#import psana                   # moved in __init__().py
-#from imgalgos_ext import *     # moved in __init__().py
 
 import sys
 import numpy as np
@@ -144,7 +135,6 @@ import numpy as np
 import ImgAlgos
 import pyimgalgos.GlobalUtils as piagu
 
-##-----------------------------
 
 def reshape_nda_to_2d(arr) :
     """Reshape np.array to 2-d
@@ -154,7 +144,6 @@ def reshape_nda_to_2d(arr) :
     arr.shape = (arr.size//sh[-1], sh[-1])
     return arr
 
-##-----------------------------
 
 def reshape_nda_to_3d(arr) :
     """Reshape np.array to 3-d
@@ -164,7 +153,6 @@ def reshape_nda_to_3d(arr) :
     arr.shape = (arr.size//sh[-1]//sh[-2], sh[-2], sh[-1])
     return arr
 
-##-----------------------------
 
 def print_arr_attr(arr, cmt='') :
     if arr is None :
@@ -173,7 +161,6 @@ def print_arr_attr(arr, cmt='') :
     nda = np.array(arr)
     print('  %s attributes: size = %d, shape = %s, dtype = %s' % (cmt, nda.size, nda.shape, nda.dtype))
 
-##-----------------------------
 
 def print_arr(arr, cmt='') :
     if arr is None :
@@ -183,7 +170,6 @@ def print_arr(arr, cmt='') :
     print('\nprint_arr: %s:\n%s' % (cmt, str(nda)))
     print('  %s attributes: size = %d, shape = %s, dtype = %s' % (cmt, nda.size, nda.shape, nda.dtype))
 
-##-----------------------------
 
 class PyAlgos(object) :
     """Python wrapper for C++ algorithms
@@ -193,7 +179,6 @@ class PyAlgos(object) :
     @see AlgArrProc - c++ array processing algorithms
     """
 
-##-----------------------------
 
     def __init__(self, windows=None, mask=None, pbits=0) :
         """Constructor.
@@ -213,8 +198,7 @@ class PyAlgos(object) :
         self.aap = ImgAlgos.AlgArrProc(self.windows, self.pbits)
 
         if self.pbits == 2 : self.print_attributes()
-        
-##-----------------------------
+
 
     def set_windows(self, windows) :
         """
@@ -225,7 +209,6 @@ class PyAlgos(object) :
         self.windows = np.array(windows, dtype=np.uint32)
         self.aap.set_windows(self.windows)
 
-##-----------------------------
 
     def set_son_pars(self, r0=10, dr=0.05) :
         """ Set parameters for SoN (S/N) evaluation
@@ -236,7 +219,6 @@ class PyAlgos(object) :
 
         self.aap.set_son_pars(r0, dr)
 
-##-----------------------------
 
     def set_peak_selection_pars(self, npix_min=0, npix_max=1e6, amax_thr=0, atot_thr=0, son_min=0) :
         """
@@ -250,7 +232,6 @@ class PyAlgos(object) :
 
         self.aap.set_peak_selection_pars(npix_min, npix_max, amax_thr, atot_thr, son_min)
 
-##-----------------------------
 
     def set_mask(self, mask) :
         """
@@ -261,14 +242,12 @@ class PyAlgos(object) :
         if mask is None : self.mask = None
         else : self.mask = np.array(mask, dtype=np.uint16)
 
-##-----------------------------
 
     def print_input_pars(self) :
         if self.pbits & 128 : print('in PyAlgos.print_input_pars()')
 
         self.aap.print_input_pars()
 
-##-----------------------------
 
     def print_attributes(self) :
         print('%s attributes:' % self.__class__.__name__, \
@@ -278,7 +257,6 @@ class PyAlgos(object) :
         print_arr_attr(self.windows, cmt='windows')
         print_arr_attr(self.mask, cmt='mask')
 
-##-----------------------------
 
     def check_mask(self, ndim, dtype=np.uint16) :
         """Returns empty mask for None or re-shaped mask for ndim>3, or self.mask
@@ -292,7 +270,6 @@ class PyAlgos(object) :
 
         if ndim>3 : self.mask = reshape_nda_to_3d(self.mask)
 
-##-----------------------------
 
     def number_of_pix_above_thr(self, arr, thr=0) :
 
@@ -301,20 +278,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.number_of_pix_above_thr_f2(nda, msk, thr)
             if dtype == np.float64: return self.aap.number_of_pix_above_thr_d2(nda, msk, thr)
-            if dtype == np.int    : return self.aap.number_of_pix_above_thr_i2(nda, msk, thr)
+            if dtype == np.int32  : return self.aap.number_of_pix_above_thr_i2(nda, msk, thr)
             if dtype == np.int16  : return self.aap.number_of_pix_above_thr_s2(nda, msk, thr)
             if dtype == np.uint16 : return self.aap.number_of_pix_above_thr_u2(nda, msk, thr)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.number_of_pix_above_thr_f3(nda, msk, thr)
         if dtype == np.float64: return self.aap.number_of_pix_above_thr_d3(nda, msk, thr)
-        if dtype == np.int    : return self.aap.number_of_pix_above_thr_i3(nda, msk, thr)
+        if dtype == np.int32  : return self.aap.number_of_pix_above_thr_i3(nda, msk, thr)
         if dtype == np.int16  : return self.aap.number_of_pix_above_thr_s3(nda, msk, thr)
         if dtype == np.uint16 : return self.aap.number_of_pix_above_thr_u3(nda, msk, thr)
 
@@ -323,7 +300,6 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
 
     def intensity_of_pix_above_thr(self, arr, thr):
 
@@ -332,20 +308,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.intensity_of_pix_above_thr_f2(nda, msk, thr)
             if dtype == np.float64: return self.aap.intensity_of_pix_above_thr_d2(nda, msk, thr)
-            if dtype == np.int    : return self.aap.intensity_of_pix_above_thr_i2(nda, msk, thr)
+            if dtype == np.int32  : return self.aap.intensity_of_pix_above_thr_i2(nda, msk, thr)
             if dtype == np.int16  : return self.aap.intensity_of_pix_above_thr_s2(nda, msk, thr)
             if dtype == np.uint16 : return self.aap.intensity_of_pix_above_thr_u2(nda, msk, thr)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.intensity_of_pix_above_thr_f3(nda, msk, thr)
         if dtype == np.float64: return self.aap.intensity_of_pix_above_thr_d3(nda, msk, thr)
-        if dtype == np.int    : return self.aap.intensity_of_pix_above_thr_i3(nda, msk, thr)
+        if dtype == np.int32  : return self.aap.intensity_of_pix_above_thr_i3(nda, msk, thr)
         if dtype == np.int16  : return self.aap.intensity_of_pix_above_thr_s3(nda, msk, thr)
         if dtype == np.uint16 : return self.aap.intensity_of_pix_above_thr_u3(nda, msk, thr)
 
@@ -354,7 +330,7 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
+
 
     def peak_finder_v1(self, arr, thr_low, thr_high, radius=5, dr=0.05) :
 
@@ -363,20 +339,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.peak_finder_v1_f2(nda, msk, thr_low, thr_high, radius, dr)
             if dtype == np.float64: return self.aap.peak_finder_v1_d2(nda, msk, thr_low, thr_high, radius, dr)
-            if dtype == np.int    : return self.aap.peak_finder_v1_i2(nda, msk, thr_low, thr_high, radius, dr)
+            if dtype == np.int32  : return self.aap.peak_finder_v1_i2(nda, msk, thr_low, thr_high, radius, dr)
             if dtype == np.int16  : return self.aap.peak_finder_v1_s2(nda, msk, thr_low, thr_high, radius, dr)
             if dtype == np.uint16 : return self.aap.peak_finder_v1_u2(nda, msk, thr_low, thr_high, radius, dr)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.peak_finder_v1_f3(nda, msk, thr_low, thr_high, radius, dr)
         if dtype == np.float64: return self.aap.peak_finder_v1_d3(nda, msk, thr_low, thr_high, radius, dr)
-        if dtype == np.int    : return self.aap.peak_finder_v1_i3(nda, msk, thr_low, thr_high, radius, dr)
+        if dtype == np.int32  : return self.aap.peak_finder_v1_i3(nda, msk, thr_low, thr_high, radius, dr)
         if dtype == np.int16  : return self.aap.peak_finder_v1_s3(nda, msk, thr_low, thr_high, radius, dr)
         if dtype == np.uint16 : return self.aap.peak_finder_v1_u3(nda, msk, thr_low, thr_high, radius, dr)
 
@@ -385,7 +361,6 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
 
     def peak_finder_v4(self, arr, thr_low, thr_high, rank=4, r0=5.0, dr=0.05) :
 
@@ -394,20 +369,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.peak_finder_v4_f2(nda, msk, thr_low, thr_high, rank, r0, dr)
             if dtype == np.float64: return self.aap.peak_finder_v4_d2(nda, msk, thr_low, thr_high, rank, r0, dr)
-            if dtype == np.int    : return self.aap.peak_finder_v4_i2(nda, msk, thr_low, thr_high, rank, r0, dr)
+            if dtype == np.int32  : return self.aap.peak_finder_v4_i2(nda, msk, thr_low, thr_high, rank, r0, dr)
             if dtype == np.int16  : return self.aap.peak_finder_v4_s2(nda, msk, thr_low, thr_high, rank, r0, dr)
             if dtype == np.uint16 : return self.aap.peak_finder_v4_u2(nda, msk, thr_low, thr_high, rank, r0, dr)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.peak_finder_v4_f3(nda, msk, thr_low, thr_high, rank, r0, dr)
         if dtype == np.float64: return self.aap.peak_finder_v4_d3(nda, msk, thr_low, thr_high, rank, r0, dr)
-        if dtype == np.int    : return self.aap.peak_finder_v4_i3(nda, msk, thr_low, thr_high, rank, r0, dr)
+        if dtype == np.int32  : return self.aap.peak_finder_v4_i3(nda, msk, thr_low, thr_high, rank, r0, dr)
         if dtype == np.int16  : return self.aap.peak_finder_v4_s3(nda, msk, thr_low, thr_high, rank, r0, dr)
         if dtype == np.uint16 : return self.aap.peak_finder_v4_u3(nda, msk, thr_low, thr_high, rank, r0, dr)
 
@@ -416,7 +391,7 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
+
 
     def peak_finder_v4r1(self, arr, thr_low, thr_high, rank=4, r0=7.0, dr=2.0) :
 
@@ -425,20 +400,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.peak_finder_v4r1_f2(nda, msk, thr_low, thr_high, rank, r0, dr)
             if dtype == np.float64: return self.aap.peak_finder_v4r1_d2(nda, msk, thr_low, thr_high, rank, r0, dr)
-            if dtype == np.int    : return self.aap.peak_finder_v4r1_i2(nda, msk, thr_low, thr_high, rank, r0, dr)
+            if dtype == np.int32  : return self.aap.peak_finder_v4r1_i2(nda, msk, thr_low, thr_high, rank, r0, dr)
             if dtype == np.int16  : return self.aap.peak_finder_v4r1_s2(nda, msk, thr_low, thr_high, rank, r0, dr)
             if dtype == np.uint16 : return self.aap.peak_finder_v4r1_u2(nda, msk, thr_low, thr_high, rank, r0, dr)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.peak_finder_v4r1_f3(nda, msk, thr_low, thr_high, rank, r0, dr)
         if dtype == np.float64: return self.aap.peak_finder_v4r1_d3(nda, msk, thr_low, thr_high, rank, r0, dr)
-        if dtype == np.int    : return self.aap.peak_finder_v4r1_i3(nda, msk, thr_low, thr_high, rank, r0, dr)
+        if dtype == np.int32  : return self.aap.peak_finder_v4r1_i3(nda, msk, thr_low, thr_high, rank, r0, dr)
         if dtype == np.int16  : return self.aap.peak_finder_v4r1_s3(nda, msk, thr_low, thr_high, rank, r0, dr)
         if dtype == np.uint16 : return self.aap.peak_finder_v4r1_u3(nda, msk, thr_low, thr_high, rank, r0, dr)
 
@@ -447,7 +422,6 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
 
     def peak_finder_v4r2(self, arr, thr_low, thr_high, rank=4, r0=7.0, dr=2.0) :
 
@@ -456,20 +430,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.peak_finder_v4r2_f2(nda, msk, thr_low, thr_high, rank, r0, dr)
             if dtype == np.float64: return self.aap.peak_finder_v4r2_d2(nda, msk, thr_low, thr_high, rank, r0, dr)
-            if dtype == np.int    : return self.aap.peak_finder_v4r2_i2(nda, msk, thr_low, thr_high, rank, r0, dr)
+            if dtype == np.int32  : return self.aap.peak_finder_v4r2_i2(nda, msk, thr_low, thr_high, rank, r0, dr)
             if dtype == np.int16  : return self.aap.peak_finder_v4r2_s2(nda, msk, thr_low, thr_high, rank, r0, dr)
             if dtype == np.uint16 : return self.aap.peak_finder_v4r2_u2(nda, msk, thr_low, thr_high, rank, r0, dr)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.peak_finder_v4r2_f3(nda, msk, thr_low, thr_high, rank, r0, dr)
         if dtype == np.float64: return self.aap.peak_finder_v4r2_d3(nda, msk, thr_low, thr_high, rank, r0, dr)
-        if dtype == np.int    : return self.aap.peak_finder_v4r2_i3(nda, msk, thr_low, thr_high, rank, r0, dr)
+        if dtype == np.int32  : return self.aap.peak_finder_v4r2_i3(nda, msk, thr_low, thr_high, rank, r0, dr)
         if dtype == np.int16  : return self.aap.peak_finder_v4r2_s3(nda, msk, thr_low, thr_high, rank, r0, dr)
         if dtype == np.uint16 : return self.aap.peak_finder_v4r2_u3(nda, msk, thr_low, thr_high, rank, r0, dr)
 
@@ -478,12 +452,10 @@ class PyAlgos(object) :
 
         return None
 
-##----------------------------
 
     def set_son_parameters(r0=5, dr=0.05) :
         self.aap.set_son_parameters(r0, dr)
 
-##-----------------------------
 
     def peak_finder_v2(self, arr, thr=0, r0=5, dr=0.05) :
 
@@ -492,20 +464,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.peak_finder_v2_f2(nda, msk, thr, r0, dr)
             if dtype == np.float64: return self.aap.peak_finder_v2_d2(nda, msk, thr, r0, dr)
-            if dtype == np.int    : return self.aap.peak_finder_v2_i2(nda, msk, thr, r0, dr)
+            if dtype == np.int32  : return self.aap.peak_finder_v2_i2(nda, msk, thr, r0, dr)
             if dtype == np.int16  : return self.aap.peak_finder_v2_s2(nda, msk, thr, r0, dr)
             if dtype == np.uint16 : return self.aap.peak_finder_v2_u2(nda, msk, thr, r0, dr)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.peak_finder_v2_f3(nda, msk, thr, r0, dr)
         if dtype == np.float64: return self.aap.peak_finder_v2_d3(nda, msk, thr, r0, dr)
-        if dtype == np.int    : return self.aap.peak_finder_v2_i3(nda, msk, thr, r0, dr)
+        if dtype == np.int32  : return self.aap.peak_finder_v2_i3(nda, msk, thr, r0, dr)
         if dtype == np.int16  : return self.aap.peak_finder_v2_s3(nda, msk, thr, r0, dr)
         if dtype == np.uint16 : return self.aap.peak_finder_v2_u3(nda, msk, thr, r0, dr)
 
@@ -514,7 +486,6 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
 
     def peak_finder_v2r1(self, arr, thr=0, r0=7.0, dr=2.0) :
 
@@ -523,20 +494,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.peak_finder_v2r1_f2(nda, msk, thr, r0, dr)
             if dtype == np.float64: return self.aap.peak_finder_v2r1_d2(nda, msk, thr, r0, dr)
-            if dtype == np.int    : return self.aap.peak_finder_v2r1_i2(nda, msk, thr, r0, dr)
+            if dtype == np.int32  : return self.aap.peak_finder_v2r1_i2(nda, msk, thr, r0, dr)
             if dtype == np.int16  : return self.aap.peak_finder_v2r1_s2(nda, msk, thr, r0, dr)
             if dtype == np.uint16 : return self.aap.peak_finder_v2r1_u2(nda, msk, thr, r0, dr)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.peak_finder_v2r1_f3(nda, msk, thr, r0, dr)
         if dtype == np.float64: return self.aap.peak_finder_v2r1_d3(nda, msk, thr, r0, dr)
-        if dtype == np.int    : return self.aap.peak_finder_v2r1_i3(nda, msk, thr, r0, dr)
+        if dtype == np.int32  : return self.aap.peak_finder_v2r1_i3(nda, msk, thr, r0, dr)
         if dtype == np.int16  : return self.aap.peak_finder_v2r1_s3(nda, msk, thr, r0, dr)
         if dtype == np.uint16 : return self.aap.peak_finder_v2r1_u3(nda, msk, thr, r0, dr)
 
@@ -545,7 +516,6 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
 
     def maps_of_pixel_status(self) :
 
@@ -554,7 +524,6 @@ class PyAlgos(object) :
         if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_pixel_status arr:')
         return arr
 
-##-----------------------------
 
     def maps_of_connected_pixels(self) :
 
@@ -563,7 +532,6 @@ class PyAlgos(object) :
         if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_connected_pixels arr:')
         return arr
 
-##-----------------------------
 
     def peak_finder_v3(self, arr, rank=2, r0=5, dr=0.05, nsigm=0) :
 
@@ -572,20 +540,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.peak_finder_v3_f2(nda, msk, rank, r0, dr, nsigm)
             if dtype == np.float64: return self.aap.peak_finder_v3_d2(nda, msk, rank, r0, dr, nsigm)
-            if dtype == np.int    : return self.aap.peak_finder_v3_i2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.int32  : return self.aap.peak_finder_v3_i2(nda, msk, rank, r0, dr, nsigm)
             if dtype == np.int16  : return self.aap.peak_finder_v3_s2(nda, msk, rank, r0, dr, nsigm)
             if dtype == np.uint16 : return self.aap.peak_finder_v3_u2(nda, msk, rank, r0, dr, nsigm)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.peak_finder_v3_f3(nda, msk, rank, r0, dr, nsigm)
         if dtype == np.float64: return self.aap.peak_finder_v3_d3(nda, msk, rank, r0, dr, nsigm)
-        if dtype == np.int    : return self.aap.peak_finder_v3_i3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.int32  : return self.aap.peak_finder_v3_i3(nda, msk, rank, r0, dr, nsigm)
         if dtype == np.int16  : return self.aap.peak_finder_v3_s3(nda, msk, rank, r0, dr, nsigm)
         if dtype == np.uint16 : return self.aap.peak_finder_v3_u3(nda, msk, rank, r0, dr, nsigm)
 
@@ -594,7 +562,6 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
 
     def peak_finder_v3r1(self, arr, rank=5, r0=7.0, dr=2.0, nsigm=0) :
 
@@ -603,20 +570,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.peak_finder_v3r1_f2(nda, msk, rank, r0, dr, nsigm)
             if dtype == np.float64: return self.aap.peak_finder_v3r1_d2(nda, msk, rank, r0, dr, nsigm)
-            if dtype == np.int    : return self.aap.peak_finder_v3r1_i2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.int32  : return self.aap.peak_finder_v3r1_i2(nda, msk, rank, r0, dr, nsigm)
             if dtype == np.int16  : return self.aap.peak_finder_v3r1_s2(nda, msk, rank, r0, dr, nsigm)
             if dtype == np.uint16 : return self.aap.peak_finder_v3r1_u2(nda, msk, rank, r0, dr, nsigm)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.peak_finder_v3r1_f3(nda, msk, rank, r0, dr, nsigm)
         if dtype == np.float64: return self.aap.peak_finder_v3r1_d3(nda, msk, rank, r0, dr, nsigm)
-        if dtype == np.int    : return self.aap.peak_finder_v3r1_i3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.int32  : return self.aap.peak_finder_v3r1_i3(nda, msk, rank, r0, dr, nsigm)
         if dtype == np.int16  : return self.aap.peak_finder_v3r1_s3(nda, msk, rank, r0, dr, nsigm)
         if dtype == np.uint16 : return self.aap.peak_finder_v3r1_u3(nda, msk, rank, r0, dr, nsigm)
 
@@ -625,7 +592,6 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
 
     def peak_finder_v3r2(self, arr, rank=5, r0=7.0, dr=2.0, nsigm=0) :
 
@@ -634,20 +600,20 @@ class PyAlgos(object) :
         ndim, dtype = arr.ndim, arr.dtype
         self.check_mask(ndim)
         nda, msk = arr, self.mask
-        
+
         if ndim == 2 :
             if dtype == np.float32: return self.aap.peak_finder_v3r2_f2(nda, msk, rank, r0, dr, nsigm)
             if dtype == np.float64: return self.aap.peak_finder_v3r2_d2(nda, msk, rank, r0, dr, nsigm)
-            if dtype == np.int    : return self.aap.peak_finder_v3r2_i2(nda, msk, rank, r0, dr, nsigm)
+            if dtype == np.int32  : return self.aap.peak_finder_v3r2_i2(nda, msk, rank, r0, dr, nsigm)
             if dtype == np.int16  : return self.aap.peak_finder_v3r2_s2(nda, msk, rank, r0, dr, nsigm)
             if dtype == np.uint16 : return self.aap.peak_finder_v3r2_u2(nda, msk, rank, r0, dr, nsigm)
 
         if ndim>3 :
             nda = reshape_nda_to_3d(arr)
-        
+
         if dtype == np.float32: return self.aap.peak_finder_v3r2_f3(nda, msk, rank, r0, dr, nsigm)
         if dtype == np.float64: return self.aap.peak_finder_v3r2_d3(nda, msk, rank, r0, dr, nsigm)
-        if dtype == np.int    : return self.aap.peak_finder_v3r2_i3(nda, msk, rank, r0, dr, nsigm)
+        if dtype == np.int32  : return self.aap.peak_finder_v3r2_i3(nda, msk, rank, r0, dr, nsigm)
         if dtype == np.int16  : return self.aap.peak_finder_v3r2_s3(nda, msk, rank, r0, dr, nsigm)
         if dtype == np.uint16 : return self.aap.peak_finder_v3r2_u3(nda, msk, rank, r0, dr, nsigm)
 
@@ -656,7 +622,6 @@ class PyAlgos(object) :
 
         return None
 
-##-----------------------------
 
     def maps_of_local_minimums(self) :
 
@@ -665,7 +630,6 @@ class PyAlgos(object) :
         if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_local_minimums arr:')
         return arr
 
-##-----------------------------
 
     def maps_of_local_maximums(self) :
 
@@ -674,8 +638,6 @@ class PyAlgos(object) :
         if self.pbits & 128 : print_arr_attr(arr, cmt='maps_of_local_maximums arr:')
         return arr
 
-##-----------------------------
-##-----------------------------
 
 def subtract_bkgd(data, bkgd, mask=None, winds=None, pbits=0) :
     """Subtracts numpy array of bkgd from data using normalization in windows.
@@ -684,7 +646,6 @@ def subtract_bkgd(data, bkgd, mask=None, winds=None, pbits=0) :
     """
     return piagu.subtract_bkgd(data, bkgd, mask, winds, pbits)
 
-##-----------------------------
 
 def photons_2d(data, mask=None, thr_fraction=0.9) :
     """returns 2-d array with number of merged photons per pixel
@@ -697,26 +658,20 @@ def photons_2d(data, mask=None, thr_fraction=0.9) :
     else :
         if msk.dtype != np.uint8  : raise ValueError('Mask dtype=%s, but expected np.uint8' % str(msk.dtype))
         if msk.shape != nda.shape : raise ValueError('msk.shape=%s is different from array shape=%s' % (str(msk.shape), str(nda.shape)))
-        
+
     ndim, dtype = nda.ndim, nda.dtype
 
     if ndim != 2 : raise ValueError('photons_2d: number of dimensions is %d, expected 2-d' % ndim)
 
     if dtype == np.float32: return ImgAlgos.map_photon_numbers_v1_f2(nda, msk, thr)
     if dtype == np.float64: return ImgAlgos.map_photon_numbers_v1_d2(nda, msk, thr)
-    #if dtype == np.int    : return ImgAlgos.map_photon_numbers_v1_i2(nda, msk, thr)
+    #if dtype == np.int32  : return ImgAlgos.map_photon_numbers_v1_i2(nda, msk, thr)
     #if dtype == np.int16  : return ImgAlgos.map_photon_numbers_v1_s2(nda, msk, thr)
     #if dtype == np.uint16 : return ImgAlgos.map_photon_numbers_v1_u2(nda, msk, thr)
 
     print('WARNING: PyAlgos.photons_2d method is not implemented for ndim = %d, dtype = %s' % (ndim, str(dtype)))
     return None
 
-#arr = ImgAlgos.local_maximums_f2(data, mask, 5)
-#arr = ImgAlgos.local_maximums_cross1(data)
-
-##-----------------------------
-##-----------------------------
-##-----------------------------
 
 def photons(data, mask, thr_fraction=0.9) :
     """returns 2-d or 3-d array with number of merged photons per pixel
@@ -735,9 +690,7 @@ def photons(data, mask, thr_fraction=0.9) :
 
     return np.array([photons_2d(nda[s,:,:], msk[s,:,:], thr_fraction) for s in range(nda.shape[0])], dtype=np.uint16)
 
-##-----------------------------
 ##---------- TEST -------------
-##-----------------------------
 
 def test_photons_2d() :
     from time import time
@@ -763,14 +716,13 @@ def test_photons_2d() :
     plotImageLarge(arr, title='array')
     show()
 
-##-----------------------------
 
 def test_photons_2d_chuck() :
     from time import time
 
     shape = (4,4)
     mask  = np.ones(shape, dtype=np.uint8)
-    data  = np.array(((0.0, 3.5, 0.1, 0.2),   
+    data  = np.array(((0.0, 3.5, 0.1, 0.2),
                       (0.2, 0.4, 0.0, 1.2),
                       (0.1, 4.7, 3.4, 0.0),
                       (0.5, 0.4, 0.4, 0.1)), dtype=np.float32)
@@ -778,7 +730,7 @@ def test_photons_2d_chuck() :
     #shape = (6,6)
     #mask  = np.ones(shape, dtype=np.uint8)
     #data  = np.array(((0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-    #                  (0.0, 0.0, 3.5, 0.1, 0.2, 0.0),    
+    #                  (0.0, 0.0, 3.5, 0.1, 0.2, 0.0),
     #                  (0.0, 0.2, 0.4, 0.0, 1.2, 0.0),
     #                  (0.0, 0.1, 4.7, 3.4, 0.0, 0.0),
     #                  (0.0, 0.5, 0.4, 0.4, 0.1, 0.0),
@@ -796,7 +748,6 @@ def test_photons_2d_chuck() :
 
     piagu.print_ndarr(arr, 'arr', last=10)
 
-##-----------------------------
 
 def test_photons_3d() :
     from time import time
@@ -826,7 +777,6 @@ def test_photons_3d() :
     plotImageLarge(arr2d, title='arr2d')
     show()
 
-##-----------------------------
 
 def test_pyalgos() :
 
@@ -838,15 +788,13 @@ def test_pyalgos() :
                (1, 0, 185, 0, 388), \
                (3, 0, 185, 0, 388))
     print_arr(windows, "windows")
-    
+
     alg = PyAlgos(windows, pbits=0)
     alg.print_attributes()
 
     print('\nC++ consumed time to get raw data (sec) = %10.6f' % (time()-t0_sec))
 
-##-----------------------------
-##-----------------------------
-##-----------------------------
+
 
 if __name__ == "__main__" :
 
@@ -863,4 +811,4 @@ if __name__ == "__main__" :
 
     sys.exit ('Self test is done.')
 
-##-----------------------------
+# EOF
